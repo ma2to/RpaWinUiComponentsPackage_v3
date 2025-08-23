@@ -635,7 +635,7 @@ internal sealed class DataGridResizeManager : IDisposable
 
 #region Event Args Classes
 
-public class ColumnResizeStartedEventArgs : EventArgs
+internal class ColumnResizeStartedEventArgs : EventArgs
 {
     public GridColumnDefinition Column { get; }
     public int ColumnIndex { get; }
@@ -649,7 +649,7 @@ public class ColumnResizeStartedEventArgs : EventArgs
     }
 }
 
-public class ColumnResizeChangedEventArgs : EventArgs
+internal class ColumnResizeChangedEventArgs : EventArgs
 {
     public GridColumnDefinition Column { get; }
     public int ColumnIndex { get; }
@@ -665,7 +665,7 @@ public class ColumnResizeChangedEventArgs : EventArgs
     }
 }
 
-public class ColumnResizeEndedEventArgs : EventArgs
+internal class ColumnResizeEndedEventArgs : EventArgs
 {
     public GridColumnDefinition Column { get; }
     public int ColumnIndex { get; }
