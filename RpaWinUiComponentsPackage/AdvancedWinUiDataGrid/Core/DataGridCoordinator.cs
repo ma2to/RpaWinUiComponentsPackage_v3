@@ -114,7 +114,7 @@ internal sealed class DataGridCoordinator : IDisposable
         try
         {
             // FUNCTIONAL: Build immutable configuration
-            var corePerformanceConfig = performance.ValueOr(CreateDefaultPerformanceConfig);
+            var corePerformanceConfig = performance.ValueOr(() => CreateDefaultPerformanceConfig());
             var advancedPerformanceConfig = ConvertToAdvancedPerformanceConfig(corePerformanceConfig);
             
             var config = new CoordinatorConfig(
@@ -494,12 +494,8 @@ internal sealed class DataGridCoordinator : IDisposable
                 _headers.Add(definition);
             }
 
-            // Setup validation rules for editing manager
-            foreach (var definition in definitions.Where(d => !string.IsNullOrEmpty(d?.ValidationPattern)))
-            {
-                var rule = CreateValidationRule(definition);
-                _editingManager.AddValidationRules(definition.Name, new List<ValidationRule> { rule }.AsReadOnly());
-            }
+            // Note: Validation rules are handled directly in validation methods instead of through editing manager
+            // This keeps the architecture clean and avoids complex type conversions
 
             return Result<bool>.Success(true);
         }

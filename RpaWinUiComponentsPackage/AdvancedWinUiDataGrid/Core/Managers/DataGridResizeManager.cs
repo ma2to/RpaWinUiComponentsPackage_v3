@@ -637,11 +637,11 @@ internal sealed class DataGridResizeManager : IDisposable
 
 public class ColumnResizeStartedEventArgs : EventArgs
 {
-    public ColumnDefinition Column { get; }
+    public GridColumnDefinition Column { get; }
     public int ColumnIndex { get; }
     public double OriginalWidth { get; }
 
-    public ColumnResizeStartedEventArgs(ColumnDefinition column, int columnIndex, double originalWidth)
+    public ColumnResizeStartedEventArgs(GridColumnDefinition column, int columnIndex, double originalWidth)
     {
         Column = column;
         ColumnIndex = columnIndex;
@@ -651,12 +651,12 @@ public class ColumnResizeStartedEventArgs : EventArgs
 
 public class ColumnResizeChangedEventArgs : EventArgs
 {
-    public ColumnDefinition Column { get; }
+    public GridColumnDefinition Column { get; }
     public int ColumnIndex { get; }
     public double OriginalWidth { get; }
     public double NewWidth { get; }
 
-    public ColumnResizeChangedEventArgs(ColumnDefinition column, int columnIndex, double originalWidth, double newWidth)
+    public ColumnResizeChangedEventArgs(GridColumnDefinition column, int columnIndex, double originalWidth, double newWidth)
     {
         Column = column;
         ColumnIndex = columnIndex;
@@ -667,13 +667,13 @@ public class ColumnResizeChangedEventArgs : EventArgs
 
 public class ColumnResizeEndedEventArgs : EventArgs
 {
-    public ColumnDefinition Column { get; }
+    public GridColumnDefinition Column { get; }
     public int ColumnIndex { get; }
     public double OriginalWidth { get; }
     public double FinalWidth { get; }
     public bool WasApplied { get; }
 
-    public ColumnResizeEndedEventArgs(ColumnDefinition column, int columnIndex, double originalWidth, double finalWidth, bool wasApplied)
+    public ColumnResizeEndedEventArgs(GridColumnDefinition column, int columnIndex, double originalWidth, double finalWidth, bool wasApplied)
     {
         Column = column;
         ColumnIndex = columnIndex;
