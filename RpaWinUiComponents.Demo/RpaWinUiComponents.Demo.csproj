@@ -1,0 +1,69 @@
+﻿<!-- Demo Application - PACKAGE REFERENCE Testing -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <UseWinUI>true</UseWinUI>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    
+    <!-- WinUI bootstrap configuration -->
+    <WindowsAppSDKBootstrapInitialize>true</WindowsAppSDKBootstrapInitialize>
+    <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
+    <EnableMsixTooling>false</EnableMsixTooling>
+    <GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
+    <GeneratePri>false</GeneratePri>
+    <CreatePriConfigXml>false</CreatePriConfigXml>
+    <UsePriGen>false</UsePriGen>
+    <EnableDefaultPriItems>false</EnableDefaultPriItems>
+    <EnableStaticWebAssets>false</EnableStaticWebAssets>
+    <SkipPriGen>true</SkipPriGen>
+    <MrtCoreSkip>true</MrtCoreSkip>
+    <DisablePriGeneration>true</DisablePriGeneration>
+    <SkipMrtCoreInitialization>true</SkipMrtCoreInitialization>
+    <EnableXamlGeneratedMain>false</EnableXamlGeneratedMain>
+    <UseMaui>false</UseMaui>
+    <UseMsixBundling>false</UseMsixBundling>
+    <UseRidGraph>true</UseRidGraph>
+    <WindowsPackageType>None</WindowsPackageType>
+    
+    <!-- Additional PRI disabling to prevent MSB4062 error -->
+    <UseAppxBundle>false</UseAppxBundle>
+    <AppxBundle>Never</AppxBundle>
+    <_PriIndexName>resources</_PriIndexName>
+    <EnableMrtCoreTargets>false</EnableMrtCoreTargets>
+    
+    <!-- Application properties -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Platforms>x86;x64;ARM64</Platforms>
+    <RuntimeIdentifier Condition="'$(Platform)' == 'x86'">win-x86</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(Platform)' == 'x64'">win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(Platform)' == 'ARM64'">win-arm64</RuntimeIdentifier>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- CRITICAL: Project reference for development testing -->
+    <!-- Testing latest modular structure with clean API -->
+    <ProjectReference Include="..\RpaWinUiComponentsPackage\RpaWinUiComponentsPackage.csproj" />
+    
+    <!-- External logging implementation for testing -->
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
+    <PackageReference Include="RpaWinUiComponentsPackage" Version="2.1.2" />
+    
+    <!-- Package reference for testing published package -->
+    <!-- <PackageReference Include="RpaWinUiComponentsPackage" Version="2.1.2" /> -->
+    
+    <!-- Package reference with automatic dependencies -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+</Project>
