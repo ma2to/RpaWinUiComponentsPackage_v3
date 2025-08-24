@@ -5,7 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 // CLEAN PUBLIC API - jedine dostupne namespaces
-using RpaWinUiComponentsPackage.AdvancedDataGrid;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid;
 using RpaWinUiComponentsPackage.LoggerComponent;
 
 namespace RpaWinUiComponents.Demo;
