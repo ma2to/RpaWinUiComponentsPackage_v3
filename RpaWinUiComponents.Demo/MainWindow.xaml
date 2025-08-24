@@ -3,7 +3,7 @@
     x:Class="RpaWinUiComponents.Demo.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:controls="using:RpaWinUiComponentsPackage.AdvancedDataGrid"
+    xmlns:controls="using:RpaWinUiComponentsPackage.AdvancedWinUiDataGrid"
     Title="RPA WinUI Components Demo - Package Reference Testing">
 
     <Grid>
@@ -92,7 +92,7 @@
         <!-- Main DataGrid Testing Area -->
         <Border Grid.Row="1" BorderBrush="{ThemeResource ControlStrokeColorDefault}" BorderThickness="1" Margin="10,5">
             <!-- Testing AdvancedDataGrid with simplified templates -->
-            <controls:DataGrid x:Name="TestDataGrid" />
+            <controls:AdvancedDataGrid x:Name="TestDataGrid" />
         </Border>
 
         <!-- Live Log Output -->

@@ -1,10 +1,10 @@
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.API;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid;
 
 /// <summary>
 /// Clean API configuration class pre validačné pravidlá DataGrid
 /// Používa sa namiesto internal IValidationConfiguration
 /// </summary>
-internal class ValidationConfiguration
+public class ValidationConfiguration
 {
     /// <summary>
     /// Validačné pravidlá pre jednotlivé stĺpce

@@ -1,11 +1,11 @@
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.API;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid;
 
 /// <summary>
 /// Clean API configuration class pre farby DataGrid elementov
 /// Používa sa namiesto internal DataGridColorConfig
 /// Všetky farby sú voliteľné - ak nie sú nastavené, použijú sa default hodnoty
 /// </summary>
-internal class ColorConfiguration
+public class ColorConfiguration
 {
     /// <summary>Farba pozadia buniek</summary>
     public string? CellBackground { get; set; }
@@ -48,4 +48,7 @@ internal class ColorConfiguration
     
     /// <summary>Farba textu status baru</summary>
     public string? StatusBarForeground { get; set; }
+    
+    /// <summary>Používa dark theme</summary>
+    public bool UseDarkTheme { get; set; } = false;
 }

@@ -20,9 +20,9 @@ public interface IDataGridComponent
     /// Supports both UI and headless scenarios
     /// </summary>
     Task<bool> InitializeAsync(
-        IReadOnlyList<ColumnConfiguration> columns,
-        ColorConfiguration? colorConfig = null,
-        ValidationConfiguration? validationConfig = null,
+        IReadOnlyList<RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.ColumnConfiguration> columns,
+        RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.ColorConfiguration? colorConfig = null,
+        RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.ValidationConfiguration? validationConfig = null,
         CorePerformanceConfiguration? performanceConfig = null,
         int minimumRows = 10,
         bool enableSort = true,

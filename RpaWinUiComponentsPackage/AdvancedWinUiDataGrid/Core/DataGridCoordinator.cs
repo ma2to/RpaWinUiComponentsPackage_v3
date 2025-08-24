@@ -373,13 +373,13 @@ internal sealed class DataGridCoordinator : IDisposable
                 DisplayName = col.DisplayName,
                 DataType = col.Type,
                 Width = col.Width,
-                IsReadOnly = col.IsReadOnly,
-                IsVisible = col.IsVisible,
-                IsSortable = col.CanSort,
-                IsFilterable = col.CanFilter,
-                IsValidationAlertsColumn = col.IsValidationColumn,
-                IsDeleteRowColumn = col.IsDeleteColumn,
-                IsCheckBoxColumn = col.IsCheckBoxColumn
+                IsReadOnly = col.IsReadOnly ?? false,
+                IsVisible = col.IsVisible ?? true,
+                IsSortable = col.CanSort ?? true,
+                IsFilterable = col.CanFilter ?? true,
+                IsValidationAlertsColumn = col.IsValidationColumn ?? false,
+                IsDeleteRowColumn = col.IsDeleteColumn ?? false,
+                IsCheckBoxColumn = col.IsCheckboxColumn ?? false
             }).ToList().AsReadOnly();
 
             return Result<IReadOnlyList<GridColumnDefinition>>.Success(definitions);

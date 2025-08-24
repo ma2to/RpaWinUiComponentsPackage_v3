@@ -1,10 +1,10 @@
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.API;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid;
 
 /// <summary>
 /// Clean API configuration class pre definíciu stĺpca DataGrid
 /// Používa sa namiesto internal GridColumnDefinition
 /// </summary>
-internal class ColumnConfiguration
+public class ColumnConfiguration
 {
     /// <summary>Názov stĺpca (povinný)</summary>
     public string? Name { get; set; }
@@ -47,4 +47,22 @@ internal class ColumnConfiguration
     
     /// <summary>Maximálna dĺžka hodnoty v stĺpci</summary>
     public int? MaxLength { get; set; }
+    
+    /// <summary>Môže sa stĺpec sortovať</summary>
+    public bool? CanSort { get; set; }
+    
+    /// <summary>Môže sa stĺpec filtrovať</summary>
+    public bool? CanFilter { get; set; }
+    
+    /// <summary>Môže sa stĺpec meniť veľkosť</summary>
+    public bool? CanResize { get; set; }
+    
+    /// <summary>Default hodnota pre nové bunky</summary>
+    public object? DefaultValue { get; set; }
+    
+    /// <summary>Format pre zobrazenie hodnôt</summary>
+    public string? DisplayFormat { get; set; }
+    
+    /// <summary>Validačný pattern pre stĺpec</summary>
+    public string? ValidationPattern { get; set; }
 }

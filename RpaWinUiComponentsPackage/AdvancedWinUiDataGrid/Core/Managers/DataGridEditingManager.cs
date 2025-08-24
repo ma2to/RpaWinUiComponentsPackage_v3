@@ -8,7 +8,7 @@ using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Modules.Table.Models;
 using RpaWinUiComponentsPackage.Core.Models;
 using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml;
-using ColumnDefinition = RpaWinUiComponentsPackage.Core.Models.ColumnConfiguration;
+using ColumnDefinition = RpaWinUiComponentsPackage.Core.Models.CoreColumnConfiguration;
 
 namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Core.Managers;
 

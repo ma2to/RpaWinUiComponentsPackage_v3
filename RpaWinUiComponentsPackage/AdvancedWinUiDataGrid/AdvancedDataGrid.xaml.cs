@@ -146,7 +146,7 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
 
         var options = new ImportOptions(
             ReplaceExistingData: insertMode == ImportMode.Replace,
-            ValidateBeforeImport: _state.Validation.EnableBatchValidation
+            ValidateBeforeImport: _state.Validation.EnableBatchValidation ?? true
         );
 
         return await _coordinator.ImportDataAsync(data, Option<ImportOptions>.Some(options));

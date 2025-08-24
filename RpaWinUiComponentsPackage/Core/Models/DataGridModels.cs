@@ -7,7 +7,7 @@ namespace RpaWinUiComponentsPackage.Core.Models;
 /// <summary>
 /// Column configuration for DataGrid
 /// </summary>
-public class ColumnConfiguration
+public class CoreColumnConfiguration
 {
     public string Name { get; set; } = string.Empty;
     public string DisplayName { get; set; } = string.Empty;
@@ -33,7 +33,7 @@ public class ColumnConfiguration
 /// SUPPORTS: Default colors that can be customized in applications
 /// ALL COLORS: Have professional defaults but can be overridden
 /// </summary>
-public class ColorConfiguration
+public class CoreColorConfiguration
 {
     // CELL COLORS - Professional defaults, customizable by application
     public string CellBackground { get; set; } = "#FFFFFF";           // White
@@ -93,7 +93,7 @@ public class ColorConfiguration
     public void ResetToDefaults()
     {
         // Reset to constructor defaults
-        var defaultConfig = new ColorConfiguration();
+        var defaultConfig = new CoreColorConfiguration();
         CellBackground = defaultConfig.CellBackground;
         CellForeground = defaultConfig.CellForeground;
         CellBorder = defaultConfig.CellBorder;
@@ -112,7 +112,7 @@ public class ColorConfiguration
 /// PROFESSIONAL Validation configuration for DataGrid
 /// SUPPORTS: Multiple rules per column, cross-row/column validations, custom error messages
 /// </summary>
-public class ValidationConfiguration
+public class CoreValidationConfiguration
 {
     public bool EnableRealtimeValidation { get; set; } = true;
     public bool EnableBatchValidation { get; set; } = true;
