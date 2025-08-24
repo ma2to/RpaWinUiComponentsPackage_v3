@@ -12,7 +12,7 @@ using System.Reactive.Linq;
 using ValidationResult = RpaWinUiComponentsPackage.Core.Models.ValidationResult;
 using ValidationRule = RpaWinUiComponentsPackage.Core.Models.ValidationRule;
 using ValidationSeverity = RpaWinUiComponentsPackage.Core.Models.ValidationSeverity;
-using PerformanceConfiguration = RpaWinUiComponentsPackage.Core.Models.PerformanceConfiguration;
+using PerformanceConfiguration = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.PerformanceConfiguration;
 using GridColumnDefinition = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Modules.Table.Models.GridColumnDefinition;
 
 namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Core;
@@ -114,8 +114,7 @@ internal sealed class DataGridCoordinator : IDisposable
         try
         {
             // FUNCTIONAL: Build immutable configuration
-            var corePerformanceConfig = performance.ValueOr(() => CreateDefaultPerformanceConfig());
-            var advancedPerformanceConfig = ConvertToAdvancedPerformanceConfig(corePerformanceConfig);
+            var advancedPerformanceConfig = performance.ValueOr(() => CreateDefaultAdvancedPerformanceConfig());
             
             var config = new CoordinatorConfig(
                 Logger: logger,
@@ -136,7 +135,17 @@ internal sealed class DataGridCoordinator : IDisposable
     }
 
     /// <summary>
-    /// FUNCTIONAL: Pure function to create default configurations
+    /// FUNCTIONAL: Pure function to create default Advanced PerformanceConfiguration
+    /// </summary>
+    private static RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.PerformanceConfiguration CreateDefaultAdvancedPerformanceConfig() => new()
+    {
+        VirtualizationThreshold = 1000,
+        BatchSize = 1000,
+        RenderDelayMs = 100
+    };
+
+    /// <summary>
+    /// FUNCTIONAL: Pure function to create default Core configurations  
     /// </summary>
     private static RpaWinUiComponentsPackage.Core.Models.PerformanceConfiguration CreateDefaultPerformanceConfig() => new()
     {
@@ -560,7 +569,7 @@ internal sealed class DataGridCoordinator : IDisposable
     /// <summary>
     /// FUNCTIONAL: Convert Core PerformanceConfiguration to Advanced PerformanceConfiguration
     /// </summary>
-    private RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.PerformanceConfiguration ConvertToAdvancedPerformanceConfig(RpaWinUiComponentsPackage.Core.Models.PerformanceConfiguration coreConfig)
+    private static RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.PerformanceConfiguration ConvertToAdvancedPerformanceConfig(RpaWinUiComponentsPackage.Core.Models.PerformanceConfiguration coreConfig)
     {
         if (coreConfig == null)
         {
