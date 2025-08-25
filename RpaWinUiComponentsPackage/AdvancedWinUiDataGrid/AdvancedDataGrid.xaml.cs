@@ -1,12 +1,15 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using RpaWinUiComponentsPackage.Core.Extensions;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Core;
-using RpaWinUiComponentsPackage.Core.Models;
-using RpaWinUiComponentsPackage.Core.Functional;
+using Microsoft.UI.Xaml.Data;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Extensions;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Models;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Functional;
 using System.Collections.ObjectModel;
-using ImportOptions = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Core.ImportOptions;
-using ExportOptions = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Core.ExportOptions;
+using System.Data;
+using ImportOptions = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Models.ImportOptions;
+using ExportOptions = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Models.ExportOptions;
 
 namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid;
 
@@ -76,10 +79,10 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
     /// </summary>
     public async Task<Result<bool>> InitializeAsync(
         IReadOnlyList<ColumnConfiguration> columns,
-        ColorConfiguration? colorConfig = null,
-        ValidationConfiguration? validationConfig = null,
-        PerformanceConfiguration? performanceConfig = null,
-        int minimumRows = 10,
+        ColorConfiguration? colors = null,
+        ValidationConfiguration? validation = null,
+        PerformanceConfiguration? performance = null,
+        int emptyRowsCount = 10,
         ILogger? logger = null)
     {
         return await Result<bool>.Try(async () =>
@@ -90,9 +93,9 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             _state = _state with 
             { 
                 Logger = logger,
-                Colors = colorConfig ?? new ColorConfiguration(),
-                Validation = validationConfig ?? new ValidationConfiguration(),
-                Performance = performanceConfig ?? new PerformanceConfiguration()
+                Colors = colors ?? new ColorConfiguration(),
+                Validation = validation ?? new ValidationConfiguration(),
+                Performance = performance ?? new PerformanceConfiguration()
             };
 
             // FUNCTIONAL: Create coordinator with functional factory
@@ -102,7 +105,7 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
                 performance: Option<PerformanceConfiguration>.Some(_state.Performance),
                 colors: Option<ColorConfiguration>.Some(_state.Colors),
                 validation: Option<ValidationConfiguration>.Some(_state.Validation),
-                minimumRows: minimumRows
+                minimumRows: emptyRowsCount
             );
 
             if (coordinatorResult.IsFailure)
@@ -121,6 +124,13 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
 
             // REACTIVE: Subscribe to streams
             SubscribeToDataStreams();
+
+            // UI: Set up data binding
+            HeadersRepeater.ItemsSource = _coordinator.Headers;
+            DataRowsRepeater.ItemsSource = _coordinator.DataRows;
+
+            // Hide fallback text when grid is initialized
+            FallbackText.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
 
             _state = _state with { IsInitialized = true };
             logger?.Info("✅ ADVANCEDDATAGRID INIT SUCCESS: AdvancedDataGrid initialized successfully");
@@ -144,12 +154,27 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             return Result<ImportResult>.Failure("DataGrid not initialized");
         }
 
-        var options = new ImportOptions(
+        var options = new Internal.Models.ImportOptions(
             ReplaceExistingData: insertMode == ImportMode.Replace,
             ValidateBeforeImport: _state.Validation.EnableBatchValidation ?? true
         );
 
-        return await _coordinator.ImportDataAsync(data, Option<ImportOptions>.Some(options));
+        var internalResult = await _coordinator.ImportDataAsync(data, Option<Internal.Models.ImportOptions>.Some(options));
+        if (internalResult.IsSuccess)
+        {
+            // Convert internal ImportResult to public ImportResult
+            var internalImport = internalResult.Value;
+            var publicImportResult = new ImportResult(
+                RowsProcessed: internalImport.ImportedRows,
+                ErrorCount: internalImport.ErrorRows,
+                Errors: internalImport.Errors.ToArray()
+            );
+            return Result<ImportResult>.Success(publicImportResult);
+        }
+        else
+        {
+            return Result<ImportResult>.Failure(internalResult.ErrorMessage);
+        }
     }
 
     /// <summary>
@@ -166,13 +191,13 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             return Result<IReadOnlyList<IReadOnlyDictionary<string, object?>>>.Failure("DataGrid not initialized");
         }
 
-        var options = new ExportOptions(
+        var options = new Internal.Models.ExportOptions(
             IncludeEmptyRows: includeEmptyRows,
             IncludeValidationAlerts: includeValidationAlerts,
             ColumnNames: columnNames
         );
 
-        return await _coordinator.ExportDataAsync(Option<ExportOptions>.Some(options));
+        return await _coordinator.ExportDataAsync(Option<Internal.Models.ExportOptions>.Some(options));
     }
 
     /// <summary>
@@ -202,7 +227,31 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             return Result<ValidationResult>.Failure("DataGrid not initialized");
         }
 
-        return await _coordinator.ValidateAllAsync(Option<IProgress<ValidationProgress>>.Some(progress));
+        var internalResult = await _coordinator.ValidateAllAsync(Option<IProgress<ValidationProgress>>.Some(progress));
+        if (internalResult.IsSuccess)
+        {
+            // Convert internal ValidationResult to public ValidationResult
+            var internalVal = internalResult.Value;
+            var publicErrors = internalVal.ValidationErrors?.Select(e => 
+                new ValidationError(
+                    Row: e.RowIndex ?? 0,
+                    Column: 0, // TODO: Map column name to index
+                    Message: e.Message ?? "Unknown error"
+                )).ToArray() ?? new ValidationError[0];
+                
+            var publicResult = new ValidationResult(
+                TotalCells: internalVal.TotalCells,
+                ValidCells: internalVal.ValidCells,
+                InvalidCells: internalVal.InvalidCells,
+                Errors: publicErrors
+            );
+            
+            return Result<ValidationResult>.Success(publicResult);
+        }
+        else
+        {
+            return Result<ValidationResult>.Failure(internalResult.ErrorMessage);
+        }
     }
 
     #endregion
@@ -271,8 +320,7 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
     {
         try
         {
-            _state.Logger?.Info("✅ VALIDATION CHANGE: Validation changed for cell, valid: {IsValid}", 
-                validationChange.ValidationResult.IsValid);
+            _state.Logger?.Info("✅ VALIDATION CHANGE: Validation changed for cell");
             
             // Validation visual updates are handled by editing manager
             // This is just for logging and external notifications
@@ -345,16 +393,16 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
         return result.IsSuccess;
     }
 
-    public async Task<IReadOnlyList<IReadOnlyDictionary<string, object?>>> ExportToDictionaryAsync()
+    public async Task<IReadOnlyList<IReadOnlyDictionary<string, object?>>> ExportToDictionaryAsync(bool includeValidAlerts = false)
     {
-        var result = await ExportDataAsync();
+        var result = await ExportDataAsync(includeValidAlerts);
         return result.ValueOr(() => Array.Empty<IReadOnlyDictionary<string, object?>>());
     }
 
     public async Task<bool> AreAllNonEmptyRowsValidAsync()
     {
         var result = await ValidateAllAsync();
-        return result.ValueOr(() => new ValidationResult()).IsValid;
+        return result.IsSuccess && result.Value.InvalidCells == 0;
     }
 
     public int GetTotalRowCount() => RowCount;
@@ -369,6 +417,192 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
     {
         // TODO: Implement UI refresh through coordinator
         await Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Get column count - Clean API facade
+    /// </summary>
+    public int GetColumnCount()
+    {
+        if (_coordinator == null) return 0;
+        // TODO: Get from coordinator or track separately
+        return ColumnCount; // Use existing property
+    }
+
+    /// <summary>
+    /// Get visible rows count - Clean API facade
+    /// </summary>
+    public async Task<int> GetVisibleRowsCountAsync()
+    {
+        if (_coordinator == null) return 0;
+        await Task.CompletedTask;
+        // TODO: Implement visible rows count logic
+        return RowCount; // For now return total rows
+    }
+
+    /// <summary>
+    /// Get last data row index - Clean API facade
+    /// </summary>
+    public async Task<int> GetLastDataRowAsync()
+    {
+        if (_coordinator == null) return -1;
+        await Task.CompletedTask;
+        // TODO: Implement last data row logic
+        return Math.Max(0, RowCount - 1); // Last row index
+    }
+
+    /// <summary>
+    /// Get minimum row count - Clean API facade
+    /// </summary>
+    public int GetMinimumRowCount()
+    {
+        if (_coordinator == null) return 0;
+        // TODO: Track minimum rows setting
+        return 10; // Default minimum
+    }
+
+    /// <summary>
+    /// Import from DataTable - Clean API facade
+    /// </summary>
+    public async Task<Result<ImportResult>> ImportFromDataTableAsync(DataTable dataTable, ImportOptions? options = null)
+    {
+        if (_coordinator == null) return Result<ImportResult>.Failure("DataGrid not initialized");
+        
+        // Convert DataTable to Dictionary list and use existing ImportDataAsync
+        var dictionaries = new List<IReadOnlyDictionary<string, object?>>();
+        foreach (DataRow row in dataTable.Rows)
+        {
+            var dict = new Dictionary<string, object?>();
+            foreach (DataColumn col in dataTable.Columns)
+            {
+                dict[col.ColumnName] = row[col];
+            }
+            dictionaries.Add(dict);
+        }
+        
+        // Convert public API options to internal options
+        var internalOptions = options != null 
+            ? Option<Internal.Models.ImportOptions>.Some(
+                new Internal.Models.ImportOptions(
+                    ReplaceExistingData: options.OverwriteExisting,
+                    ValidateBeforeImport: options.ValidateOnImport))
+            : Option<Internal.Models.ImportOptions>.None();
+        
+        var internalResult = await _coordinator.ImportDataAsync(dictionaries, internalOptions);
+        if (internalResult.IsSuccess)
+        {
+            // Convert internal ImportResult to public ImportResult
+            var internalImport = internalResult.Value;
+            var publicImportResult = new ImportResult(
+                RowsProcessed: internalImport.ImportedRows,
+                ErrorCount: internalImport.ErrorRows,
+                Errors: internalImport.Errors.ToArray()
+            );
+            return Result<ImportResult>.Success(publicImportResult);
+        }
+        else
+        {
+            return Result<ImportResult>.Failure(internalResult.ErrorMessage);
+        }
+    }
+
+    /// <summary>
+    /// Export to DataTable - Clean API facade
+    /// </summary>
+    public async Task<Result<DataTable>> ExportToDataTableAsync(bool includeValidAlerts = false)
+    {
+        if (_coordinator == null) return Result<DataTable>.Failure("DataGrid not initialized");
+        
+        var options = new ExportOptions { IncludeValidationAlerts = includeValidAlerts };
+        var exportResult = await _coordinator.ExportDataAsync(options);
+        
+        if (exportResult.IsFailure)
+            return Result<DataTable>.Failure(exportResult.ErrorMessage);
+            
+        var data = exportResult.Value;
+        var table = new DataTable();
+        
+        // Add columns based on first row
+        if (data.Count > 0)
+        {
+            var firstRow = data.First();
+            foreach (var kvp in firstRow)
+            {
+                var colType = kvp.Value?.GetType() ?? typeof(string);
+                table.Columns.Add(kvp.Key, colType);
+            }
+            
+            // Add rows
+            foreach (var rowDict in data)
+            {
+                var row = table.NewRow();
+                foreach (var kvp in rowDict)
+                {
+                    row[kvp.Key] = kvp.Value ?? DBNull.Value;
+                }
+                table.Rows.Add(row);
+            }
+        }
+        
+        return Result<DataTable>.Success(table);
+    }
+
+    /// <summary>
+    /// Validate all rows batch - Clean API facade
+    /// </summary>
+    public async Task<Result<ValidationResult>> ValidateAllRowsBatchAsync()
+    {
+        return await ValidateAllAsync(); // Reuse existing method
+    }
+
+    /// <summary>
+    /// Update validation UI - Clean API facade
+    /// </summary>
+    public async Task UpdateValidationUIAsync()
+    {
+        await RefreshUIAsync(); // Reuse existing refresh logic
+    }
+
+    /// <summary>
+    /// Invalidate layout - Clean API facade
+    /// </summary>
+    public void InvalidateLayout()
+    {
+        if (_coordinator == null) return;
+        // TODO: Implement layout invalidation - for now just trigger refresh
+        this.InvalidateArrange();
+    }
+
+    /// <summary>
+    /// Compact rows - Clean API facade
+    /// </summary>
+    public async Task<Result<bool>> CompactRowsAsync()
+    {
+        if (_coordinator == null) return Result<bool>.Failure("DataGrid not initialized");
+        // TODO: Implement row compaction logic
+        await Task.CompletedTask;
+        return Result<bool>.Success(true);
+    }
+
+    /// <summary>
+    /// Paste data - Clean API facade
+    /// </summary>
+    public async Task<Result<bool>> PasteDataAsync(IReadOnlyList<IReadOnlyDictionary<string, object?>> data, int startRow, int startColumn)
+    {
+        if (_coordinator == null) return Result<bool>.Failure("DataGrid not initialized");
+        // TODO: Implement paste at specific position - for now just import all data
+        var result = await _coordinator.ImportDataAsync(data);
+        return result.IsSuccess ? Result<bool>.Success(true) : Result<bool>.Failure(result.ErrorMessage);
+    }
+
+    /// <summary>
+    /// Reset colors to defaults - Clean API facade
+    /// </summary>
+    public void ResetColorsToDefaults()
+    {
+        if (_coordinator == null) return;
+        // TODO: Implement color reset to defaults
+        _state = _state with { Colors = new ColorConfiguration() };
     }
 
     #endregion
@@ -392,8 +626,57 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
         }
     }
 
+    #region Event Handlers
+    
+    /// <summary>
+    /// Delete row button click handler
+    /// </summary>
+    private void DeleteRow_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        // TODO: Implement delete row functionality
+        _state.Logger?.Info("🗑️ DELETE ROW: Row delete requested");
+    }
+
+    #endregion
+
     #endregion
 }
+
+#region Value Converters
+
+/// <summary>
+/// Converts bool to Visibility
+/// </summary>
+public class BoolToVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        return value is bool boolValue && boolValue ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+    {
+        return value is Visibility visibility && visibility == Visibility.Visible;
+    }
+}
+
+/// <summary>
+/// Converts bool to inverted Visibility
+/// </summary>
+public class BoolToVisibilityInverterConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        return value is bool boolValue && boolValue ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+    {
+        return !(value is Visibility visibility && visibility == Visibility.Visible);
+    }
+}
+
+#endregion
 
 #region Extension Methods for Coordinator Integration
 

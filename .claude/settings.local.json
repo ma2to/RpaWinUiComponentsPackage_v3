@@ -26,12 +26,22 @@
       "Read(/D:\\d\\www\\RB0120APP\\RpaWinUiComponentsPackage/**)",
       "Read(/D:\\d\\www\\RB0120APP\\RpaWinUiComponentsPackage/**)",
       "Read(/D:\\d\\www\\RB0120APP\\RpaWinUiComponentsPackage/**)",
-      "Read(/D:\\d\\www\\RB0120APP\\RpaWinUiComponentsPackage/**)"
+      "Read(/D:\\d\\www\\RB0120APP\\RpaWinUiComponentsPackage/**)",
+      "Bash(grep:*)",
+      "Bash(cmd /c:*)",
+      "Read(/D:\\D:\\www\\RB0120APP/**)",
+      "Read(/D:\\D:\\www\\RB0120APP/**)",
+      "Read(/D:\\D:\\www\\RB0120APP/**)",
+      "Read(/D:\\D:\\www\\RB0120APP\\RpaWinUiComponentsPackage/**)",
+      "Read(/D:\\D:\\www\\RB0120APP/**)",
+      "Bash(mkdir:*)",
+      "Bash(do sed -i 's/using RpaWinUiComponentsPackage\\.AdvancedWinUiDataGrid\\.Modules/using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Models/g' \"D:\\www\\RB0120APP\\RpaWinUiComponentsPackage\\RpaWinUiComponentsPackage\\AdvancedWinUiDataGrid\\Internal\\Managers$file\")"
     ],
     "deny": [],
     "ask": [],
     "additionalDirectories": [
-      "D:\\d\\www\\RB0120APP\\RpaWinUiComponentsPackage"
+      "D:\\d\\www\\RB0120APP\\RpaWinUiComponentsPackage",
+      "D:\\"
     ]
   }
 }

@@ -4,9 +4,9 @@ using Microsoft.UI.Xaml.Controls;
 using System.Data;
 using System.Linq;
 using System.Text;
-// CLEAN PUBLIC API - jedine dostupne namespaces
+// CLEAN PUBLIC API - Jediný using statement!
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid;
-using RpaWinUiComponentsPackage.LoggerComponent;
+using RpaWinUiComponentsPackage.AdvancedWinUiLogger;
 
 namespace RpaWinUiComponents.Demo;
 
@@ -36,7 +36,7 @@ public sealed partial class MainWindow : Window
         
         // Setup file logger using CLEAN PUBLIC API
         var tempLogDir = Path.Combine(Path.GetTempPath(), "RpaWinUiDemo");
-        _fileLogger = LoggerAPI.CreateFileLogger(
+        _fileLogger = LoggerAPIComponent.CreateFileLogger(
             externalLogger: _logger,
             logDirectory: tempLogDir,
             baseFileName: "demo",
@@ -44,7 +44,7 @@ public sealed partial class MainWindow : Window
         );
 
         AddLogMessage("🚀 Demo application started - Testing package reference mode");
-        AddLogMessage($"📂 File logging to: {LoggerAPI.GetCurrentLogFile(_fileLogger)}");
+        AddLogMessage($"📂 File logging to: {LoggerAPIComponent.GetCurrentLogFile(_fileLogger)}");
         AddLogMessage("✅ LoggerComponent now uses CLEAN PUBLIC API - LoggerAPI.CreateFileLogger()");
     }
 
@@ -65,7 +65,7 @@ public sealed partial class MainWindow : Window
             // ELEGANT SOLUTION: Use CLEAN PUBLIC API for package logger
             // LoggerAPI creates ILogger that forwards to external logger (Console/Debug) AND writes to files
             var appLogger = App.LoggerFactory.CreateLogger("DataGrid");
-            var packageLogger = LoggerAPI.CreateFileLogger(
+            var packageLogger = LoggerAPIComponent.CreateFileLogger(
                 externalLogger: appLogger,
                 logDirectory: Path.Combine(Path.GetTempPath(), "RpaWinUiDemo", "PackageLogs"),
                 baseFileName: "dataGrid",
@@ -329,7 +329,7 @@ public sealed partial class MainWindow : Window
             
             // ELEGANT SOLUTION: Use CLEAN PUBLIC API for validation init too
             var appLogger = App.LoggerFactory.CreateLogger("DataGrid");
-            var packageLogger = LoggerAPI.CreateFileLogger(
+            var packageLogger = LoggerAPIComponent.CreateFileLogger(
                 externalLogger: appLogger,
                 logDirectory: Path.Combine(Path.GetTempPath(), "RpaWinUiDemo", "PackageLogs"),
                 baseFileName: "dataGrid",
@@ -464,9 +464,17 @@ public sealed partial class MainWindow : Window
             AddLogMessage("📤 DEMO ACTION: Exporting to DataTable...");
 
             // HEADLESS export  
-            var dataTable = await TestDataGrid.ExportToDataTableAsync(includeValidAlerts: false);
+            var dataTableResult = await TestDataGrid.ExportToDataTableAsync(includeValidAlerts: false);
 
-            AddLogMessage($"✅ Exported {dataTable.Rows.Count} rows, {dataTable.Columns.Count} columns to DataTable");
+            if (dataTableResult.IsSuccess)
+            {
+                var dataTable = dataTableResult.Value;
+                AddLogMessage($"✅ Exported {dataTable.Rows.Count} rows, {dataTable.Columns.Count} columns to DataTable");
+            }
+            else
+            {
+                AddLogMessage($"❌ Export to DataTable failed: {dataTableResult.ErrorMessage}");
+            }
         }
         catch (Exception ex)
         {
@@ -541,9 +549,9 @@ public sealed partial class MainWindow : Window
             AddLogMessage("✅ DEMO ACTION: Running batch validation...");
 
             // HEADLESS batch validation (NO automatic UI refresh)
-            var isValidationSuccessful = await TestDataGrid.ValidateAllRowsBatchAsync();
+            var validationResult = await TestDataGrid.ValidateAllRowsBatchAsync();
 
-            if (isValidationSuccessful)
+            if (validationResult.IsSuccess && validationResult.Value.InvalidCells == 0)
             {
                 AddLogMessage($"📊 Batch validation: Completed successfully");
                 
