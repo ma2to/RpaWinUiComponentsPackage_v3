@@ -561,19 +561,19 @@ internal sealed class DataGridSelectionManager : IDisposable
                 // Selection/Focus - blue selection
                 cell.BackgroundBrush = new SolidColorBrush(Color.FromArgb(80, 0, 120, 215));
                 cell.BorderThickness = (isFocused ?? cell.IsFocused) ? "2" : "1";
-                cell.BorderBrush = new SolidColorBrush(Colors.Blue);
+                cell.BorderBrush = "Blue";
             }
             else if (!cell.ValidationState)
             {
                 // Validation error - red border
-                cell.BorderBrush = new SolidColorBrush(Colors.Red);
+                cell.BorderBrush = "Red";
                 cell.BorderThickness = "2";
                 cell.BackgroundBrush = new SolidColorBrush(Colors.Transparent);
             }
             else
             {
                 // Normal state
-                cell.BorderBrush = new SolidColorBrush(Colors.Black);
+                cell.BorderBrush = "#808080";
                 cell.BorderThickness = "1";
                 cell.BackgroundBrush = new SolidColorBrush(Colors.Transparent);
             }

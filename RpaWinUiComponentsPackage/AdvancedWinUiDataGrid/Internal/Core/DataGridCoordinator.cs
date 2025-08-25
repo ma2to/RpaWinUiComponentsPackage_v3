@@ -680,7 +680,9 @@ internal sealed class DataGridCoordinator : IDisposable
                             IsFocused = false,
                             ColumnWidth = header.Width,
                             IsValidationCell = header.IsValidationColumn,
-                            IsDeleteCell = header.IsDeleteColumn
+                            IsDeleteCell = header.IsDeleteColumn,
+                            CellBackgroundBrush = "White",
+                            BorderBrush = "#808080"
                         };
                         
                         // Set validation info for validation cells
@@ -689,7 +691,17 @@ internal sealed class DataGridCoordinator : IDisposable
                             // TODO: Calculate actual validation errors for this row
                             cell.HasValidationErrors = CheckRowHasValidationErrors(rowData);
                             cell.ValidationErrorCount = CountRowValidationErrors(rowData);
-                            cell.Value = cell.HasValidationErrors ? $"{cell.ValidationErrorCount} errors" : "✓";
+                            cell.Value = cell.HasValidationErrors ? $"⚠️ {cell.ValidationErrorCount}" : "✓";
+                        }
+                        else
+                        {
+                            // Check if this specific cell has validation errors
+                            var hasError = CheckCellValidationError(header.Name, cellValue);
+                            if (hasError)
+                            {
+                                cell.BorderBrush = "Red"; // Validation error border
+                                cell.ValidationState = false;
+                            }
                         }
                         
                         newRow.Cells.Add(cell);
@@ -982,6 +994,28 @@ internal sealed class DataGridCoordinator : IDisposable
         if (!string.IsNullOrEmpty(email) && (!email.Contains("@") || !email.Contains("."))) errorCount++;
 
         return errorCount;
+    }
+
+    /// <summary>
+    /// Check if specific cell has validation error
+    /// </summary>
+    private bool CheckCellValidationError(string fieldName, object? value)
+    {
+        try
+        {
+            return fieldName.ToLower() switch
+            {
+                "name" => string.IsNullOrEmpty(value?.ToString()),
+                "age" => value != null && int.TryParse(value.ToString(), out int age) && (age < 0 || age > 120),
+                "email" => !string.IsNullOrEmpty(value?.ToString()) && 
+                          (!value.ToString()!.Contains("@") || !value.ToString()!.Contains(".")),
+                _ => false
+            };
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     #endregion

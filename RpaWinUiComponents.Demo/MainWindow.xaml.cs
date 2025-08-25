@@ -60,7 +60,7 @@ public sealed partial class MainWindow : Window
         {
             AddLogMessage("🔧 DEMO ACTION: Initializing basic DataGrid with comprehensive error logging...");
 
-            var columns = CreateBasicColumns();
+            var columns = CreateAdvancedColumns();
             
             // ELEGANT SOLUTION: Use CLEAN PUBLIC API for package logger
             // LoggerAPI creates ILogger that forwards to external logger (Console/Debug) AND writes to files

@@ -43,12 +43,18 @@
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="White" BorderBrush="#808080" BorderThickness="1,0,1,1" Height="28" Width="{Binding ColumnWidth}">
+                                    <Border Background="{Binding CellBackgroundBrush, FallbackValue=White}" 
+                                            BorderBrush="{Binding BorderBrush, FallbackValue=#808080}" 
+                                            BorderThickness="1,0,1,1" 
+                                            Height="28" 
+                                            Width="{Binding ColumnWidth}">
+                                        <!-- Content for regular cells -->
                                         <TextBlock Text="{Binding Value}" 
                                                    VerticalAlignment="Center" 
                                                    HorizontalAlignment="Left"
                                                    Margin="4,0,0,0"
-                                                   Foreground="Black"/>
+                                                   Foreground="Black"
+                                                   x:Name="RegularContent"/>
                                     </Border>
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>

@@ -2,6 +2,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Shapes;
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Extensions;
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Core;
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Models;
@@ -638,6 +640,8 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
     }
 
     #endregion
+
+    // TODO: Implement column resize handling
 
     #endregion
 }

@@ -700,8 +700,9 @@ public class DataGridCell
     public string? ValidationMessage { get; set; }
     public string? ValidationError { get; set; }
     public bool IsCopied { get; set; }
+    public string? CellBackgroundBrush { get; set; } = "White";
+    public string? BorderBrush { get; set; } = "#808080";
     public object? BackgroundBrush { get; set; }
-    public object? BorderBrush { get; set; }
     public object? BorderThickness { get; set; }
     
     // Special column properties
