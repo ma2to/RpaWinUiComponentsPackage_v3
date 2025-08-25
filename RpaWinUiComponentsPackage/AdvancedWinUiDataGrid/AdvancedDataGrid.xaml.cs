@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Shapes;
+using Microsoft.UI.Xaml.Media;
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Extensions;
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Core;
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Models;
@@ -631,17 +632,280 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
     #region Event Handlers
     
     /// <summary>
-    /// Delete row button click handler
+    /// Cell tap handler for selection
     /// </summary>
-    private void DeleteRow_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    public void CellBorder_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        // TODO: Implement delete row functionality
-        _state.Logger?.Info("🗑️ DELETE ROW: Row delete requested");
+        try
+        {
+            var border = sender as Border;
+            if (border?.Tag is not DataGridCell cell) return;
+
+            _state.Logger?.Info("🖱️ CELL TAPPED: Cell selected");
+            
+            // Highlight selected cell
+            cell.CellBackgroundBrush = "#E3F2FD"; // Light blue selection
+            cell.BorderBrush = "Blue";
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 CELL TAP ERROR: Failed to handle cell tap");
+        }
+    }
+
+    /// <summary>
+    /// Cell double-tap handler for editing
+    /// </summary>
+    public void CellBorder_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
+        try
+        {
+            var border = sender as Border;
+            if (border?.Tag is not DataGridCell cell) return;
+
+            // Find TextBlock inside the border and replace with TextBox for editing
+            if (border.Child is Grid grid)
+            {
+                var textBlock = grid.Children.OfType<TextBlock>().FirstOrDefault();
+                if (textBlock != null)
+                {
+                    // Create TextBox for editing
+                    var textBox = new TextBox
+                    {
+                        Text = cell.Value?.ToString() ?? "",
+                        VerticalAlignment = VerticalAlignment.Center,
+                        HorizontalAlignment = HorizontalAlignment.Stretch,
+                        Margin = new Thickness(2),
+                        BorderThickness = new Thickness(0),
+                        Background = new SolidColorBrush(Microsoft.UI.Colors.White)
+                    };
+
+                    // Handle editing completion
+                    textBox.LostFocus += (s, args) => EndCellEdit(textBox, cell, textBlock, grid);
+                    textBox.KeyDown += (s, args) => 
+                    {
+                        if (args.Key == Windows.System.VirtualKey.Enter)
+                        {
+                            EndCellEdit(textBox, cell, textBlock, grid);
+                        }
+                        else if (args.Key == Windows.System.VirtualKey.Escape)
+                        {
+                            // Cancel edit
+                            grid.Children.Remove(textBox);
+                            textBlock.Visibility = Visibility.Visible;
+                        }
+                    };
+
+                    // Replace TextBlock with TextBox
+                    textBlock.Visibility = Visibility.Collapsed;
+                    grid.Children.Add(textBox);
+                    textBox.Focus(FocusState.Keyboard);
+                    textBox.SelectAll();
+                }
+            }
+
+            _state.Logger?.Info("🖊️ CELL EDIT: Cell editing started");
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 CELL EDIT ERROR: Failed to start cell editing");
+        }
+    }
+
+    /// <summary>
+    /// End cell editing and save value
+    /// </summary>
+    private void EndCellEdit(TextBox textBox, DataGridCell cell, TextBlock textBlock, Grid grid)
+    {
+        try
+        {
+            // Update cell value
+            cell.Value = textBox.Text;
+            textBlock.Text = textBox.Text;
+            
+            // Remove TextBox and show TextBlock
+            grid.Children.Remove(textBox);
+            textBlock.Visibility = Visibility.Visible;
+            
+            _state.Logger?.Info("✅ CELL EDIT: Cell value updated to '{NewValue}'", textBox.Text);
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 CELL EDIT ERROR: Failed to end cell editing");
+        }
+    }
+
+    /// <summary>
+    /// Delete button click handler
+    /// </summary>
+    public async void DeleteButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var button = sender as Button;
+            if (button?.Tag is not DataGridCell cell) return;
+
+            // Find row index
+            var rowIndex = FindRowIndexForCell(cell);
+            if (rowIndex < 0) return;
+
+            _state.Logger?.Info("🗑️ DELETE ROW: Smart delete requested for row {RowIndex}", rowIndex);
+            
+            // Execute smart delete through coordinator
+            if (_coordinator != null)
+            {
+                await _coordinator.SmartDeleteRowAsync(rowIndex);
+            }
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 DELETE ROW ERROR: Failed to delete row");
+        }
+    }
+
+    /// <summary>
+    /// Find row index for given cell
+    /// </summary>
+    private int FindRowIndexForCell(DataGridCell cell)
+    {
+        try
+        {
+            if (_coordinator?.DataRows == null) return -1;
+
+            for (int i = 0; i < _coordinator.DataRows.Count; i++)
+            {
+                var row = _coordinator.DataRows[i];
+                if (row.Cells.Contains(cell))
+                    return i;
+            }
+            return -1;
+        }
+        catch
+        {
+            return -1;
+        }
     }
 
     #endregion
 
-    // TODO: Implement column resize handling
+    #region Column Resize Handling
+    
+    private bool _isResizing = false;
+    private int _resizingColumnIndex = -1;
+    private double _resizeOriginalWidth = 0;
+
+    private double _resizeStartX = 0;
+
+    /// <summary>
+    /// Column resize pointer pressed
+    /// </summary>
+    public void ResizeGrip_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        try
+        {
+            var grip = sender as Border;
+            if (grip?.Tag is not GridColumnDefinition column || _coordinator?.Headers == null) return;
+
+            _resizingColumnIndex = _coordinator.Headers.IndexOf(column);
+            if (_resizingColumnIndex < 0) return;
+
+            _isResizing = true;
+            _resizeOriginalWidth = column.Width;
+            _resizeStartX = e.GetCurrentPoint(grip).Position.X;
+            
+            grip.CapturePointer(e.Pointer);
+            _state.Logger?.Info("🔄 COLUMN RESIZE: Started resizing column {ColumnIndex} ({ColumnName})", 
+                _resizingColumnIndex, column.DisplayName);
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 COLUMN RESIZE ERROR: Failed to start column resize");
+        }
+    }
+
+    /// <summary>
+    /// Column resize pointer moved
+    /// </summary>
+    public void ResizeGrip_PointerMoved(object sender, PointerRoutedEventArgs e)
+    {
+        try
+        {
+            if (!_isResizing || _resizingColumnIndex < 0 || _coordinator?.Headers == null) return;
+
+            var grip = sender as Border;
+            if (grip == null) return;
+
+            var currentX = e.GetCurrentPoint(grip).Position.X;
+            var deltaX = currentX - _resizeStartX;
+            var newWidth = Math.Max(50, _resizeOriginalWidth + deltaX); // Minimum width 50
+
+            var column = _coordinator.Headers[_resizingColumnIndex];
+            column.Width = (int)newWidth;
+
+            // Update all cell widths in this column
+            foreach (var row in _coordinator.DataRows)
+            {
+                if (_resizingColumnIndex < row.Cells.Count)
+                {
+                    row.Cells[_resizingColumnIndex].ColumnWidth = newWidth;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 COLUMN RESIZE ERROR: Failed during column resize");
+        }
+    }
+
+    /// <summary>
+    /// Column resize pointer released
+    /// </summary>
+    public void ResizeGrip_PointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        EndColumnResize(sender as Border, e);
+    }
+
+    /// <summary>
+    /// Column resize pointer capture lost
+    /// </summary>
+    public void ResizeGrip_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
+    {
+        EndColumnResize(sender as Border, null);
+    }
+
+    /// <summary>
+    /// End column resize operation
+    /// </summary>
+    private void EndColumnResize(Border? grip, PointerRoutedEventArgs? e)
+    {
+        if (!_isResizing) return;
+
+        try
+        {
+            if (_coordinator?.Headers != null && _resizingColumnIndex >= 0 && _resizingColumnIndex < _coordinator.Headers.Count)
+            {
+                var finalWidth = _coordinator.Headers[_resizingColumnIndex].Width;
+                _state.Logger?.Info("✅ COLUMN RESIZE: Completed resizing column {ColumnIndex} to final width {Width}", 
+                    _resizingColumnIndex, finalWidth);
+            }
+
+            _isResizing = false;
+            _resizingColumnIndex = -1;
+            _resizeOriginalWidth = 0;
+            _resizeStartX = 0;
+
+            if (grip != null && e != null)
+            {
+                grip.ReleasePointerCapture(e.Pointer);
+            }
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 COLUMN RESIZE ERROR: Failed to complete column resize");
+        }
+    }
+
+    #endregion
 
     #endregion
 }

@@ -504,7 +504,11 @@ internal sealed class DataGridCoordinator : IDisposable
         try
         {
             _headers.Clear();
-            foreach (var definition in definitions)
+            
+            // Calculate ValidationAlerts width to fill available space
+            var processedDefinitions = CalculateValidationAlertsWidth(definitions);
+            
+            foreach (var definition in processedDefinitions)
             {
                 _headers.Add(definition);
             }
@@ -517,6 +521,45 @@ internal sealed class DataGridCoordinator : IDisposable
         catch (Exception ex)
         {
             return Result<bool>.Failure("Failed to apply column definitions", ex);
+        }
+    }
+
+    /// <summary>
+    /// Calculate ValidationAlerts column width to fill available space
+    /// </summary>
+    private IReadOnlyList<GridColumnDefinition> CalculateValidationAlertsWidth(IReadOnlyList<GridColumnDefinition> definitions)
+    {
+        try
+        {
+            var result = new List<GridColumnDefinition>(definitions);
+            var validationColumn = result.FirstOrDefault(col => col.IsValidationColumn);
+            
+            if (validationColumn != null)
+            {
+                // Calculate total width of non-special columns
+                var regularColumns = result.Where(col => !col.IsValidationColumn && !col.IsDeleteColumn).ToList();
+                var totalRegularWidth = regularColumns.Sum(col => col.Width);
+                
+                // Assume container width of 800px (this should ideally come from actual container)
+                var containerWidth = 800;
+                var deleteColumnWidth = result.FirstOrDefault(col => col.IsDeleteColumn)?.Width ?? 0;
+                
+                // ValidationAlerts fills the remaining space
+                var availableWidth = containerWidth - totalRegularWidth - deleteColumnWidth;
+                var validationWidth = Math.Max(100, availableWidth); // Minimum 100px
+                
+                validationColumn.Width = validationWidth;
+                
+                _config.Logger?.Info("📏 COLUMN WIDTH: ValidationAlerts width calculated as {Width}px (container: {ContainerWidth}px, regular: {RegularWidth}px, delete: {DeleteWidth}px)", 
+                    validationWidth, containerWidth, totalRegularWidth, deleteColumnWidth);
+            }
+            
+            return result.AsReadOnly();
+        }
+        catch (Exception ex)
+        {
+            _config.Logger?.Error(ex, "🚨 WIDTH CALCULATION ERROR: Failed to calculate ValidationAlerts width");
+            return definitions; // Return original if calculation fails
         }
     }
 
@@ -688,10 +731,11 @@ internal sealed class DataGridCoordinator : IDisposable
                         // Set validation info for validation cells
                         if (header.IsValidationColumn)
                         {
-                            // TODO: Calculate actual validation errors for this row
-                            cell.HasValidationErrors = CheckRowHasValidationErrors(rowData);
-                            cell.ValidationErrorCount = CountRowValidationErrors(rowData);
-                            cell.Value = cell.HasValidationErrors ? $"⚠️ {cell.ValidationErrorCount}" : "✓";
+                            // Get validation error messages for this row
+                            var errorMessages = GetRowValidationMessages(rowData);
+                            cell.HasValidationErrors = errorMessages.Count > 0;
+                            cell.ValidationErrorCount = errorMessages.Count;
+                            cell.Value = errorMessages.Count > 0 ? string.Join("; ", errorMessages) : "";
                         }
                         else
                         {
@@ -994,6 +1038,36 @@ internal sealed class DataGridCoordinator : IDisposable
         if (!string.IsNullOrEmpty(email) && (!email.Contains("@") || !email.Contains("."))) errorCount++;
 
         return errorCount;
+    }
+
+    /// <summary>
+    /// Get validation error messages for row
+    /// </summary>
+    private List<string> GetRowValidationMessages(IReadOnlyDictionary<string, object?> rowData)
+    {
+        var messages = new List<string>();
+        
+        try
+        {
+            var name = rowData.GetValueOrDefault("Name")?.ToString();
+            var age = rowData.GetValueOrDefault("Age");
+            var email = rowData.GetValueOrDefault("Email")?.ToString();
+
+            if (string.IsNullOrEmpty(name))
+                messages.Add("Name is required");
+            
+            if (age != null && int.TryParse(age.ToString(), out int ageInt) && (ageInt < 0 || ageInt > 120))
+                messages.Add("Age must be between 0 and 120");
+                
+            if (!string.IsNullOrEmpty(email) && (!email.Contains("@") || !email.Contains(".")))
+                messages.Add("Invalid email format");
+        }
+        catch
+        {
+            // Ignore errors in validation message generation
+        }
+        
+        return messages;
     }
 
     /// <summary>

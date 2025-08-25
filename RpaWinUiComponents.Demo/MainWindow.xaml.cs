@@ -866,7 +866,7 @@ public sealed partial class MainWindow : Window
             new() { Name = "Salary", DisplayName = "Salary", Type = typeof(decimal), Width = 120 },
             
             // Special columns (auto-positioned)
-            new() { Name = "ValidationAlerts", DisplayName = "Errors", IsValidationColumn = true, Width = 100 },
+            new() { Name = "ValidationAlerts", DisplayName = "Errors", IsValidationColumn = true, Width = 200 }, // Will be calculated dynamically
             new() { Name = "DeleteRows", DisplayName = "Delete", IsDeleteColumn = true, Width = 60 }
         };
     }
