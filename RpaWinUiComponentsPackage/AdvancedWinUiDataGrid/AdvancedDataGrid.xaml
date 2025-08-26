@@ -9,16 +9,18 @@
     </UserControl.Resources>
     
     <Grid x:Name="RootGrid" Background="White">
-        <!-- ScrollViewer configured for proper dynamic content -->
+        <!-- ScrollViewer configured for proper dynamic content with full container support -->
         <ScrollViewer x:Name="MainScrollViewer" 
                       ZoomMode="Disabled" 
                       HorizontalScrollMode="Auto" 
                       VerticalScrollMode="Auto" 
                       HorizontalScrollBarVisibility="Auto" 
-                      VerticalScrollBarVisibility="Auto">
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalAlignment="Stretch" 
+                      VerticalAlignment="Stretch">
             
-            <!-- Main content grid without fixed dimensions for proper scrolling -->
-            <Grid x:Name="MainContentGrid">
+            <!-- Main content grid with full width support -->
+            <Grid x:Name="MainContentGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/> <!-- Headers - fixed height -->
                     <RowDefinition Height="Auto"/> <!-- Data rows - dynamic height -->

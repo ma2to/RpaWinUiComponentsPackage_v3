@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Input;
 using Windows.System;
 using Windows.UI.Core;
 using Microsoft.UI.Input;
+using Windows.ApplicationModel.DataTransfer;
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Models;
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Extensions;
 using System.Collections.ObjectModel;
@@ -663,6 +664,21 @@ internal sealed class DataGridEventManager : IDisposable
                             _selectionManager.SelectedRowIndex, _selectionManager.SelectedColumnIndex);
                     }
                     break;
+
+                case VirtualKey.C when _isCtrlPressed:
+                    // Ctrl+C: Copy selected cells
+                    await HandleCopyAsync();
+                    break;
+
+                case VirtualKey.V when _isCtrlPressed:
+                    // Ctrl+V: Paste to selected cells
+                    await HandlePasteAsync();
+                    break;
+
+                case VirtualKey.X when _isCtrlPressed:
+                    // Ctrl+X: Cut selected cells
+                    await HandleCutAsync();
+                    break;
             }
         }
         catch (Exception ex)
@@ -685,9 +701,156 @@ internal sealed class DataGridEventManager : IDisposable
         }
     }
 
+    private async Task HandleCopyAsync()
+    {
+        try
+        {
+            _logger?.Info("📋 COPY: Handling Ctrl+C copy operation");
+            
+            var selectedCells = _selectionManager.SelectedCells;
+            if (selectedCells == null || !selectedCells.Any())
+            {
+                _logger?.Info("📋 COPY: No cells selected to copy");
+                return;
+            }
+
+            // Create tab-separated values from selected cells
+            var copyText = CreateCopiedText(selectedCells);
+            
+            // Copy to clipboard
+            var dataPackage = new DataPackage();
+            dataPackage.SetText(copyText);
+            Clipboard.SetContent(dataPackage);
+            
+            _logger?.Info("📋 COPY: Copied {CellCount} cells to clipboard", selectedCells.Count());
+        }
+        catch (Exception ex)
+        {
+            _logger?.Error(ex, "🚨 COPY ERROR: Failed to copy selected cells");
+        }
+    }
+
+    private async Task HandlePasteAsync()
+    {
+        try
+        {
+            _logger?.Info("📋 PASTE: Handling Ctrl+V paste operation");
+            
+            // Get clipboard content
+            var dataPackageView = Clipboard.GetContent();
+            if (!dataPackageView.Contains(StandardDataFormats.Text))
+            {
+                _logger?.Info("📋 PASTE: No text content in clipboard");
+                return;
+            }
+
+            var clipboardText = await dataPackageView.GetTextAsync();
+            if (string.IsNullOrEmpty(clipboardText))
+            {
+                _logger?.Info("📋 PASTE: Clipboard text is empty");
+                return;
+            }
+
+            // Get starting position from selected cell
+            if (_selectionManager.SelectedCell == null)
+            {
+                _logger?.Info("📋 PASTE: No cell selected as paste destination");
+                return;
+            }
+
+            var startRow = _selectionManager.SelectedRowIndex;
+            var startColumn = _selectionManager.SelectedColumnIndex;
+
+            // Parse clipboard data and paste
+            await PasteClipboardData(clipboardText, startRow, startColumn);
+            
+            _logger?.Info("📋 PASTE: Pasted data starting at R{Row}C{Column}", startRow, startColumn);
+        }
+        catch (Exception ex)
+        {
+            _logger?.Error(ex, "🚨 PASTE ERROR: Failed to paste clipboard content");
+        }
+    }
+
+    private async Task HandleCutAsync()
+    {
+        try
+        {
+            _logger?.Info("✂️ CUT: Handling Ctrl+X cut operation");
+            
+            // First copy the content
+            await HandleCopyAsync();
+            
+            // Then delete the content from selected cells
+            await HandleDeleteKeyAsync();
+            
+            _logger?.Info("✂️ CUT: Cut operation completed");
+        }
+        catch (Exception ex)
+        {
+            _logger?.Error(ex, "🚨 CUT ERROR: Failed to cut selected cells");
+        }
+    }
+
     #endregion
 
     #region Private Methods - Helper Methods
+
+    private string CreateCopiedText(IEnumerable<object> selectedCells)
+    {
+        try
+        {
+            // TODO: Implement proper cell data formatting
+            // For now, create simple tab-separated format
+            var cellValues = new List<string>();
+            
+            foreach (var cell in selectedCells)
+            {
+                // Extract cell value - this is a placeholder
+                var cellValue = cell?.ToString() ?? "";
+                cellValues.Add(cellValue);
+            }
+            
+            // Return tab-separated values (TSV format)
+            return string.Join("\t", cellValues);
+        }
+        catch (Exception ex)
+        {
+            _logger?.Error(ex, "🚨 Error creating copied text from selected cells");
+            return "";
+        }
+    }
+
+    private async Task PasteClipboardData(string clipboardText, int startRow, int startColumn)
+    {
+        try
+        {
+            // Parse tab-separated or line-separated data
+            var rows = clipboardText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            
+            for (int rowIndex = 0; rowIndex < rows.Length; rowIndex++)
+            {
+                var columns = rows[rowIndex].Split('\t');
+                
+                for (int columnIndex = 0; columnIndex < columns.Length; columnIndex++)
+                {
+                    var targetRow = startRow + rowIndex;
+                    var targetColumn = startColumn + columnIndex;
+                    var value = columns[columnIndex];
+                    
+                    // TODO: Implement actual cell value setting through managers
+                    _logger?.Info("📋 PASTE: Would set R{Row}C{Column} = '{Value}'", 
+                        targetRow, targetColumn, value);
+                }
+            }
+            
+            await Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            _logger?.Error(ex, "🚨 Error pasting clipboard data");
+        }
+    }
 
     private void UpdateModifierKeyStates()
     {

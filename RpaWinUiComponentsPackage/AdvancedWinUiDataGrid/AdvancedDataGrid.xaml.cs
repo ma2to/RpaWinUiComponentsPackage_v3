@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Shapes;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Windows.UI;
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Extensions;
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Core;
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Models;
@@ -677,6 +678,8 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
         }
     }
 
+    #endregion
+
     #region Event Handlers - Virtualization-Aware Implementation
     
     /// <summary>
@@ -757,7 +760,7 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
                 CleanupCellEventHandlers(cellBorder);
                 
                 // Attach fresh interaction events with proper cell identity
-                AttachCellInteractionEvents(cellBorder, cell, cell.RowIndex, cell.ColumnIndex);
+                AttachCellInteractionEventsDirectly(cellBorder, cell, cell.RowIndex, cell.ColumnIndex);
             }
         }
         catch (Exception ex)
@@ -832,90 +835,6 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
     /// <summary>
     /// Attach interaction events to cell border
     /// </summary>
-    private void AttachCellInteractionEvents(Border cellBorder, DataGridCell cell, int rowIndex, int cellIndex)
-    {
-        try
-        {
-            // CRITICAL: DataContext is already set by ItemsRepeater data binding
-            // We just use it for event handling and store CellId for tracking
-            cellBorder.Tag = cell.CellId; // Store unique cell ID for reference
-            
-            // VALIDATION: Ensure cell has proper identifiers
-            if (cell.RowIndex != rowIndex || cell.ColumnIndex != cellIndex)
-            {
-                _state.Logger?.Warning("🚨 CELL MISMATCH: Cell identifiers don't match UI position. Cell: R{CellRow}C{CellCol}, UI: R{UIRow}C{UICol}", 
-                    cell.RowIndex, cell.ColumnIndex, rowIndex, cellIndex);
-            }
-            
-            // Single tap - selection
-            cellBorder.Tapped += (sender, e) =>
-            {
-                try
-                {
-                    // Use cell's own identifiers (more reliable than parameters)
-                    _state.Logger?.Info("🖱️ CELL TAPPED: {CellId} (Row {RowIndex}, Col {ColumnIndex}, Column: {ColumnName})", 
-                        cell.CellId, cell.RowIndex, cell.ColumnIndex, cell.ColumnName);
-                    
-                    // Visual feedback - highlight cell
-                    cell.CellBackgroundBrush = "#E3F2FD"; // Light blue
-                    cell.BorderBrush = "Blue";
-                    
-                    e.Handled = true; // Prevent further bubbling
-                }
-                catch (Exception ex)
-                {
-                    _state.Logger?.Error(ex, "🚨 CELL TAP ERROR: Failed to handle tap for cell {CellId}", cell.CellId);
-                }
-            };
-
-            // Double tap - editing  
-            cellBorder.DoubleTapped += (sender, e) =>
-            {
-                try
-                {
-                    // Skip special columns
-                    if (cell.IsDeleteCell || cell.IsValidationCell) return;
-                    
-                    _state.Logger?.Info("🖊️ CELL EDIT: Starting edit for {CellId} (Column: {ColumnName})", 
-                        cell.CellId, cell.ColumnName);
-                    
-                    // Start in-place editing
-                    StartCellEditing(cellBorder, cell);
-                    
-                    e.Handled = true;
-                }
-                catch (Exception ex)
-                {
-                    _state.Logger?.Error(ex, "🚨 CELL EDIT ERROR: Failed to start editing for cell {CellId}", cell.CellId);
-                }
-            };
-
-            // Hover effects
-            cellBorder.PointerEntered += (sender, e) =>
-            {
-                if (cell.CellBackgroundBrush == "White")
-                    cell.CellBackgroundBrush = "#F5F5F5"; // Light gray hover
-            };
-
-            cellBorder.PointerExited += (sender, e) =>
-            {
-                if (cell.CellBackgroundBrush == "#F5F5F5")
-                    cell.CellBackgroundBrush = "White"; // Remove hover
-            };
-
-            // Setup delete button if it's a delete cell
-            if (cell.IsDeleteCell)
-            {
-                SetupDeleteButton(cellBorder, cell, rowIndex);
-            }
-            
-            _state.Logger?.Info("✅ CELL EVENTS: Events attached successfully");
-        }
-        catch (Exception ex)
-        {
-            _state.Logger?.Error(ex, "🚨 CELL ATTACH ERROR: Failed to attach cell events");
-        }
-    }
 
     /// <summary>
     /// Clean up event handlers from cell border  
@@ -1593,21 +1512,26 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White),
             BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Gray),
             BorderThickness = new Microsoft.UI.Xaml.Thickness(1),
-            Height = 28,
+            MinHeight = 28, // Dynamic height with minimum constraint
             Width = header.Width,
-            Tag = cell.CellId // Store unique cell ID
+            Tag = cell.CellId, // Store unique cell ID
+            HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch,
+            VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Stretch
         };
 
         var grid = new Grid();
 
-        // Cell text content
+        // Cell text content with text wrapping support
         var textBlock = new TextBlock
         {
             Text = cell.Value?.ToString() ?? "",
-            VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center,
-            HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Left,
-            Margin = new Microsoft.UI.Xaml.Thickness(4, 0, 0, 0),
-            Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Black)
+            VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Top,
+            HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch,
+            Margin = new Microsoft.UI.Xaml.Thickness(4, 2, 4, 2),
+            Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Black),
+            TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap,
+            TextTrimming = Microsoft.UI.Xaml.TextTrimming.CharacterEllipsis,
+            MaxLines = 3 // Allow up to 3 lines before ellipsis
         };
 
         grid.Children.Add(textBlock);
@@ -1678,9 +1602,9 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
                             cell.ColumnName, headerName);
                     }
                     
-                    // SMART SELECTION: Simple click selection for now
-                    cellBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.LightBlue);
-                    cellBorder.BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Blue);
+                    // SMART SELECTION: Handle advanced selection modes with keyboard state
+                    var modifiers = _coordinator?.EventManager?.ModifierKeys ?? (false, false, false);
+                    HandleSmartCellSelection(cell, cellBorder, rowIndex, cellIndex, modifiers.Ctrl, modifiers.Shift);
                     
                     e.Handled = true;
                 }
@@ -1732,15 +1656,16 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             var textBlock = grid.Children.OfType<TextBlock>().FirstOrDefault();
             if (textBlock == null) return;
 
-            // Create TextBox for editing
+            // Create TextBox for editing - FULL CELL WIDTH
             var editBox = new TextBox
             {
                 Text = cell.Value?.ToString() ?? "",
                 BorderThickness = new Microsoft.UI.Xaml.Thickness(0),
                 Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White),
-                VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center,
+                VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Stretch,
                 HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch,
-                Margin = new Microsoft.UI.Xaml.Thickness(2)
+                Margin = new Microsoft.UI.Xaml.Thickness(0),
+                Padding = new Microsoft.UI.Xaml.Thickness(4, 2, 4, 2)
             };
 
             // Replace TextBlock with TextBox
@@ -1758,8 +1683,8 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
                     var newValue = editBox.Text;
                     _state.Logger?.Info("📝 REALTIME VALIDATION: Cell {CellId} text changed to '{Text}'", cell.CellId, newValue);
                     
-                    // TODO: Implement real-time validation later
-                    // For now, just log the change
+                    // SMART VALIDATION: Real-time validation implementation
+                    await PerformRealTimeValidation(cell, newValue, cellBorder);
                 }
                 catch (Exception ex)
                 {
@@ -1774,12 +1699,15 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
                 if (args.Key == Windows.System.VirtualKey.Enter)
                 {
                     EndCellEditingDirectly(cellBorder, cell, editBox, textBlock);
+                    args.Handled = true; // Prevent further processing
                 }
                 else if (args.Key == Windows.System.VirtualKey.Escape)
                 {
-                    // Cancel editing
+                    // Cancel editing - restore original value
                     grid.Children.Remove(editBox);
                     grid.Children.Insert(0, textBlock);
+                    args.Handled = true; // Prevent further processing
+                    _state.Logger?.Info("⏪ EDIT CANCELED: Cell {CellId} editing canceled with Escape", cell.CellId);
                 }
             };
 
@@ -1807,6 +1735,12 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             // CRITICAL FIX: Update both UI and underlying data
             cell.Value = newValue;
             originalTextBlock.Text = newValue;
+
+            // VALIDATION: Perform final validation on completed edit
+            _ = Task.Run(async () => await PerformRealTimeValidation(cell, newValue, cellBorder));
+
+            // SMART AUTO-ADD: Check if we need to add new row after editing
+            _ = Task.Run(async () => await CheckAndAddNewRowIfNeeded(cell, newValue));
 
             // CRITICAL FIX: Update data in coordinator's data rows
             if (_coordinator != null)
@@ -1868,6 +1802,727 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
     }
 
     #endregion
+
+    #region Smart Validation Implementation
+
+    /// <summary>
+    /// Perform real-time validation during cell editing
+    /// </summary>
+    private async Task PerformRealTimeValidation(DataGridCell cell, string newValue, Border cellBorder)
+    {
+        try
+        {
+            var validationConfig = _coordinator?.ValidationConfiguration;
+            _state.Logger?.Info("🔍 VALIDATION CHECK: EnableRealtimeValidation = {Enabled}, HasRules = {HasRules}, HasRulesWithMessages = {HasRulesWithMessages}", 
+                validationConfig?.EnableRealtimeValidation, 
+                validationConfig?.Rules?.Count ?? 0,
+                validationConfig?.RulesWithMessages?.Count ?? 0);
+
+            if (validationConfig?.EnableRealtimeValidation != true)
+            {
+                // Real-time validation is disabled
+                _state.Logger?.Info("⏭️ VALIDATION SKIPPED: Real-time validation disabled");
+                ApplyValidationStyling(cellBorder, isValid: true, errorMessage: null);
+                return;
+            }
+
+            // Find validation rules for this column
+            var hasErrors = false;
+            var errorMessages = new List<string>();
+
+            // Check basic validation rules (without messages)
+            if (_coordinator.ValidationConfiguration.Rules?.TryGetValue(cell.ColumnName, out var basicRule) == true)
+            {
+                try
+                {
+                    var isValid = basicRule?.Invoke(newValue) ?? true;
+                    if (!isValid)
+                    {
+                        hasErrors = true;
+                        errorMessages.Add($"Invalid value: {newValue}");
+                        
+                        _state.Logger?.Info("❌ VALIDATION FAILED: Cell {CellId}, Basic Rule", cell.CellId);
+                    }
+                    else
+                    {
+                        _state.Logger?.Info("✅ VALIDATION PASSED: Cell {CellId}, Basic Rule", cell.CellId);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _state.Logger?.Error(ex, "🚨 VALIDATION RULE ERROR: Failed to execute basic rule for cell {CellId}", cell.CellId);
+                    hasErrors = true;
+                    errorMessages.Add("Validation error");
+                }
+            }
+
+            // Check validation rules with custom messages
+            if (_coordinator.ValidationConfiguration.RulesWithMessages?.TryGetValue(cell.ColumnName, out var ruleWithMessage) == true)
+            {
+                try
+                {
+                    var isValid = ruleWithMessage.Validator?.Invoke(newValue) ?? true;
+                    if (!isValid)
+                    {
+                        hasErrors = true;
+                        errorMessages.Add(ruleWithMessage.ErrorMessage);
+                        
+                        _state.Logger?.Info("❌ VALIDATION FAILED: Cell {CellId}, Error: {ErrorMessage}", 
+                            cell.CellId, ruleWithMessage.ErrorMessage);
+                    }
+                    else
+                    {
+                        _state.Logger?.Info("✅ VALIDATION PASSED: Cell {CellId}, Rule with message", cell.CellId);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _state.Logger?.Error(ex, "🚨 VALIDATION RULE ERROR: Failed to execute rule with message for cell {CellId}", cell.CellId);
+                    hasErrors = true;
+                    errorMessages.Add("Validation error");
+                }
+            }
+
+            // Update cell validation state in data
+            cell.ValidationState = !hasErrors;
+            cell.HasValidationErrors = hasErrors;
+            cell.ValidationError = hasErrors ? string.Join("; ", errorMessages) : null;
+
+            // Apply visual feedback to the cell border
+            var combinedErrorMessage = hasErrors ? string.Join(" | ", errorMessages) : null;
+            ApplyValidationStyling(cellBorder, !hasErrors, combinedErrorMessage);
+
+            // Update ValidationAlerts column if exists
+            await UpdateValidationAlertsColumn(cell.RowIndex);
+
+            _state.Logger?.Info("✅ REALTIME VALIDATION COMPLETE: Cell {CellId} - Valid: {IsValid}, Errors: {ErrorCount}", 
+                cell.CellId, !hasErrors, errorMessages.Count);
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 REALTIME VALIDATION ERROR: Failed to validate cell {CellId}", cell.CellId);
+        }
+    }
+
+    /// <summary>
+    /// Apply validation styling to cell border based on validation state
+    /// </summary>
+    private void ApplyValidationStyling(Border cellBorder, bool isValid, string? errorMessage)
+    {
+        try
+        {
+            var colorConfig = _coordinator?.ColorConfiguration;
+            
+            if (isValid)
+            {
+                // Valid state - normal border
+                var normalBorderColor = colorConfig?.CellBorder ?? "#E0E0E0";
+                cellBorder.BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(ParseColor(normalBorderColor));
+                cellBorder.BorderThickness = new Microsoft.UI.Xaml.Thickness(1);
+                
+                _state.Logger?.Info("🎨 VALIDATION STYLING: Applied valid styling to cell");
+            }
+            else
+            {
+                // Error state - red border with increased thickness
+                var errorBorderColor = colorConfig?.ValidationErrorBorder ?? "#FF0000";
+                cellBorder.BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(ParseColor(errorBorderColor));
+                cellBorder.BorderThickness = new Microsoft.UI.Xaml.Thickness(2);
+                
+                _state.Logger?.Info("🎨 VALIDATION STYLING: Applied error styling to cell - Error: {ErrorMessage}", errorMessage);
+            }
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 VALIDATION STYLING ERROR: Failed to apply validation styling");
+        }
+    }
+
+    /// <summary>
+    /// Parse color string to Color object
+    /// </summary>
+    private Windows.UI.Color ParseColor(string colorString)
+    {
+        try
+        {
+            if (colorString.StartsWith("#") && colorString.Length == 7)
+            {
+                colorString = colorString.Substring(1);
+                return Windows.UI.Color.FromArgb(255,
+                    Convert.ToByte(colorString.Substring(0, 2), 16),
+                    Convert.ToByte(colorString.Substring(2, 2), 16),
+                    Convert.ToByte(colorString.Substring(4, 2), 16));
+            }
+            return Microsoft.UI.Colors.Black; // Default fallback
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 COLOR PARSE ERROR: Failed to parse color {ColorString}", colorString);
+            return Microsoft.UI.Colors.Black; // Safe fallback
+        }
+    }
+
+    /// <summary>
+    /// Update ValidationAlerts column with aggregated error messages for the row
+    /// </summary>
+    private async Task UpdateValidationAlertsColumn(int rowIndex)
+    {
+        try
+        {
+            if (_coordinator?.Headers == null || _coordinator.DataRows == null) return;
+
+            // Find ValidationAlerts column
+            var validationColumn = _coordinator.Headers.FirstOrDefault(h => h.IsValidationColumn);
+            if (validationColumn == null) 
+            {
+                _state.Logger?.Info("📝 VALIDATION ALERTS: No ValidationAlerts column found");
+                return;
+            }
+
+            var validationColumnIndex = _coordinator.Headers.ToList().IndexOf(validationColumn);
+            if (validationColumnIndex < 0) return;
+
+            // Find the row
+            var dataRow = _coordinator.DataRows.ElementAtOrDefault(rowIndex);
+            if (dataRow == null) return;
+
+            // Collect all errors from this row
+            var rowErrors = new List<string>();
+            foreach (var cell in dataRow.Cells)
+            {
+                if (cell.HasValidationErrors && !string.IsNullOrEmpty(cell.ValidationError))
+                {
+                    rowErrors.Add($"{cell.ColumnName}: {cell.ValidationError}");
+                }
+            }
+
+            // Update validation cell in data
+            var validationCell = dataRow.Cells.ElementAtOrDefault(validationColumnIndex);
+            if (validationCell != null)
+            {
+                var combinedErrors = string.Join(" | ", rowErrors);
+                validationCell.Value = combinedErrors;
+                
+                // Update UI element if visible
+                await UpdateValidationAlertsCellUI(rowIndex, validationColumnIndex, combinedErrors);
+            }
+
+            _state.Logger?.Info("📝 VALIDATION ALERTS: Updated row {RowIndex} validation alerts - {ErrorCount} errors", 
+                rowIndex, rowErrors.Count);
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 VALIDATION ALERTS ERROR: Failed to update ValidationAlerts column");
+        }
+    }
+
+    /// <summary>
+    /// Update ValidationAlerts cell UI element
+    /// </summary>
+    private async Task UpdateValidationAlertsCellUI(int rowIndex, int columnIndex, string errorText)
+    {
+        try
+        {
+            // Find the UI element for ValidationAlerts cell
+            if (DataRowsPanel.Children.Count <= rowIndex) return;
+
+            var rowPanel = DataRowsPanel.Children[rowIndex] as StackPanel;
+            if (rowPanel?.Children.Count <= columnIndex) return;
+
+            var cellBorder = rowPanel.Children[columnIndex] as Border;
+            if (cellBorder?.Child is not Grid grid) return;
+
+            // Find TextBlock in the cell
+            var textBlock = grid.Children.OfType<TextBlock>().FirstOrDefault();
+            if (textBlock != null)
+            {
+                textBlock.Text = errorText;
+                textBlock.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                    string.IsNullOrEmpty(errorText) ? Microsoft.UI.Colors.Black : Microsoft.UI.Colors.Red);
+                    
+                _state.Logger?.Info("🎨 VALIDATION ALERTS UI: Updated ValidationAlerts cell text: '{ErrorText}'", errorText);
+            }
+
+            await Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 VALIDATION ALERTS UI ERROR: Failed to update ValidationAlerts UI");
+        }
+    }
+
+    #endregion
+
+    #region Smart Selection Implementation
+
+    /// <summary>
+    /// Handle smart cell selection with multiple modes (single, multi, range)
+    /// </summary>
+    private void HandleSmartCellSelection(DataGridCell cell, Border cellBorder, int rowIndex, int cellIndex, bool isCtrlPressed = false, bool isShiftPressed = false)
+    {
+        try
+        {
+            if (isCtrlPressed || _isCtrlPressed)
+            {
+                // CTRL+Click: Toggle selection (multi-selection)
+                ToggleCellSelection(cell, cellBorder);
+            }
+            else if (isShiftPressed || _isShiftPressed)
+            {
+                // SHIFT+Click: Range selection
+                HandleRangeSelection(cell, cellBorder, rowIndex, cellIndex);
+            }
+            else
+            {
+                // Normal click: Single selection (clear others)
+                HandleSingleSelection(cell, cellBorder);
+            }
+            
+            // Always update focus
+            SetFocusedCell(cell, cellBorder);
+            
+            _state.Logger?.Info("🎯 SELECTION: Cell {CellId} selected. Mode: {SelectionMode}, Selected count: {SelectedCount}",
+                cell.CellId, 
+                isCtrlPressed || _isCtrlPressed ? "Multi" : 
+                isShiftPressed || _isShiftPressed ? "Range" : "Single",
+                _selectedCellIds.Count);
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 SELECTION ERROR: Failed to handle selection for cell {CellId}", cell.CellId);
+        }
+    }
+
+    /// <summary>
+    /// Handle single selection (clear others and select this one)
+    /// </summary>
+    private void HandleSingleSelection(DataGridCell cell, Border cellBorder)
+    {
+        try
+        {
+            // Clear all previous selections
+            ClearAllSelections();
+            
+            // Select this cell
+            _selectedCellIds.Add(cell.CellId);
+            cell.IsSelected = true;
+            
+            // Apply selection styling
+            ApplySelectionStyling(cellBorder, isSelected: true);
+            
+            _state.Logger?.Info("🎯 SINGLE SELECTION: Cell {CellId} selected", cell.CellId);
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 SINGLE SELECTION ERROR: Failed to handle single selection");
+        }
+    }
+
+    /// <summary>
+    /// Toggle cell selection for multi-selection
+    /// </summary>
+    private void ToggleCellSelection(DataGridCell cell, Border cellBorder)
+    {
+        try
+        {
+            if (_selectedCellIds.Contains(cell.CellId))
+            {
+                // Deselect
+                _selectedCellIds.Remove(cell.CellId);
+                cell.IsSelected = false;
+                ApplySelectionStyling(cellBorder, isSelected: false);
+                _state.Logger?.Info("🔄 TOGGLE SELECTION: Cell {CellId} deselected", cell.CellId);
+            }
+            else
+            {
+                // Select (add to selection)
+                _selectedCellIds.Add(cell.CellId);
+                cell.IsSelected = true;
+                ApplySelectionStyling(cellBorder, isSelected: true);
+                _state.Logger?.Info("🔄 TOGGLE SELECTION: Cell {CellId} selected", cell.CellId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 MULTI SELECTION ERROR: Failed to handle multi selection");
+        }
+    }
+
+    /// <summary>
+    /// Handle range selection from focused cell to target cell
+    /// </summary>
+    private void HandleRangeSelection(DataGridCell targetCell, Border targetCellBorder, int targetRow, int targetCol)
+    {
+        try
+        {
+            if (_focusedCell == null)
+            {
+                // No focused cell - treat as single selection
+                HandleSingleSelection(targetCell, targetCellBorder);
+                return;
+            }
+
+            // Clear current selections
+            ClearAllSelections();
+            
+            // Calculate range bounds
+            var startRow = Math.Min(_focusedCell.RowIndex, targetRow);
+            var endRow = Math.Max(_focusedCell.RowIndex, targetRow);
+            var startCol = Math.Min(_focusedCell.ColumnIndex, targetCol);
+            var endCol = Math.Max(_focusedCell.ColumnIndex, targetCol);
+            
+            // Select range of cells
+            SelectCellRange(startRow, endRow, startCol, endCol);
+            
+            _state.Logger?.Info("📐 RANGE SELECTION: From R{StartRow}C{StartCol} to R{EndRow}C{EndCol}",
+                startRow, startCol, endRow, endCol);
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 RANGE SELECTION ERROR: Failed to handle range selection");
+        }
+    }
+
+    /// <summary>
+    /// Select range of cells
+    /// </summary>
+    private void SelectCellRange(int startRow, int endRow, int startCol, int endCol)
+    {
+        try
+        {
+            for (int row = startRow; row <= endRow; row++)
+            {
+                for (int col = startCol; col <= endCol; col++)
+                {
+                    var dataRow = _coordinator?.DataRows.ElementAtOrDefault(row);
+                    if (dataRow == null) continue;
+                    
+                    var cell = dataRow.Cells.ElementAtOrDefault(col);
+                    if (cell == null) continue;
+                    
+                    _selectedCellIds.Add(cell.CellId);
+                    cell.IsSelected = true;
+                    
+                    // Find and update UI element
+                    UpdateCellSelectionUI(row, col, isSelected: true);
+                }
+            }
+            
+            _state.Logger?.Info("📐 RANGE SELECT: Selected {CellCount} cells in range", 
+                (endRow - startRow + 1) * (endCol - startCol + 1));
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 RANGE SELECT ERROR: Failed to select cell range");
+        }
+    }
+
+    /// <summary>
+    /// Clear all selections
+    /// </summary>
+    private void ClearAllSelections()
+    {
+        try
+        {
+            foreach (var cellId in _selectedCellIds.ToList())
+            {
+                // Find cell and update state
+                var cell = FindCellById(cellId);
+                if (cell != null)
+                {
+                    cell.IsSelected = false;
+                }
+                
+                // Find and update UI element
+                var (row, col) = ParseCellId(cellId);
+                if (row >= 0 && col >= 0)
+                {
+                    UpdateCellSelectionUI(row, col, isSelected: false);
+                }
+            }
+            
+            _selectedCellIds.Clear();
+            _state.Logger?.Info("🧹 CLEAR SELECTIONS: All selections cleared");
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 CLEAR SELECTION ERROR: Failed to clear selections");
+        }
+    }
+
+    /// <summary>
+    /// Set focused cell
+    /// </summary>
+    private void SetFocusedCell(DataGridCell cell, Border cellBorder)
+    {
+        try
+        {
+            // Clear previous focus styling
+            if (_focusedCell != null)
+            {
+                var (prevRow, prevCol) = ParseCellId(_focusedCell.CellId);
+                if (prevRow >= 0 && prevCol >= 0)
+                {
+                    UpdateCellFocusUI(prevRow, prevCol, isFocused: false);
+                }
+            }
+            
+            // Set new focus
+            _focusedCell = cell;
+            cell.IsFocused = true;
+            
+            // Apply focus styling
+            ApplyFocusStyling(cellBorder, isFocused: true);
+            
+            _state.Logger?.Info("🎯 FOCUS: Cell {CellId} focused", cell.CellId);
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 FOCUS ERROR: Failed to set focused cell");
+        }
+    }
+
+    /// <summary>
+    /// Apply selection styling to cell border
+    /// </summary>
+    private void ApplySelectionStyling(Border cellBorder, bool isSelected)
+    {
+        try
+        {
+            var colorConfig = _coordinator?.ColorConfiguration;
+            
+            if (isSelected)
+            {
+                // Selection colors from configuration
+                var selectionBackground = colorConfig?.SelectionBackground ?? "#0078D4";
+                var selectionForeground = colorConfig?.SelectionForeground ?? "#FFFFFF";
+                
+                cellBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(ParseColor(selectionBackground));
+                
+                // Update text color if TextBlock exists
+                if (cellBorder.Child is Grid grid)
+                {
+                    var textBlock = grid.Children.OfType<TextBlock>().FirstOrDefault();
+                    if (textBlock != null)
+                    {
+                        textBlock.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(ParseColor(selectionForeground));
+                    }
+                }
+                
+                _state.Logger?.Info("🎨 SELECTION STYLING: Applied selection styling");
+            }
+            else
+            {
+                // Normal colors from configuration
+                var normalBackground = colorConfig?.CellBackground ?? "#FFFFFF";
+                var normalForeground = colorConfig?.CellForeground ?? "#000000";
+                
+                cellBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(ParseColor(normalBackground));
+                
+                // Update text color if TextBlock exists
+                if (cellBorder.Child is Grid grid)
+                {
+                    var textBlock = grid.Children.OfType<TextBlock>().FirstOrDefault();
+                    if (textBlock != null)
+                    {
+                        textBlock.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(ParseColor(normalForeground));
+                    }
+                }
+                
+                _state.Logger?.Info("🎨 SELECTION STYLING: Applied normal styling");
+            }
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 SELECTION STYLING ERROR: Failed to apply selection styling");
+        }
+    }
+
+    /// <summary>
+    /// Apply focus styling to cell border
+    /// </summary>
+    private void ApplyFocusStyling(Border cellBorder, bool isFocused)
+    {
+        try
+        {
+            var colorConfig = _coordinator?.ColorConfiguration;
+            
+            if (isFocused)
+            {
+                // Use SelectionBackground color for focus border or default blue
+                var focusBorder = colorConfig?.SelectionBackground ?? "#0078D4";
+                cellBorder.BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(ParseColor(focusBorder));
+                cellBorder.BorderThickness = new Microsoft.UI.Xaml.Thickness(2);
+                
+                _state.Logger?.Info("🎨 FOCUS STYLING: Applied focus styling");
+            }
+            else
+            {
+                var normalBorder = colorConfig?.CellBorder ?? "#E0E0E0";
+                cellBorder.BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(ParseColor(normalBorder));
+                cellBorder.BorderThickness = new Microsoft.UI.Xaml.Thickness(1);
+            }
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 FOCUS STYLING ERROR: Failed to apply focus styling");
+        }
+    }
+
+    /// <summary>
+    /// Update cell selection styling in UI
+    /// </summary>
+    private void UpdateCellSelectionUI(int rowIndex, int columnIndex, bool isSelected)
+    {
+        try
+        {
+            if (DataRowsPanel.Children.Count <= rowIndex) return;
+            
+            var rowPanel = DataRowsPanel.Children[rowIndex] as StackPanel;
+            if (rowPanel?.Children.Count <= columnIndex) return;
+            
+            var cellBorder = rowPanel.Children[columnIndex] as Border;
+            if (cellBorder != null)
+            {
+                ApplySelectionStyling(cellBorder, isSelected);
+            }
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 SELECTION UI ERROR: Failed to update cell selection UI");
+        }
+    }
+
+    /// <summary>
+    /// Update cell focus styling in UI
+    /// </summary>
+    private void UpdateCellFocusUI(int rowIndex, int columnIndex, bool isFocused)
+    {
+        try
+        {
+            if (DataRowsPanel.Children.Count <= rowIndex) return;
+            
+            var rowPanel = DataRowsPanel.Children[rowIndex] as StackPanel;
+            if (rowPanel?.Children.Count <= columnIndex) return;
+            
+            var cellBorder = rowPanel.Children[columnIndex] as Border;
+            if (cellBorder != null)
+            {
+                ApplyFocusStyling(cellBorder, isFocused);
+            }
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 FOCUS UI ERROR: Failed to update cell focus UI");
+        }
+    }
+
+    /// <summary>
+    /// Find cell by ID in coordinator data
+    /// </summary>
+    private DataGridCell? FindCellById(string cellId)
+    {
+        try
+        {
+            if (_coordinator?.DataRows == null) return null;
+            
+            foreach (var row in _coordinator.DataRows)
+            {
+                var cell = row.Cells.FirstOrDefault(c => c.CellId == cellId);
+                if (cell != null) return cell;
+            }
+            
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Parse cell ID to get row and column indices
+    /// Format: "R{rowIndex}C{columnIndex}_{columnName}"
+    /// </summary>
+    private (int row, int col) ParseCellId(string cellId)
+    {
+        try
+        {
+            var parts = cellId.Split('_')[0]; // Get "R{rowIndex}C{columnIndex}"
+            if (parts.StartsWith("R") && parts.Contains("C"))
+            {
+                var rIndex = parts.IndexOf('R') + 1;
+                var cIndex = parts.IndexOf('C');
+                var rowPart = parts.Substring(rIndex, cIndex - rIndex);
+                var colPart = parts.Substring(cIndex + 1);
+                
+                if (int.TryParse(rowPart, out var row) && int.TryParse(colPart, out var col))
+                {
+                    return (row, col);
+                }
+            }
+            
+            return (-1, -1);
+        }
+        catch
+        {
+            return (-1, -1);
+        }
+    }
+
+    #endregion
+
+    #region Smart Row Management
+
+    /// <summary>
+    /// Check if we need to add a new row after cell editing (smart auto-add)
+    /// Logic: If user fills a cell in the last row, and that row becomes non-empty,
+    /// automatically add a new empty row to maintain empty row at the end.
+    /// </summary>
+    private async Task CheckAndAddNewRowIfNeeded(DataGridCell cell, string newValue)
+    {
+        try
+        {
+            if (_coordinator == null || string.IsNullOrWhiteSpace(newValue))
+            {
+                return; // No value added, no need to add row
+            }
+
+            // Check if this cell is in the last row
+            var lastRowIndex = _coordinator.RowCount - 1;
+            if (cell.RowIndex != lastRowIndex)
+            {
+                return; // Not the last row, no need to add
+            }
+
+            // Check if the last row is now non-empty (has any data)
+            var lastRow = _coordinator.DataRows.LastOrDefault();
+            if (lastRow == null)
+            {
+                return;
+            }
+
+            // Check if any cell in the last row has data
+            var hasData = lastRow.Cells.Any(c => !string.IsNullOrWhiteSpace(c.Value?.ToString()));
+            if (!hasData)
+            {
+                return; // Last row is still empty
+            }
+
+            // SMART AUTO-ADD: Last row has data, add new empty row
+            await _coordinator.EnsureMinimumRowsAsync();
+            
+            // Force refresh UI to show the new row
+            await RefreshUIAsync();
+
+            _state.Logger?.Info("🚀 SMART AUTO-ADD: Added new row after filling last row at R{RowIndex}C{ColumnIndex}", 
+                cell.RowIndex, cell.ColumnIndex);
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 SMART AUTO-ADD ERROR: Failed to add new row after editing cell {CellId}", cell.CellId);
+        }
+    }
 
     #endregion
 }

@@ -339,6 +339,16 @@ internal sealed class DataGridCoordinator : IDisposable
     /// </summary>
     public IObservable<UIUpdateEvent> UIUpdates => _uiUpdates.AsObservable();
 
+    /// <summary>
+    /// Access to ValidationConfiguration for external components
+    /// </summary>
+    public ValidationConfiguration ValidationConfiguration => _config.Validation;
+
+    /// <summary>
+    /// Access to ColorConfiguration for external components
+    /// </summary>
+    public ColorConfiguration ColorConfiguration => _config.Colors;
+
     #endregion
 
     #region Private Methods - Functional Data Operations
