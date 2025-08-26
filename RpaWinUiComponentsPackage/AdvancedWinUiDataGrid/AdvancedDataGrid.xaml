@@ -9,98 +9,32 @@
     </UserControl.Resources>
     
     <Grid x:Name="RootGrid" Background="White">
-        <!-- ScrollViewer for large tables -->
+        <!-- ScrollViewer configured for proper dynamic content -->
         <ScrollViewer x:Name="MainScrollViewer" 
                       ZoomMode="Disabled" 
                       HorizontalScrollMode="Auto" 
                       VerticalScrollMode="Auto" 
                       HorizontalScrollBarVisibility="Auto" 
                       VerticalScrollBarVisibility="Auto">
-            <Grid>
+            
+            <!-- Main content grid without fixed dimensions for proper scrolling -->
+            <Grid x:Name="MainContentGrid">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/> <!-- Headers -->
-                    <RowDefinition Height="Auto"/> <!-- Data rows -->
+                    <RowDefinition Height="Auto"/> <!-- Headers - fixed height -->
+                    <RowDefinition Height="Auto"/> <!-- Data rows - dynamic height -->
                 </Grid.RowDefinitions>
             
-            <!-- HEADERS -->
-            <ItemsRepeater x:Name="HeadersRepeater"
-                           Grid.Row="0">
-                <ItemsRepeater.Layout>
-                    <StackLayout Orientation="Horizontal"/>
-                </ItemsRepeater.Layout>
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate>
-                        <Border Background="#E0E0E0" BorderBrush="#808080" BorderThickness="1,1,1,1" Height="32" Width="{Binding Width}">
-                            <Grid>
-                                <TextBlock Text="{Binding DisplayName}" 
-                                           FontWeight="SemiBold" 
-                                           HorizontalAlignment="Center" 
-                                           VerticalAlignment="Center"
-                                           Foreground="Black"/>
-                                <!-- Resize grip area -->
-                                <Border Width="6" 
-                                        Height="32" 
-                                        Background="Transparent" 
-                                        HorizontalAlignment="Right"
-                                        Tag="{Binding}"
-                                        PointerPressed="ResizeGrip_PointerPressed"
-                                        PointerMoved="ResizeGrip_PointerMoved"
-                                        PointerReleased="ResizeGrip_PointerReleased"
-                                        PointerCaptureLost="ResizeGrip_PointerCaptureLost"/>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
+            <!-- HEADERS - Using StackPanel for better control and resize handling -->
+            <StackPanel x:Name="HeadersPanel" 
+                        Grid.Row="0" 
+                        Orientation="Horizontal"
+                        Background="#E0E0E0"/>
             
-            <!-- DATA ROWS -->
-            <ItemsRepeater x:Name="DataRowsRepeater"
-                           Grid.Row="1">
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate>
-                        <ItemsRepeater ItemsSource="{Binding Cells}">
-                            <ItemsRepeater.Layout>
-                                <StackLayout Orientation="Horizontal"/>
-                            </ItemsRepeater.Layout>
-                            <ItemsRepeater.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Background="{Binding CellBackgroundBrush, FallbackValue=White}" 
-                                            BorderBrush="{Binding BorderBrush, FallbackValue=#808080}" 
-                                            BorderThickness="1,1,1,1" 
-                                            Height="28" 
-                                            Width="{Binding ColumnWidth}"
-                                            Tag="{Binding}"
-                                            Tapped="CellBorder_Tapped"
-                                            DoubleTapped="CellBorder_DoubleTapped">
-                                        <Grid>
-                                            <!-- Regular cell content -->
-                                            <TextBlock Text="{Binding Value}" 
-                                                       VerticalAlignment="Center" 
-                                                       HorizontalAlignment="Left"
-                                                       Margin="4,0,0,0"
-                                                       Foreground="Black"/>
-                                            
-                                            <!-- Delete button for delete column (always visible, but only functional in delete cells) -->
-                                            <Button Content="🗑️" 
-                                                    FontSize="14" 
-                                                    Background="Transparent" 
-                                                    BorderBrush="Transparent"
-                                                    HorizontalAlignment="Center" 
-                                                    VerticalAlignment="Center"
-                                                    Padding="2"
-                                                    MinWidth="20"
-                                                    MinHeight="20"
-                                                    Tag="{Binding}"
-                                                    Visibility="{Binding IsDeleteCell, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                    Click="DeleteButton_Click"/>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsRepeater.ItemTemplate>
-                        </ItemsRepeater>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
+            <!-- DATA ROWS - Using StackPanel for precise control -->
+            <StackPanel x:Name="DataRowsPanel" 
+                        Grid.Row="1" 
+                        Orientation="Vertical"/>
+            
             </Grid>
         </ScrollViewer>
         

@@ -177,6 +177,50 @@ internal sealed class DataGridEventManager : IDisposable
     }
 
     /// <summary>
+    /// Attach resize events to column resize grip
+    /// </summary>
+    public void AttachResizeEvents(FrameworkElement resizeGrip, GridColumnDefinition column)
+    {
+        try
+        {
+            var columnIndex = FindColumnIndex(column);
+            if (columnIndex < 0) return;
+
+            AttachEvent(resizeGrip, "PointerPressed", new PointerEventHandler((sender, e) => 
+            {
+                _resizeManager.HandleResizeHandlePressed(columnIndex, e);
+                resizeGrip.CapturePointer(e.Pointer);
+            }));
+            
+            AttachEvent(resizeGrip, "PointerMoved", new PointerEventHandler((sender, e) => 
+            {
+                _resizeManager.HandleResizePointerMoved(e);
+            }));
+            
+            AttachEvent(resizeGrip, "PointerReleased", new PointerEventHandler((sender, e) => 
+            {
+                _resizeManager.HandleResizePointerReleased(e);
+                resizeGrip.ReleasePointerCapture(e.Pointer);
+            }));
+
+            _logger?.Info("📏 Resize events attached to column grip for column {ColumnIndex}", columnIndex);
+        }
+        catch (Exception ex)
+        {
+            _logger?.Error(ex, "🚨 Error attaching resize events");
+        }
+    }
+
+    /// <summary>
+    /// Find column index by column definition
+    /// </summary>
+    private int FindColumnIndex(GridColumnDefinition column)
+    {
+        // TODO: Get headers collection from coordinator to find proper index
+        return 0; // Placeholder - will be implemented properly
+    }
+
+    /// <summary>
     /// Detach events from cell element
     /// </summary>
     public void DetachCellEvents(FrameworkElement cellElement)

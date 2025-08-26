@@ -693,6 +693,12 @@ public class PerformanceMetrics
 /// </summary>
 public class DataGridCell
 {
+    // CRITICAL: Unique identifiers for proper virtualization
+    public int RowIndex { get; set; } = -1;
+    public int ColumnIndex { get; set; } = -1;
+    public string ColumnName { get; set; } = string.Empty;
+    public string CellId => $"R{RowIndex}C{ColumnIndex}_{ColumnName}"; // Unique identifier for virtualization
+    
     public object? Value { get; set; }
     public bool ValidationState { get; set; } = true;
     public bool IsSelected { get; set; }

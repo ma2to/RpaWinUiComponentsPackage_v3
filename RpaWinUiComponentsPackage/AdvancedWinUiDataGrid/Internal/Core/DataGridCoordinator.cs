@@ -525,24 +525,24 @@ internal sealed class DataGridCoordinator : IDisposable
     }
 
     /// <summary>
-    /// Calculate ValidationAlerts column width to fill available space
+    /// Calculate ValidationAlerts column width and arrange columns in correct order
+    /// ORDER: [Regular Columns] -> [ValidationAlerts] -> [DeleteRows]
     /// </summary>
     private IReadOnlyList<GridColumnDefinition> CalculateValidationAlertsWidth(IReadOnlyList<GridColumnDefinition> definitions)
     {
         try
         {
-            var result = new List<GridColumnDefinition>(definitions);
-            var validationColumn = result.FirstOrDefault(col => col.IsValidationColumn);
+            // STEP 1: Separate columns by type
+            var regularColumns = definitions.Where(col => !col.IsValidationColumn && !col.IsDeleteColumn).ToList();
+            var validationColumn = definitions.FirstOrDefault(col => col.IsValidationColumn);
+            var deleteColumn = definitions.FirstOrDefault(col => col.IsDeleteColumn);
             
+            // STEP 2: Calculate ValidationAlerts width
             if (validationColumn != null)
             {
-                // Calculate total width of non-special columns
-                var regularColumns = result.Where(col => !col.IsValidationColumn && !col.IsDeleteColumn).ToList();
                 var totalRegularWidth = regularColumns.Sum(col => col.Width);
-                
-                // Assume container width of 800px (this should ideally come from actual container)
-                var containerWidth = 800;
-                var deleteColumnWidth = result.FirstOrDefault(col => col.IsDeleteColumn)?.Width ?? 0;
+                var containerWidth = 800; // Assume container width of 800px (this should ideally come from actual container)
+                var deleteColumnWidth = deleteColumn?.Width ?? 0;
                 
                 // ValidationAlerts fills the remaining space
                 var availableWidth = containerWidth - totalRegularWidth - deleteColumnWidth;
@@ -554,11 +554,35 @@ internal sealed class DataGridCoordinator : IDisposable
                     validationWidth, containerWidth, totalRegularWidth, deleteColumnWidth);
             }
             
-            return result.AsReadOnly();
+            // STEP 3: Arrange columns in correct order: Regular -> ValidationAlerts -> DeleteRows
+            var orderedColumns = new List<GridColumnDefinition>();
+            
+            // Add regular columns first
+            orderedColumns.AddRange(regularColumns);
+            _config.Logger?.Info("📋 COLUMN ORDER: Added {Count} regular columns", regularColumns.Count);
+            
+            // Add ValidationAlerts column if exists
+            if (validationColumn != null)
+            {
+                orderedColumns.Add(validationColumn);
+                _config.Logger?.Info("📋 COLUMN ORDER: Added ValidationAlerts column");
+            }
+            
+            // Add DeleteRows column last (rightmost)
+            if (deleteColumn != null)
+            {
+                orderedColumns.Add(deleteColumn);
+                _config.Logger?.Info("📋 COLUMN ORDER: Added DeleteRows column (rightmost)");
+            }
+            
+            _config.Logger?.Info("✅ COLUMN ORDER: Final order - {ColumnNames}", 
+                string.Join(" -> ", orderedColumns.Select(c => c.DisplayName)));
+            
+            return orderedColumns.AsReadOnly();
         }
         catch (Exception ex)
         {
-            _config.Logger?.Error(ex, "🚨 WIDTH CALCULATION ERROR: Failed to calculate ValidationAlerts width");
+            _config.Logger?.Error(ex, "🚨 WIDTH CALCULATION ERROR: Failed to calculate ValidationAlerts width and arrange columns");
             return definitions; // Return original if calculation fails
         }
     }
@@ -702,21 +726,27 @@ internal sealed class DataGridCoordinator : IDisposable
             _dataRows.Clear();
 
             // Import each row
+            var rowIndex = 0;
             foreach (var rowData in data)
             {
                 try
                 {
                     var newRow = new DataGridRow
                     {
+                        Index = rowIndex,
                         Cells = new List<DataGridCell>()
                     };
 
                     // Create cells for each column based on headers
+                    var colIndex = 0;
                     foreach (var header in _headers)
                     {
                         var cellValue = rowData.ContainsKey(header.Name) ? rowData[header.Name] : null;
                         var cell = new DataGridCell
                         {
+                            RowIndex = rowIndex,
+                            ColumnIndex = colIndex,
+                            ColumnName = header.Name,
                             Value = cellValue,
                             ValidationState = true,
                             IsSelected = false,
@@ -727,6 +757,7 @@ internal sealed class DataGridCoordinator : IDisposable
                             CellBackgroundBrush = "White",
                             BorderBrush = "#808080"
                         };
+                        colIndex++;
                         
                         // Set validation info for validation cells
                         if (header.IsValidationColumn)
@@ -759,6 +790,7 @@ internal sealed class DataGridCoordinator : IDisposable
                     errorRows++;
                     errors.Add($"Row {importedRows + errorRows}: {ex.Message}");
                 }
+                rowIndex++;
             }
 
             // Ensure minimum rows
@@ -793,18 +825,37 @@ internal sealed class DataGridCoordinator : IDisposable
     {
         while (_dataRows.Count < _config.MinimumRows)
         {
-            var emptyRow = new DataGridRow { Cells = CreateEmptyCells() };
+            var rowIndex = _dataRows.Count;
+            var emptyRow = new DataGridRow 
+            { 
+                Index = rowIndex,
+                Cells = CreateEmptyCells(rowIndex) 
+            };
             _dataRows.Add(emptyRow);
         }
     }
 
-    private List<DataGridCell> CreateEmptyCells() =>
-        _headers.Select(header => new DataGridCell 
+    /// <summary>
+    /// Public method to ensure minimum rows (for clear operations)
+    /// </summary>
+    public async Task EnsureMinimumRowsAsync()
+    {
+        await EnsureMinimumRows();
+    }
+
+    private List<DataGridCell> CreateEmptyCells(int rowIndex = -1) =>
+        _headers.Select((header, colIndex) => new DataGridCell 
         { 
+            RowIndex = rowIndex,
+            ColumnIndex = colIndex,
+            ColumnName = header.Name,
             Value = null, 
             ValidationState = true,
             IsSelected = false,
-            IsFocused = false
+            IsFocused = false,
+            IsValidationCell = header.IsValidationColumn,
+            IsDeleteCell = header.IsDeleteColumn,
+            ColumnWidth = header.Width
         }).ToList();
 
     #endregion
@@ -835,6 +886,26 @@ internal sealed class DataGridCoordinator : IDisposable
     /// Observable collection of data rows for UI binding
     /// </summary>
     public ObservableCollection<DataGridRow> DataRows => _dataRows;
+
+    /// <summary>
+    /// Event manager for coordinating UI events
+    /// </summary>
+    public DataGridEventManager EventManager => _eventManager;
+
+    /// <summary>
+    /// Resize manager for column resizing operations
+    /// </summary>
+    public DataGridResizeManager ResizeManager => _resizeManager;
+
+    /// <summary>
+    /// Selection manager for cell/row selection operations
+    /// </summary>
+    public DataGridSelectionManager SelectionManager => _selectionManager;
+
+    /// <summary>
+    /// Editing manager for cell editing operations
+    /// </summary>
+    public DataGridEditingManager EditingManager => _editingManager;
 
     #endregion
 
