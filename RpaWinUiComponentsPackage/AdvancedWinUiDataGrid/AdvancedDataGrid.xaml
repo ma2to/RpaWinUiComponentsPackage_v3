@@ -19,14 +19,15 @@
                       ZoomMode="Disabled" 
                       HorizontalScrollMode="Enabled" 
                       VerticalScrollMode="Enabled" 
-                      HorizontalScrollBarVisibility="Auto" 
-                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Visible" 
+                      VerticalScrollBarVisibility="Visible"
                       HorizontalAlignment="Stretch" 
                       VerticalAlignment="Stretch"
-                      Background="Transparent">
+                      Background="Transparent"
+                      PointerWheelChanged="MainScrollViewer_PointerWheelChanged">
             
             <!-- Main content grid with full width/height support -->
-            <Grid x:Name="MainContentGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinWidth="100" MinHeight="100">
+            <Grid x:Name="MainContentGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Width="Auto" Height="Auto">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/> <!-- Headers - fixed height -->
                     <RowDefinition Height="*"/> <!-- Data rows - fill remaining space -->
@@ -37,6 +38,7 @@
                         Grid.Row="0" 
                         Orientation="Horizontal"
                         HorizontalAlignment="Stretch"
+                        Width="Auto"
                         MinHeight="30"
                         Background="#E0E0E0"/>
             
@@ -45,7 +47,8 @@
                         Grid.Row="1" 
                         Orientation="Vertical"
                         HorizontalAlignment="Stretch"
-                        VerticalAlignment="Top"/>
+                        VerticalAlignment="Top"
+                        Width="Auto"/>
             
             </Grid>
         </ScrollViewer>

@@ -43,13 +43,18 @@
       "Read(/D:\\www\\RB0120APP\\RpaWinUiComponents.Demo/**)",
       "Read(/D:\\www\\RB0120APP\\RpaWinUiComponents.Demo/**)",
       "Read(/D:\\www\\RB0120APP\\RpaWinUiComponents.Demo/**)",
-      "Read(/D:\\www\\RB0120APP\\RpaWinUiComponents.Demo/**)"
+      "Read(/D:\\www\\RB0120APP\\RpaWinUiComponents.Demo/**)",
+      "Read(/D:\\www\\RB0120APP/**)",
+      "Bash(rg:*)",
+      "Read(/D:\\www\\RB0120APP/**)",
+      "Bash(dotnet run:*)"
     ],
     "deny": [],
     "ask": [],
     "additionalDirectories": [
       "D:\\d\\www\\RB0120APP\\RpaWinUiComponentsPackage",
-      "D:\\"
+      "D:\\",
+      "D:\\d D:\\www\\RB0120APP"
     ]
   }
 }

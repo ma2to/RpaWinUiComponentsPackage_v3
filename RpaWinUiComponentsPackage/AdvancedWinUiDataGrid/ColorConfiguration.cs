@@ -37,6 +37,9 @@ public class ColorConfiguration
     /// <summary>Farba pozadia validačných chýb</summary>
     public string? ValidationErrorBackground { get; set; }
     
+    /// <summary>Povoliť zebra efekt (striedanie farieb riadkov)</summary>
+    public bool EnableZebraStripes { get; set; } = false;
+    
     /// <summary>Farba pozadia párnych riadkov (zebra efekt)</summary>
     public string? AlternateRowBackground { get; set; }
     

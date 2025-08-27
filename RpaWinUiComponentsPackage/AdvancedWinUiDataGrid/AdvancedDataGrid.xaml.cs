@@ -326,6 +326,30 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             onError: ex => _state.Logger?.Error(ex, "🚨 STREAM ERROR: Error in UI updates stream"),
             onCompleted: () => _state.Logger?.Info("📡 STREAM COMPLETE: UI updates stream completed")
         );
+
+        // CRITICAL FIX: Subscribe to ResizeManager events to regenerate UI after resize
+        if (_coordinator.ResizeManager != null)
+        {
+            _coordinator.ResizeManager.ResizeEnded += async (sender, e) =>
+            {
+                try
+                {
+                    _state.Logger?.Info("🔄 RESIZE COMPLETED: Column {Index} resized to {Width} - Regenerating UI", 
+                        e.ColumnIndex, e.FinalWidth);
+                    
+                    // Regenerate UI to reflect new column widths
+                    await GenerateUIElements();
+                    
+                    _state.Logger?.Info("✅ RESIZE UI UPDATE: UI regenerated after column resize");
+                }
+                catch (Exception ex)
+                {
+                    _state.Logger?.Error(ex, "🚨 RESIZE UI ERROR: Failed to update UI after resize");
+                }
+            };
+            
+            _state.Logger?.Info("📡 RESIZE EVENTS: Subscribed to ResizeManager events");
+        }
     }
 
     #endregion
@@ -1368,16 +1392,20 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
     /// </summary>
     private Border CreateHeaderElement(GridColumnDefinition header, int columnIndex)
     {
+        // CRITICAL FIX: Check if this is the last column for table width filling
+        bool isLastColumn = (_coordinator?.Headers != null && columnIndex == _coordinator.Headers.Count - 1);
+        
         var headerBorder = new Border
         {
             Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.LightGray),
             BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Gray),
             BorderThickness = new Microsoft.UI.Xaml.Thickness(1),
             Height = 32,
-            Width = header.Width,  // CRITICAL FIX: Use Width instead of MinWidth
+            // CRITICAL FIX: Last column fills remaining space, others have fixed width
+            Width = isLastColumn ? double.NaN : header.Width,
             MinWidth = header.Width,  // Keep MinWidth for safety
-            MaxWidth = header.Width,  // CRITICAL FIX: Add MaxWidth to force exact width
-            HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Left  // CRITICAL FIX: Use Left instead of Stretch
+            MaxWidth = isLastColumn ? double.PositiveInfinity : header.Width,
+            HorizontalAlignment = isLastColumn ? Microsoft.UI.Xaml.HorizontalAlignment.Stretch : Microsoft.UI.Xaml.HorizontalAlignment.Left
         };
 
         var grid = new Grid();
@@ -1429,25 +1457,42 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             // Pointer pressed - start resize
             resizeGrip.PointerPressed += (sender, e) =>
             {
+                _state.Logger?.Info("👆 RESIZE GRIP PRESSED: Column {Index} '{Name}' - Starting resize operation", 
+                    columnIndex, header.DisplayName);
+                
                 try
                 {
-                    if (_coordinator?.ResizeManager != null)
+                    if (_coordinator?.ResizeManager == null)
                     {
-                        var position = e.GetCurrentPoint(resizeGrip);
-                        var success = _coordinator.ResizeManager.StartResize(columnIndex, position.Position.X);
-                        
-                        if (success)
-                        {
-                            resizeGrip.CapturePointer(e.Pointer);
-                            _state.Logger?.Info("🔄 RESIZE START: Column {Index} ({Name}) resize started", 
-                                columnIndex, header.Name);
-                        }
+                        _state.Logger?.Error("🚨 RESIZE GRIP ERROR: No ResizeManager available");
+                        return;
                     }
+
+                    var position = e.GetCurrentPoint(resizeGrip);
+                    _state.Logger?.Info("📍 RESIZE GRIP POSITION: X={X}, Y={Y}", 
+                        position.Position.X, position.Position.Y);
+                    
+                    var success = _coordinator.ResizeManager.StartResize(columnIndex, position.Position.X);
+                    _state.Logger?.Info("🔄 RESIZE MANAGER CALL: StartResize result={Success}", success);
+                    
+                    if (success)
+                    {
+                        bool captured = resizeGrip.CapturePointer(e.Pointer);
+                        _state.Logger?.Info("🖱️ POINTER CAPTURE: Success={Captured}, Column {Index} ({Name})", 
+                            captured, columnIndex, header.DisplayName);
+                    }
+                    else
+                    {
+                        _state.Logger?.Warning("⚠️ RESIZE START FAILED: ResizeManager rejected start operation for column {Index}", 
+                            columnIndex);
+                    }
+                    
                     e.Handled = true;
                 }
                 catch (Exception ex)
                 {
-                    _state.Logger?.Error(ex, "🚨 RESIZE START ERROR: Failed to start resize");
+                    _state.Logger?.Error(ex, "🚨 RESIZE GRIP EXCEPTION: Failed to handle pointer press for column {Index}", 
+                        columnIndex);
                 }
             };
 
@@ -1456,43 +1501,90 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             {
                 try
                 {
-                    if (_coordinator?.ResizeManager != null && _coordinator.ResizeManager.IsResizing)
+                    if (_coordinator?.ResizeManager == null)
                     {
-                        var position = e.GetCurrentPoint(resizeGrip);
-                        _coordinator.ResizeManager.UpdateResize(position.Position.X);
+                        return; // No logging needed - too many events
+                    }
+                    
+                    if (!_coordinator.ResizeManager.IsResizing)
+                    {
+                        return; // No logging needed - not in resize mode
+                    }
+
+                    var position = e.GetCurrentPoint(resizeGrip);
+                    // Only log every 10th move to avoid spam
+                    if (DateTime.Now.Millisecond % 100 < 10) 
+                    {
+                        _state.Logger?.Info("🖱️ RESIZE DRAG: Column {Index} - Position X={X}", 
+                            columnIndex, position.Position.X);
+                    }
+                    
+                    var updateSuccess = _coordinator.ResizeManager.UpdateResize(position.Position.X);
+                    if (!updateSuccess && DateTime.Now.Millisecond % 100 < 10)
+                    {
+                        _state.Logger?.Warning("⚠️ RESIZE UPDATE FAILED: Column {Index} position update rejected", columnIndex);
                     }
                 }
                 catch (Exception ex)
                 {
-                    _state.Logger?.Error(ex, "🚨 RESIZE MOVE ERROR: Failed to update resize");
+                    _state.Logger?.Error(ex, "🚨 RESIZE DRAG EXCEPTION: Failed to update resize for column {Index}", columnIndex);
                 }
             };
 
             // Pointer released - end resize
             resizeGrip.PointerReleased += async (sender, e) =>
             {
+                _state.Logger?.Info("👆 RESIZE GRIP RELEASED: Column {Index} '{Name}' - Ending resize operation", 
+                    columnIndex, header.DisplayName);
+                
                 try
                 {
-                    if (_coordinator?.ResizeManager != null && _coordinator.ResizeManager.IsResizing)
+                    if (_coordinator?.ResizeManager == null)
                     {
-                        var position = e.GetCurrentPoint(resizeGrip);
-                        resizeGrip.ReleasePointerCapture(e.Pointer);
-                        var success = _coordinator.ResizeManager.EndResize(position.Position.X, true);
-                        
-                        if (success)
-                        {
-                            _state.Logger?.Info("✅ RESIZE END: Column {Index} ({Name}) resize completed", 
-                                columnIndex, header.Name);
-                            
-                            // CRITICAL: Regenerate UI to reflect new column width
-                            await RegenerateUIAfterResize();
-                        }
+                        _state.Logger?.Error("🚨 RESIZE RELEASE ERROR: No ResizeManager available");
+                        return;
                     }
+                    
+                    if (!_coordinator.ResizeManager.IsResizing)
+                    {
+                        _state.Logger?.Warning("⚠️ RESIZE RELEASE SKIPPED: Not in resize mode");
+                        return;
+                    }
+
+                    var position = e.GetCurrentPoint(resizeGrip);
+                    _state.Logger?.Info("📍 RESIZE RELEASE POSITION: X={X}, Y={Y}", 
+                        position.Position.X, position.Position.Y);
+                    
+                    // Release pointer capture first
+                    resizeGrip.ReleasePointerCapture(e.Pointer);
+                    _state.Logger?.Info("🖱️ POINTER RELEASE: Released pointer capture");
+                    
+                    // End resize operation
+                    var success = _coordinator.ResizeManager.EndResize(position.Position.X, true);
+                    _state.Logger?.Info("🏁 RESIZE MANAGER END: Success={Success}", success);
+                    
+                    if (success)
+                    {
+                        _state.Logger?.Info("🎨 UI REGENERATION: Starting after successful resize of column {Index}", columnIndex);
+                        
+                        // CRITICAL: Regenerate UI to reflect new column width
+                        await RegenerateUIAfterResize();
+                        
+                        _state.Logger?.Info("✅ RESIZE COMPLETE: Column {Index} ({Name}) successfully resized and UI updated", 
+                            columnIndex, header.DisplayName);
+                    }
+                    else
+                    {
+                        _state.Logger?.Warning("⚠️ RESIZE END FAILED: ResizeManager rejected end operation for column {Index}", 
+                            columnIndex);
+                    }
+                    
                     e.Handled = true;
                 }
                 catch (Exception ex)
                 {
-                    _state.Logger?.Error(ex, "🚨 RESIZE END ERROR: Failed to end resize");
+                    _state.Logger?.Error(ex, "🚨 RESIZE RELEASE EXCEPTION: Failed to handle pointer release for column {Index}", 
+                        columnIndex);
                 }
             };
 
@@ -1607,17 +1699,30 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
         var normalBackground = ParseColor(colorConfig?.CellBackground ?? "#FFFFFF");
         var normalBorder = ParseColor(colorConfig?.CellBorder ?? "#000000"); // Black instead of gray
         
+        // ZEBRA ROWS: Apply alternating background color for even rows
+        if (colorConfig?.EnableZebraStripes == true && !string.IsNullOrEmpty(colorConfig.AlternateRowBackground))
+        {
+            if (rowIndex % 2 == 1) // Odd rows (0-indexed, so index 1, 3, 5... are visually 2nd, 4th, 6th rows)
+            {
+                normalBackground = ParseColor(colorConfig.AlternateRowBackground);
+            }
+        }
+        
+        // CRITICAL FIX: Check if this is the last column for table width filling
+        bool isLastColumn = (_coordinator?.Headers != null && cellIndex == _coordinator.Headers.Count - 1);
+        
         var cellBorder = new Border
         {
             Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(normalBackground),
             BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(normalBorder),
             BorderThickness = new Microsoft.UI.Xaml.Thickness(1),
             MinHeight = 28, // Dynamic height with minimum constraint
-            Width = header.Width,  // CRITICAL FIX: Use Width instead of MinWidth
+            // CRITICAL FIX: Last column fills remaining space, others have fixed width
+            Width = isLastColumn ? double.NaN : header.Width,
             MinWidth = header.Width,  // Keep MinWidth for safety
-            MaxWidth = header.Width,  // CRITICAL FIX: Add MaxWidth to force exact width
+            MaxWidth = isLastColumn ? double.PositiveInfinity : header.Width,
             Tag = cell.CellId, // Store unique cell ID
-            HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Left,  // CRITICAL FIX: Use Left instead of Stretch
+            HorizontalAlignment = isLastColumn ? Microsoft.UI.Xaml.HorizontalAlignment.Stretch : Microsoft.UI.Xaml.HorizontalAlignment.Left,
             VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Stretch
         };
 
@@ -2383,32 +2488,49 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
     /// </summary>
     private void HandleSmartCellSelection(DataGridCell cell, Border cellBorder, int rowIndex, int cellIndex, bool isCtrlPressed = false, bool isShiftPressed = false)
     {
+        _state.Logger?.Info("🎯 SELECTION START: Cell {CellId} at Row={Row}, Col={Col}, Ctrl={Ctrl}, Shift={Shift}", 
+            cell.CellId, rowIndex, cellIndex, isCtrlPressed || _isCtrlPressed, isShiftPressed || _isShiftPressed);
+        
         try
         {
+            var selectionMode = "";
+            var previousSelectedCount = _selectedCellIds.Count;
+            
             if (isCtrlPressed || _isCtrlPressed)
             {
+                selectionMode = "Multi";
+                _state.Logger?.Info("🔢 MULTI-SELECT: Toggling cell {CellId} - Current selection count: {Count}", 
+                    cell.CellId, previousSelectedCount);
+                
                 // CTRL+Click: Toggle selection (multi-selection)
                 ToggleCellSelection(cell, cellBorder);
             }
             else if (isShiftPressed || _isShiftPressed)
             {
+                selectionMode = "Range";
+                _state.Logger?.Info("📏 RANGE-SELECT: Selecting range to cell {CellId} - Current selection count: {Count}", 
+                    cell.CellId, previousSelectedCount);
+                
                 // SHIFT+Click: Range selection
                 HandleRangeSelection(cell, cellBorder, rowIndex, cellIndex);
             }
             else
             {
+                selectionMode = "Single";
+                _state.Logger?.Info("🎯 SINGLE-SELECT: Selecting only cell {CellId} - Clearing {Count} other selections", 
+                    cell.CellId, previousSelectedCount);
+                
                 // Normal click: Single selection (clear others)
                 HandleSingleSelection(cell, cellBorder);
             }
             
             // Always update focus
             SetFocusedCell(cell, cellBorder);
+            var newSelectedCount = _selectedCellIds.Count;
+            var deltaCount = newSelectedCount - previousSelectedCount;
             
-            _state.Logger?.Info("🎯 SELECTION: Cell {CellId} selected. Mode: {SelectionMode}, Selected count: {SelectedCount}",
-                cell.CellId, 
-                isCtrlPressed || _isCtrlPressed ? "Multi" : 
-                isShiftPressed || _isShiftPressed ? "Range" : "Single",
-                _selectedCellIds.Count);
+            _state.Logger?.Info("✅ SELECTION COMPLETE: Mode={Mode}, Previous={PrevCount}, New={NewCount}, Delta={Delta}", 
+                selectionMode, previousSelectedCount, newSelectedCount, deltaCount);
         }
         catch (Exception ex)
         {
@@ -2891,6 +3013,9 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
 
             if (e.Key == Windows.System.VirtualKey.Enter && _selectedCellIds.Count > 0)
             {
+                // CRITICAL FIX: Prevent button activation IMMEDIATELY
+                e.Handled = true;
+                
                 // ENTER CYCLE: Start editing the currently selected cell
                 var selectedCellId = _selectedCellIds.First();
                 var selectedCell = FindCellById(selectedCellId);
@@ -2899,9 +3024,18 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
                 if (selectedCell != null && selectedBorder != null)
                 {
                     StartCellEditingDirectly(selectedBorder, selectedCell);
-                    e.Handled = true;
                     _state.Logger?.Info("⌨️ GLOBAL ENTER: Started editing selected cell {CellId}", selectedCellId);
                 }
+                else
+                {
+                    _state.Logger?.Warning("⚠️ GLOBAL ENTER: Selected cell not found - CellId: {CellId}", selectedCellId);
+                }
+            }
+            else if (e.Key == Windows.System.VirtualKey.Enter)
+            {
+                // CRITICAL FIX: Even if no cell selected, prevent button activation
+                e.Handled = true;
+                _state.Logger?.Info("⌨️ GLOBAL ENTER: No cell selected - prevented button activation");
             }
         }
         catch (Exception ex)
@@ -2937,6 +3071,45 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
         }
     }
 
+    #endregion
+    
+    #region XAML Event Handlers
+    
+    /// <summary>
+    /// Handle mouse wheel scrolling to scroll by rows instead of pixels
+    /// FEATURE: Mouse wheel scrolling po riadkoch
+    /// </summary>
+    private void MainScrollViewer_PointerWheelChanged(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        try
+        {
+            var delta = e.GetCurrentPoint(MainScrollViewer).Properties.MouseWheelDelta;
+            _state.Logger?.Info("🖱️ MOUSE WHEEL: Delta={Delta}", delta);
+            
+            // Calculate scroll amount per row (approximate row height: 30px)
+            const double rowHeight = 30.0;
+            var scrollLines = delta / 120.0; // Standard wheel delta is 120 per "notch"
+            var scrollAmount = scrollLines * rowHeight;
+            
+            // Get current vertical offset and calculate new position
+            var currentOffset = MainScrollViewer.VerticalOffset;
+            var newOffset = Math.Max(0, currentOffset - scrollAmount); // Negative because wheel up should scroll up
+            
+            _state.Logger?.Info("🖱️ SCROLL: Current={Current}, New={New}, Amount={Amount}", 
+                currentOffset, newOffset, scrollAmount);
+            
+            // Apply smooth scrolling
+            MainScrollViewer.ChangeView(null, newOffset, null, false);
+            
+            // Mark as handled to prevent default pixel-based scrolling
+            e.Handled = true;
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 MOUSE WHEEL ERROR: Failed to handle wheel scrolling");
+        }
+    }
+    
     #endregion
 }
 

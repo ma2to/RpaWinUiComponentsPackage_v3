@@ -95,18 +95,32 @@ internal sealed class DataGridResizeManager : IDisposable
     /// </summary>
     public bool StartResize(int columnIndex, double startX)
     {
+        _logger?.Info("🚀 RESIZE START CALLED: ColumnIndex={ColumnIndex}, StartX={StartX}, HeadersCount={HeadersCount}", 
+            columnIndex, startX, _headers?.Count ?? -1);
+        
         try
         {
+            if (_isResizing)
+            {
+                _logger?.Warning("⚠️ RESIZE START BLOCKED: Already resizing column {CurrentColumnIndex}", _resizingColumnIndex);
+                return false;
+            }
+            
             if (columnIndex < 0 || columnIndex >= _headers.Count)
             {
-                _logger?.Warning("⚠️ Invalid column index for resize: {Index}", columnIndex);
+                _logger?.Warning("⚠️ RESIZE START FAILED: Invalid column index {Index} (valid range: 0-{MaxIndex})", 
+                    columnIndex, _headers.Count - 1);
                 return false;
             }
 
             var column = _headers[columnIndex];
+            _logger?.Info("🔍 RESIZE COLUMN CHECK: Column '{Name}' - Width={Width}, Type={Type}", 
+                column.DisplayName, column.Width, column.GetType().Name);
+            
             if (!CanResizeColumn(column, columnIndex))
             {
-                _logger?.Warning("⚠️ Column {Index} cannot be resized", columnIndex);
+                _logger?.Warning("⚠️ RESIZE START REJECTED: Column {Index} '{Name}' cannot be resized", 
+                    columnIndex, column.DisplayName);
                 return false;
             }
 
@@ -142,31 +156,51 @@ internal sealed class DataGridResizeManager : IDisposable
     /// </summary>
     public bool UpdateResize(double currentX)
     {
+        _logger?.Info("🔄 RESIZE UPDATE CALLED: CurrentX={CurrentX}, IsResizing={IsResizing}", currentX, _isResizing);
+        
         try
         {
-            if (!_isResizing || _resizingColumn == null)
+            if (!_isResizing)
             {
+                _logger?.Warning("⚠️ RESIZE UPDATE SKIPPED: Not in resize mode");
+                return false;
+            }
+            
+            if (_resizingColumn == null)
+            {
+                _logger?.Warning("⚠️ RESIZE UPDATE SKIPPED: No resizing column set");
                 return false;
             }
 
             var deltaX = currentX - _resizeStartX;
-            var newWidth = Math.Max(MinColumnWidth, Math.Min(MaxColumnWidth, _resizeStartWidth + deltaX));
+            var rawNewWidth = _resizeStartWidth + deltaX;
+            var newWidth = Math.Max(MinColumnWidth, Math.Min(MaxColumnWidth, rawNewWidth));
+            
+            _logger?.Info("📏 RESIZE CALCULATION: StartX={StartX}, CurrentX={CurrentX}, DeltaX={DeltaX}", 
+                _resizeStartX, currentX, deltaX);
+            _logger?.Info("📏 RESIZE WIDTH: StartWidth={StartWidth}, RawNewWidth={RawNewWidth}, ClampedWidth={ClampedWidth}", 
+                _resizeStartWidth, rawNewWidth, newWidth);
 
             // Update preview
-            UpdateResizePreview(currentX);
-            
-            // Log resize update details
-            _logger?.Info("📏 RESIZE UPDATE: Column {Index} - CurrentX: {CurrentX}, DeltaX: {DeltaX}, NewWidth: {NewWidth}", 
-                _resizingColumnIndex, currentX, deltaX, newWidth);
+            bool previewUpdated = UpdateResizePreview(currentX);
+            _logger?.Info("🎨 RESIZE PREVIEW: Updated={Updated}", previewUpdated);
 
             // Raise change event (but don't apply yet)
-            OnResizeChanged(_resizingColumn, _resizingColumnIndex, _resizeStartWidth, newWidth);
+            try
+            {
+                OnResizeChanged(_resizingColumn, _resizingColumnIndex, _resizeStartWidth, newWidth);
+                _logger?.Info("📡 RESIZE EVENT: Change event raised successfully");
+            }
+            catch (Exception eventEx)
+            {
+                _logger?.Error(eventEx, "🚨 RESIZE EVENT ERROR: Failed to raise change event");
+            }
 
             return true;
         }
         catch (Exception ex)
         {
-            _logger?.Error(ex, "🚨 Error updating column resize");
+            _logger?.Error(ex, "🚨 RESIZE UPDATE ERROR: Failed to update resize");
             return false;
         }
     }
@@ -176,15 +210,31 @@ internal sealed class DataGridResizeManager : IDisposable
     /// </summary>
     public bool EndResize(double endX, bool applyChanges = true)
     {
+        _logger?.Info("🏁 RESIZE END CALLED: EndX={EndX}, ApplyChanges={ApplyChanges}, IsResizing={IsResizing}", 
+            endX, applyChanges, _isResizing);
+        
         try
         {
-            if (!_isResizing || _resizingColumn == null)
+            if (!_isResizing)
             {
+                _logger?.Warning("⚠️ RESIZE END SKIPPED: Not in resize mode");
+                return false;
+            }
+            
+            if (_resizingColumn == null)
+            {
+                _logger?.Warning("⚠️ RESIZE END SKIPPED: No resizing column set");
                 return false;
             }
 
             var deltaX = endX - _resizeStartX;
-            var newWidth = Math.Max(MinColumnWidth, Math.Min(MaxColumnWidth, _resizeStartWidth + deltaX));
+            var rawNewWidth = _resizeStartWidth + deltaX;
+            var newWidth = Math.Max(MinColumnWidth, Math.Min(MaxColumnWidth, rawNewWidth));
+            
+            _logger?.Info("🏁 RESIZE END CALCULATION: StartX={StartX}, EndX={EndX}, DeltaX={DeltaX}", 
+                _resizeStartX, endX, deltaX);
+            _logger?.Info("🏁 RESIZE END WIDTH: StartWidth={StartWidth}, RawNewWidth={RawNewWidth}, FinalWidth={FinalWidth}", 
+                _resizeStartWidth, rawNewWidth, newWidth);
 
             if (applyChanges)
             {
@@ -497,18 +547,32 @@ internal sealed class DataGridResizeManager : IDisposable
         }
     }
 
-    private void UpdateResizePreview(double x)
+    private bool UpdateResizePreview(double x)
     {
+        _logger?.Info("🎨 RESIZE PREVIEW CALLED: X={X}, HasPreviewLine={HasPreviewLine}", x, _resizePreviewLine != null);
+        
         try
         {
             if (_resizePreviewLine != null)
             {
+                var oldLeft = Canvas.GetLeft(_resizePreviewLine);
                 Canvas.SetLeft(_resizePreviewLine, x);
+                var newLeft = Canvas.GetLeft(_resizePreviewLine);
+                
+                _logger?.Info("🎨 RESIZE PREVIEW UPDATED: OldX={OldX}, NewX={NewX}, TargetX={TargetX}", 
+                    oldLeft, newLeft, x);
+                return true;
+            }
+            else
+            {
+                _logger?.Warning("⚠️ RESIZE PREVIEW SKIPPED: No preview line available");
+                return false;
             }
         }
         catch (Exception ex)
         {
-            _logger?.Error(ex, "🚨 Error updating resize preview");
+            _logger?.Error(ex, "🚨 RESIZE PREVIEW ERROR: Failed to update preview");
+            return false;
         }
     }
 

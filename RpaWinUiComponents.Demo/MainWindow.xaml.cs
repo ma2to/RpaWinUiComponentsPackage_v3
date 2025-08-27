@@ -84,7 +84,7 @@ public sealed partial class MainWindow : Window
             {
                 AddLogMessage("🎨 INIT PHASE 1: Starting InitializeAsync...");
                 
-                // Create default color configuration with visible selection colors
+                // Create default color configuration with visible selection colors and zebra rows
                 var defaultColors = new ColorConfiguration
                 {
                     CellBackground = "#FFFFFF",
@@ -95,14 +95,17 @@ public sealed partial class MainWindow : Window
                     HeaderBorder = "#D1D5DB",
                     SelectionBackground = "#0078D4",  // Blue selection background
                     SelectionForeground = "#FFFFFF",  // White text on selection
-                    ValidationErrorBorder = "#EF4444" // Red validation error border
+                    ValidationErrorBorder = "#EF4444", // Red validation error border
+                    // CRITICAL FIX: Enable zebra rows with alternating background
+                    EnableZebraStripes = true,
+                    AlternateRowBackground = "#F9FAFB"  // Very light gray for alternating rows
                 };
 
                 // CRITICAL FIX: Add validation to basic init for proper red border testing
                 var basicValidationConfig = new ValidationConfiguration
                 {
                     EnableRealtimeValidation = true,
-                    EnableBatchValidation = false,
+                    EnableBatchValidation = true,  // CRITICAL FIX: Enable batch validation!
                     ShowValidationAlerts = false,
                     RulesWithMessages = new Dictionary<string, (Func<object, bool> Validator, string ErrorMessage)>
                     {
@@ -286,6 +289,35 @@ public sealed partial class MainWindow : Window
             globalStopwatch.Stop();
             
             AddLogMessage($"✅ DataGrid initialized successfully + UI refreshed in {globalStopwatch.ElapsedMilliseconds}ms total");
+            
+            // CRITICAL FIX: Run batch validation immediately after successful initialization
+            var batchValidationStopwatch = System.Diagnostics.Stopwatch.StartNew();
+            try
+            {
+                AddLogMessage("🔄 INIT PHASE 3: Running batch validation after successful initialization...");
+                var validationResult = await TestDataGrid.ValidateAllRowsBatchAsync();
+                batchValidationStopwatch.Stop();
+                
+                if (validationResult.IsSuccess)
+                {
+                    await TestDataGrid.UpdateValidationUIAsync();
+                    var vResult = validationResult.Value;
+                    AddLogMessage($"✅ INIT PHASE 3: Batch validation completed in {batchValidationStopwatch.ElapsedMilliseconds}ms");
+                    AddLogMessage($"   📊 Validation Results: {vResult.ValidCells} valid, {vResult.InvalidCells} invalid cells");
+                }
+                else
+                {
+                    AddLogMessage($"🚨 INIT PHASE 3 ERROR: Batch validation failed in {batchValidationStopwatch.ElapsedMilliseconds}ms");
+                    AddLogMessage($"   💥 Error: {validationResult.ErrorMessage}");
+                }
+            }
+            catch (Exception batchEx)
+            {
+                batchValidationStopwatch.Stop();
+                AddLogMessage($"🚨 INIT PHASE 3 EXCEPTION: Batch validation failed after {batchValidationStopwatch.ElapsedMilliseconds}ms");
+                AddLogMessage($"   💥 Exception: {batchEx.Message}");
+                _fileLogger.LogError(batchEx, "Batch validation failed after initialization");
+            }
             
             // Final verification
             try
