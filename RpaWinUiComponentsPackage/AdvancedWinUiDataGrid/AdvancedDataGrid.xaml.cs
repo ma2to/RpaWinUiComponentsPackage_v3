@@ -80,11 +80,20 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
         
         // UI-specific initialization only
         this.DefaultStyleKey = typeof(AdvancedDataGrid);
+        
+        // Set focus to enable keyboard handling and prevent button focus
+        this.Loaded += (s, e) => 
+        {
+            RootGrid.Focus(Microsoft.UI.Xaml.FocusState.Programmatic);
+            // Also set focus when user interacts with the grid
+            RootGrid.GotFocus += (sender, args) => _state.Logger?.Info("🎯 FOCUS: RootGrid got focus");
+            RootGrid.LostFocus += (sender, args) => _state.Logger?.Info("🎯 FOCUS: RootGrid lost focus");
+        };
         this.HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch;
         this.VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Stretch;
         
-        // SMART SELECTION: Will be implemented later
-        // TODO: Add keyboard handling for multi-selection
+        // TODO: Global keyboard handling for Enter key - implement later
+        this.IsTabStop = true; // Allow Tab navigation to this component
     }
 
     #endregion
@@ -616,7 +625,37 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
     /// </summary>
     public async Task UpdateValidationUIAsync()
     {
-        await RefreshUIAsync(); // Reuse existing refresh logic
+        if (_coordinator == null) return;
+        
+        try
+        {
+            _state.Logger?.Info("🔄 VALIDATION UI UPDATE: Starting validation UI refresh");
+            
+            // Update validation styling for all visible cells without regenerating UI
+            foreach (var rowPanel in DataRowsPanel.Children.OfType<StackPanel>())
+            {
+                var rowIndex = DataRowsPanel.Children.IndexOf(rowPanel);
+                
+                foreach (var cellBorder in rowPanel.Children.OfType<Border>())
+                {
+                    var cellId = cellBorder.Tag?.ToString();
+                    if (string.IsNullOrEmpty(cellId)) continue;
+                    
+                    var cell = FindCellById(cellId);
+                    if (cell != null && !string.IsNullOrEmpty(cell.Value?.ToString()))
+                    {
+                        // Re-run validation for this cell and apply styling
+                        await PerformRealTimeValidation(cell, cell.Value.ToString(), cellBorder);
+                    }
+                }
+            }
+            
+            _state.Logger?.Info("✅ VALIDATION UI UPDATE: Completed successfully");
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 VALIDATION UI UPDATE ERROR: Failed to update validation styling");
+        }
     }
 
     /// <summary>
@@ -1246,28 +1285,38 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             // Calculate total content width (sum of all column widths)
             var totalWidth = _coordinator.Headers.Sum(h => h.Width);
             
-            // Calculate total content height (number of rows * row height)
-            var rowHeight = 28; // Fixed row height
-            var headerHeight = 32; // Fixed header height
-            var totalHeight = headerHeight + (_coordinator.DataRows.Count * rowHeight);
+            // CRITICAL FIX: Do NOT set fixed heights - let panels stretch to fill container
             
-            // FIXED: Set minimum sizes only, let panels stretch to full container width
-            HeadersPanel.MinWidth = totalWidth;  // Minimum width is sum of columns
-            HeadersPanel.ClearValue(FrameworkElement.WidthProperty);  // Remove fixed width, allow stretching
+            // Headers: only set minimum width, let it stretch horizontally to fill container
+            HeadersPanel.MinWidth = totalWidth;
+            HeadersPanel.ClearValue(FrameworkElement.WidthProperty);  
+            HeadersPanel.HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch;
             
-            DataRowsPanel.MinWidth = totalWidth;  // Minimum width is sum of columns  
-            DataRowsPanel.ClearValue(FrameworkElement.WidthProperty);  // Remove fixed width, allow stretching
-            DataRowsPanel.Height = _coordinator.DataRows.Count * rowHeight;
-            DataRowsPanel.MinHeight = _coordinator.DataRows.Count * rowHeight;
+            // Data Rows: only set minimum width, let it stretch and scroll naturally
+            DataRowsPanel.MinWidth = totalWidth;
+            DataRowsPanel.ClearValue(FrameworkElement.WidthProperty);
+            DataRowsPanel.ClearValue(FrameworkElement.HeightProperty);    // CRITICAL: Remove fixed height
+            DataRowsPanel.ClearValue(FrameworkElement.MinHeightProperty); // CRITICAL: Remove fixed min height
+            DataRowsPanel.HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch;
             
-            // FIXED: Update MainContentGrid with minimum size only, let it stretch
-            MainContentGrid.MinWidth = totalWidth;  // Minimum width is sum of columns
-            MainContentGrid.ClearValue(FrameworkElement.WidthProperty);  // Remove fixed width, allow stretching
-            MainContentGrid.Height = totalHeight;
-            MainContentGrid.MinHeight = totalHeight;
+            // CRITICAL FIX: Set actual width to enable horizontal scrolling when content exceeds container
+            if (totalWidth > MainScrollViewer.ActualWidth && MainScrollViewer.ActualWidth > 0)
+            {
+                MainContentGrid.Width = totalWidth; // Force width to enable horizontal scroll
+            }
+            else
+            {
+                MainContentGrid.MinWidth = totalWidth;
+                MainContentGrid.ClearValue(FrameworkElement.WidthProperty);
+            }
             
-            _state.Logger?.Info("📏 SCROLL CONTENT: Updated content size - Width: {Width}px, Height: {Height}px", 
-                totalWidth, totalHeight);
+            MainContentGrid.ClearValue(FrameworkElement.HeightProperty);    // Let height be natural
+            MainContentGrid.ClearValue(FrameworkElement.MinHeightProperty); 
+            MainContentGrid.HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Left; // Important for scrolling
+            MainContentGrid.VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Top;
+            
+            _state.Logger?.Info("📏 SCROLL CONTENT: Set minimum width {Width}px, allowing natural height stretching", 
+                totalWidth);
                 
             await Task.CompletedTask;
         }
@@ -1314,7 +1363,8 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Gray),
             BorderThickness = new Microsoft.UI.Xaml.Thickness(1),
             Height = 32,
-            Width = header.Width
+            MinWidth = header.Width,
+            HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch
         };
 
         var grid = new Grid();
@@ -1329,14 +1379,14 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Black)
         };
         
-        // Resize grip
+        // Resize grip - make it visible for better UX
         var resizeGrip = new Border
         {
-            Width = 6,
+            Width = 8,
             Height = 32,
-            Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent),
-            HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Right
-            // Note: Cursor property not available in WinUI3 Border - cursor changes handled by PointerEntered/Exited events
+            Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.DarkGray),
+            HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Right,
+            Opacity = 0.7
         };
         
         // Attach resize events - FIXED: properly connect to resize manager
@@ -1511,13 +1561,18 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
     /// </summary>
     private Border CreateCellElement(DataGridCell cell, GridColumnDefinition header, int rowIndex, int cellIndex)
     {
+        // Use proper colors from configuration
+        var colorConfig = _coordinator?.ColorConfiguration;
+        var normalBackground = ParseColor(colorConfig?.CellBackground ?? "#FFFFFF");
+        var normalBorder = ParseColor(colorConfig?.CellBorder ?? "#000000"); // Black instead of gray
+        
         var cellBorder = new Border
         {
-            Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White),
-            BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Gray),
+            Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(normalBackground),
+            BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(normalBorder),
             BorderThickness = new Microsoft.UI.Xaml.Thickness(1),
             MinHeight = 28, // Dynamic height with minimum constraint
-            Width = header.Width,
+            MinWidth = header.Width,
             Tag = cell.CellId, // Store unique cell ID
             HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch,
             VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Stretch
@@ -1535,7 +1590,29 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Black),
             TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap,
             TextTrimming = Microsoft.UI.Xaml.TextTrimming.CharacterEllipsis,
-            MaxLines = 3 // Allow up to 3 lines before ellipsis
+            MaxLines = 5 // ENHANCED: Allow up to 5 lines for long text support
+        };
+
+        // DYNAMIC HEIGHT: Adjust cell height based on text content
+        textBlock.SizeChanged += (s, e) =>
+        {
+            try
+            {
+                var desiredHeight = textBlock.ActualHeight + 8; // Add margin for padding
+                var minHeight = 28; // Minimum cell height
+                var newHeight = Math.Max(minHeight, desiredHeight);
+                
+                if (Math.Abs(cellBorder.MinHeight - newHeight) > 1) // Only update if significant change
+                {
+                    cellBorder.MinHeight = newHeight;
+                    _state.Logger?.Info("📐 DYNAMIC HEIGHT: Cell {CellId} height adjusted to {Height}px", 
+                        cell.CellId, newHeight);
+                }
+            }
+            catch (Exception ex)
+            {
+                _state.Logger?.Error(ex, "🚨 DYNAMIC HEIGHT ERROR: Failed to adjust height for cell {CellId}", cell.CellId);
+            }
         };
 
         grid.Children.Add(textBlock);
@@ -1716,6 +1793,101 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
     }
 
     /// <summary>
+    /// Start editing the next cell in cycle order (right, then next row)
+    /// </summary>
+    private void StartEditingNextCell(DataGridCell currentCell)
+    {
+        try
+        {
+            _state.Logger?.Info("🔄 ENTER CYCLE: Finding next cell after {CellId}", currentCell.CellId);
+            
+            // Find next cell: right in same row, or first cell of next row
+            var nextCell = FindNextCellInCycle(currentCell);
+            if (nextCell != null)
+            {
+                // Select and start editing the next cell
+                _selectedCellIds.Clear();
+                _selectedCellIds.Add(nextCell.CellId);
+                
+                // Find the UI element for next cell and start editing
+                var nextCellBorder = FindCellBorderByCellId(nextCell.CellId);
+                if (nextCellBorder != null)
+                {
+                    // Apply selection styling first
+                    ApplySelectionStyling(nextCellBorder, isSelected: true);
+                    
+                    // Then start editing
+                    StartCellEditingDirectly(nextCellBorder, nextCell);
+                    _state.Logger?.Info("✅ ENTER CYCLE: Started editing next cell {CellId}", nextCell.CellId);
+                }
+            }
+            else
+            {
+                _state.Logger?.Info("🔚 ENTER CYCLE: No next cell found, staying at {CellId}", currentCell.CellId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 ENTER CYCLE ERROR: Failed to start editing next cell after {CellId}", currentCell.CellId);
+        }
+    }
+
+    /// <summary>
+    /// Find the next cell in cycle order
+    /// </summary>
+    private DataGridCell? FindNextCellInCycle(DataGridCell currentCell)
+    {
+        try
+        {
+            var currentRow = currentCell.RowIndex;
+            var currentCol = currentCell.ColumnIndex;
+            
+            // Try next column in same row first - build cell ID and search for it
+            var nextColCellId = $"R{currentRow}C{currentCol + 1}";
+            var nextColCell = FindCellById(nextColCellId);
+                
+            if (nextColCell != null)
+                return nextColCell;
+                
+            // Try first column of next row
+            var nextRowCellId = $"R{currentRow + 1}C0";
+            var nextRowCell = FindCellById(nextRowCellId);
+                
+            return nextRowCell;
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 CYCLE SEARCH ERROR: Failed to find next cell");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Find Border element by CellId
+    /// </summary>
+    private Border? FindCellBorderByCellId(string cellId)
+    {
+        try
+        {
+            // Search through all rows for the cell border with matching CellId
+            foreach (var rowPanel in DataRowsPanel.Children.OfType<StackPanel>())
+            {
+                foreach (var cellBorder in rowPanel.Children.OfType<Border>())
+                {
+                    if (cellBorder.Tag?.ToString() == cellId)
+                        return cellBorder;
+                }
+            }
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 CELL BORDER SEARCH ERROR: Failed to find border for cell {CellId}", cellId);
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Start cell editing without virtualization issues
     /// </summary>
     private void StartCellEditingDirectly(Border cellBorder, DataGridCell cell)
@@ -1770,7 +1942,11 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             {
                 if (args.Key == Windows.System.VirtualKey.Enter)
                 {
+                    // CYCLE LOGIC: Enter key cycles through confirm → select next → edit next
                     EndCellEditingDirectly(cellBorder, cell, editBox, textBlock);
+                    
+                    // After confirming current edit, select and start editing the next cell
+                    StartEditingNextCell(cell);
                     args.Handled = true; // Prevent further processing
                 }
                 else if (args.Key == Windows.System.VirtualKey.Escape)
@@ -1850,8 +2026,23 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             else
             {
                 // Reset to default appearance only if not selected
-                cellBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White);
-                cellBorder.BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Gray);
+                var colorConfig = _coordinator?.ColorConfiguration;
+                var normalBackground = colorConfig?.CellBackground ?? "#FFFFFF";
+                var normalBorder = colorConfig?.CellBorder ?? "#E0E0E0";
+                
+                cellBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(ParseColor(normalBackground));
+                cellBorder.BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(ParseColor(normalBorder));
+                
+                // Reset text color to normal
+                if (cellBorder.Child is Grid cellGrid)
+                {
+                    var textBlock = cellGrid.Children.OfType<TextBlock>().FirstOrDefault();
+                    if (textBlock != null)
+                    {
+                        var normalForeground = colorConfig?.CellForeground ?? "#000000";
+                        textBlock.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(ParseColor(normalForeground));
+                    }
+                }
             }
 
             // CRITICAL FIX: Set focus properly to the cell (NOT to any buttons inside)
@@ -2638,6 +2829,68 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
         catch (Exception ex)
         {
             _state.Logger?.Error(ex, "🚨 SMART AUTO-ADD ERROR: Failed to add new row after editing cell {CellId}", cell.CellId);
+        }
+    }
+
+    #endregion
+
+    #region Event Handlers
+
+    /// <summary>
+    /// Global keyboard handler for non-editing mode
+    /// </summary>
+    private void RootGrid_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+    {
+        try
+        {
+            // Only handle keys when NOT in editing mode
+            if (IsCurrentlyEditing()) return;
+
+            if (e.Key == Windows.System.VirtualKey.Enter && _selectedCellIds.Count > 0)
+            {
+                // ENTER CYCLE: Start editing the currently selected cell
+                var selectedCellId = _selectedCellIds.First();
+                var selectedCell = FindCellById(selectedCellId);
+                var selectedBorder = FindCellBorderByCellId(selectedCellId);
+                
+                if (selectedCell != null && selectedBorder != null)
+                {
+                    StartCellEditingDirectly(selectedBorder, selectedCell);
+                    e.Handled = true;
+                    _state.Logger?.Info("⌨️ GLOBAL ENTER: Started editing selected cell {CellId}", selectedCellId);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 GLOBAL KEY ERROR: Failed to handle global key press");
+        }
+    }
+
+    /// <summary>
+    /// Check if any cell is currently in editing mode
+    /// </summary>
+    private bool IsCurrentlyEditing()
+    {
+        try
+        {
+            // Check if any DataRowsPanel contains a TextBox (indicating editing mode)
+            foreach (var rowPanel in DataRowsPanel.Children.OfType<StackPanel>())
+            {
+                foreach (var cellBorder in rowPanel.Children.OfType<Border>())
+                {
+                    if (cellBorder.Child is Grid grid)
+                    {
+                        var hasTextBox = grid.Children.OfType<TextBox>().Any();
+                        if (hasTextBox) return true;
+                    }
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
         }
     }
 

@@ -10,14 +10,15 @@
         <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
     </UserControl.Resources>
     
-    <Grid x:Name="RootGrid" Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-        <!-- ScrollViewer with ALWAYS VISIBLE scrollbars -->
+    <Grid x:Name="RootGrid" Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+          KeyDown="RootGrid_KeyDown">
+        <!-- ScrollViewer with AUTO scrollbars - show only when needed -->
         <ScrollViewer x:Name="MainScrollViewer" 
                       ZoomMode="Disabled" 
                       HorizontalScrollMode="Enabled" 
                       VerticalScrollMode="Enabled" 
-                      HorizontalScrollBarVisibility="Visible" 
-                      VerticalScrollBarVisibility="Visible"
+                      HorizontalScrollBarVisibility="Auto" 
+                      VerticalScrollBarVisibility="Auto"
                       HorizontalAlignment="Stretch" 
                       VerticalAlignment="Stretch"
                       Background="Transparent">

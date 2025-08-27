@@ -89,13 +89,12 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- Main DataGrid Testing Area -->
-        <Border Grid.Row="1" BorderBrush="{ThemeResource ControlStrokeColorDefault}" BorderThickness="1" Margin="10,5">
-            <!-- Testing AdvancedDataGrid with simplified templates -->
-            <controls:AdvancedDataGrid x:Name="TestDataGrid" 
-                                     HorizontalAlignment="Stretch" 
-                                     VerticalAlignment="Stretch" />
-        </Border>
+        <!-- Main DataGrid Testing Area - FULL WIDTH/HEIGHT -->
+        <controls:AdvancedDataGrid x:Name="TestDataGrid" 
+                                 Grid.Row="1"
+                                 HorizontalAlignment="Stretch" 
+                                 VerticalAlignment="Stretch" 
+                                 Margin="0" />
 
         <!-- Live Log Output -->
         <Border Grid.Row="2" BorderBrush="{ThemeResource ControlStrokeColorDefault}" BorderThickness="1,0,1,1" Margin="10,0,10,10">

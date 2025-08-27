@@ -98,10 +98,23 @@ public sealed partial class MainWindow : Window
                     ValidationErrorBorder = "#EF4444" // Red validation error border
                 };
 
+                // CRITICAL FIX: Add validation to basic init for proper red border testing
+                var basicValidationConfig = new ValidationConfiguration
+                {
+                    EnableRealtimeValidation = true,
+                    EnableBatchValidation = false,
+                    ShowValidationAlerts = false,
+                    RulesWithMessages = new Dictionary<string, (Func<object, bool> Validator, string ErrorMessage)>
+                    {
+                        ["Name"] = (value => !string.IsNullOrEmpty(value?.ToString()), "Name cannot be empty"),
+                        ["Age"] = (value => int.TryParse(value?.ToString(), out int age) && age >= 0 && age <= 120, "Age must be 0-120")
+                    }
+                };
+
                 await TestDataGrid.InitializeAsync(
                     columns: columns,
                     colors: defaultColors, // Enable selection colors
-                    validation: null, // No validation for basic init
+                    validation: basicValidationConfig, // ENABLE VALIDATION for red border testing
                     performance: null, // Default performance
                     emptyRowsCount: 3, // TEMPORARY: Minimal for debugging WinRT COM errors
                     logger: packageLogger
