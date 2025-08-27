@@ -115,6 +115,9 @@ internal sealed class DataGridResizeManager : IDisposable
             _resizingColumnIndex = columnIndex;
             _resizeStartX = startX;
             _resizeStartWidth = column.Width;
+            
+            _logger?.Info("🔄 RESIZE START DETAILS: Column {Index} - StartX: {StartX}, StartWidth: {StartWidth}, ColumnName: '{Name}'", 
+                columnIndex, startX, _resizeStartWidth, column.DisplayName);
 
             // Show resize preview
             ShowResizePreview(startX);
@@ -151,6 +154,10 @@ internal sealed class DataGridResizeManager : IDisposable
 
             // Update preview
             UpdateResizePreview(currentX);
+            
+            // Log resize update details
+            _logger?.Info("📏 RESIZE UPDATE: Column {Index} - CurrentX: {CurrentX}, DeltaX: {DeltaX}, NewWidth: {NewWidth}", 
+                _resizingColumnIndex, currentX, deltaX, newWidth);
 
             // Raise change event (but don't apply yet)
             OnResizeChanged(_resizingColumn, _resizingColumnIndex, _resizeStartWidth, newWidth);
@@ -181,9 +188,18 @@ internal sealed class DataGridResizeManager : IDisposable
 
             if (applyChanges)
             {
+                var currentWidth = _resizingColumn.Width;
                 // Apply the new width
                 _resizingColumn.Width = (int)newWidth;
-                _logger?.Info("✅ Applied new width {Width} to column {Index}", newWidth, _resizingColumnIndex);
+                _logger?.Info("✅ RESIZE APPLY: Column {Index} - Changed from {OldWidth} to {NewWidth} (actual: {ActualWidth})", 
+                    _resizingColumnIndex, currentWidth, newWidth, _resizingColumn.Width);
+                
+                // Verify the change was applied
+                if (_resizingColumn.Width != (int)newWidth)
+                {
+                    _logger?.Error("🚨 RESIZE ERROR: Width change failed! Expected {Expected}, got {Actual}", 
+                        (int)newWidth, _resizingColumn.Width);
+                }
             }
 
             // Hide resize preview

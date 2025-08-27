@@ -424,7 +424,16 @@ public sealed partial class MainWindow : Window
             // MANUAL UI refresh (demo pattern)
             await TestDataGrid.RefreshUIAsync();
 
-            AddLogMessage($"✅ Imported {testData.Count} rows + UI refreshed");
+            // CRITICAL FIX: Run batch validation after import
+            AddLogMessage("🔄 Running batch validation after import...");
+            var validationResult = await TestDataGrid.ValidateAllRowsBatchAsync();
+            if (validationResult.IsSuccess)
+            {
+                await TestDataGrid.UpdateValidationUIAsync();
+                AddLogMessage($"✅ Batch validation: {validationResult.Value.ValidCells} valid, {validationResult.Value.InvalidCells} invalid");
+            }
+
+            AddLogMessage($"✅ Imported {testData.Count} rows + UI refreshed + batch validated");
             _fileLogger.LogInformation("Dictionary import completed: {Count} rows", testData.Count);
         }
         catch (Exception ex)

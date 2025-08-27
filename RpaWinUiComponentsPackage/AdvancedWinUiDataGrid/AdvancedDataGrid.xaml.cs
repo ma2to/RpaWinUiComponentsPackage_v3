@@ -81,11 +81,22 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
         // UI-specific initialization only
         this.DefaultStyleKey = typeof(AdvancedDataGrid);
         
-        // Set focus to enable keyboard handling and prevent button focus
+        // CRITICAL FIX: Focus management to prevent button activation
         this.Loaded += (s, e) => 
         {
-            RootGrid.Focus(Microsoft.UI.Xaml.FocusState.Programmatic);
-            // Also set focus when user interacts with the grid
+            // Force focus and make grid tabbable
+            this.IsTabStop = true;
+            this.TabIndex = 0;
+            RootGrid.IsTabStop = true;  
+            RootGrid.TabIndex = 1;
+            
+            // Set initial focus
+            _ = this.DispatcherQueue.TryEnqueue(() => {
+                var focusResult = RootGrid.Focus(Microsoft.UI.Xaml.FocusState.Programmatic);
+                _state.Logger?.Info("🎯 FOCUS SETUP: RootGrid focus result: {Result}", focusResult);
+            });
+            
+            // Handle focus events for debugging
             RootGrid.GotFocus += (sender, args) => _state.Logger?.Info("🎯 FOCUS: RootGrid got focus");
             RootGrid.LostFocus += (sender, args) => _state.Logger?.Info("🎯 FOCUS: RootGrid lost focus");
         };
@@ -1363,8 +1374,10 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Gray),
             BorderThickness = new Microsoft.UI.Xaml.Thickness(1),
             Height = 32,
-            MinWidth = header.Width,
-            HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch
+            Width = header.Width,  // CRITICAL FIX: Use Width instead of MinWidth
+            MinWidth = header.Width,  // Keep MinWidth for safety
+            MaxWidth = header.Width,  // CRITICAL FIX: Add MaxWidth to force exact width
+            HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Left  // CRITICAL FIX: Use Left instead of Stretch
         };
 
         var grid = new Grid();
@@ -1395,6 +1408,10 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
         grid.Children.Add(textBlock);
         grid.Children.Add(resizeGrip);
         headerBorder.Child = grid;
+        
+        // DIAGNOSTIC: Log header element creation with width details
+        _state.Logger?.Info("📏 HEADER CREATED: Column {Index} '{Name}' - Width:{Width} MinWidth:{MinWidth} MaxWidth:{MaxWidth}", 
+            columnIndex, header.DisplayName, headerBorder.Width, headerBorder.MinWidth, headerBorder.MaxWidth);
         
         return headerBorder;
     }
@@ -1500,8 +1517,32 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
     {
         try
         {
-            _state.Logger?.Info("🎨 REGENERATE: Regenerating UI after column resize");
+            _state.Logger?.Info("🎨 REGENERATE: Starting UI regeneration after column resize");
+            
+            // Log current column widths before regeneration
+            if (_coordinator?.Headers != null)
+            {
+                for (int i = 0; i < _coordinator.Headers.Count; i++)
+                {
+                    var header = _coordinator.Headers[i];
+                    _state.Logger?.Info("📏 REGENERATE: Column {Index} '{Name}' width before: {Width}", 
+                        i, header.DisplayName, header.Width);
+                }
+            }
+            
             await GenerateUIElements();
+            
+            // Log column widths after regeneration
+            if (_coordinator?.Headers != null)
+            {
+                for (int i = 0; i < _coordinator.Headers.Count; i++)
+                {
+                    var header = _coordinator.Headers[i];
+                    _state.Logger?.Info("📏 REGENERATE: Column {Index} '{Name}' width after: {Width}", 
+                        i, header.DisplayName, header.Width);
+                }
+            }
+            
             _state.Logger?.Info("✅ REGENERATE: UI regenerated successfully after resize");
         }
         catch (Exception ex)
@@ -1572,9 +1613,11 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(normalBorder),
             BorderThickness = new Microsoft.UI.Xaml.Thickness(1),
             MinHeight = 28, // Dynamic height with minimum constraint
-            MinWidth = header.Width,
+            Width = header.Width,  // CRITICAL FIX: Use Width instead of MinWidth
+            MinWidth = header.Width,  // Keep MinWidth for safety
+            MaxWidth = header.Width,  // CRITICAL FIX: Add MaxWidth to force exact width
             Tag = cell.CellId, // Store unique cell ID
-            HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch,
+            HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Left,  // CRITICAL FIX: Use Left instead of Stretch
             VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Stretch
         };
 

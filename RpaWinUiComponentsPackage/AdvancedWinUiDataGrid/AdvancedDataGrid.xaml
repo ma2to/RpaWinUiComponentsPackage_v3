@@ -11,7 +11,9 @@
     </UserControl.Resources>
     
     <Grid x:Name="RootGrid" Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-          KeyDown="RootGrid_KeyDown">
+          KeyDown="RootGrid_KeyDown"
+          IsTabStop="True"
+          TabIndex="1">
         <!-- ScrollViewer with AUTO scrollbars - show only when needed -->
         <ScrollViewer x:Name="MainScrollViewer" 
                       ZoomMode="Disabled" 
