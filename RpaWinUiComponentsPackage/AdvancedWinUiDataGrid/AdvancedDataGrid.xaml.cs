@@ -45,6 +45,10 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
     private bool _isCtrlPressed = false;
     private bool _isShiftPressed = false;
     
+    // DRAG SELECTION: State management for drag and drop selection
+    private bool _isDragSelectionActive = false;
+    private DataGridCell? _dragStartCell = null;
+    
     // CONFIGURATION: Immutable configuration state
     private readonly record struct GridState(
         bool IsInitialized,
@@ -1247,18 +1251,18 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             var headerHeight = 32; // Fixed header height
             var totalHeight = headerHeight + (_coordinator.DataRows.Count * rowHeight);
             
-            // Set minimum sizes for the content panels
-            HeadersPanel.Width = totalWidth;
-            HeadersPanel.MinWidth = totalWidth;
+            // FIXED: Set minimum sizes only, let panels stretch to full container width
+            HeadersPanel.MinWidth = totalWidth;  // Minimum width is sum of columns
+            HeadersPanel.ClearValue(FrameworkElement.WidthProperty);  // Remove fixed width, allow stretching
             
-            DataRowsPanel.Width = totalWidth;
-            DataRowsPanel.MinWidth = totalWidth;
+            DataRowsPanel.MinWidth = totalWidth;  // Minimum width is sum of columns  
+            DataRowsPanel.ClearValue(FrameworkElement.WidthProperty);  // Remove fixed width, allow stretching
             DataRowsPanel.Height = _coordinator.DataRows.Count * rowHeight;
             DataRowsPanel.MinHeight = _coordinator.DataRows.Count * rowHeight;
             
-            // Update MainContentGrid size
-            MainContentGrid.Width = totalWidth;
-            MainContentGrid.MinWidth = totalWidth;
+            // FIXED: Update MainContentGrid with minimum size only, let it stretch
+            MainContentGrid.MinWidth = totalWidth;  // Minimum width is sum of columns
+            MainContentGrid.ClearValue(FrameworkElement.WidthProperty);  // Remove fixed width, allow stretching
             MainContentGrid.Height = totalHeight;
             MainContentGrid.MinHeight = totalHeight;
             
@@ -1550,6 +1554,8 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
                 Padding = new Microsoft.UI.Xaml.Thickness(2),
                 MinWidth = 20,
                 MinHeight = 20,
+                // CRITICAL FIX: Prevent Enter key from triggering delete button
+                IsTabStop = false,  // Don't focus via Tab
                 // CRITICAL FIX: Use unique button ID to prevent confusion
                 Name = $"DeleteBtn_{cell.CellId}",
                 Tag = new { 
@@ -1636,6 +1642,71 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
                 }
             };
 
+            // DRAG SELECTION: Pointer events for drag and drop selection
+            cellBorder.PointerPressed += (sender, e) =>
+            {
+                try
+                {
+                    if (e.Pointer.PointerDeviceType == Microsoft.UI.Input.PointerDeviceType.Mouse)
+                    {
+                        _isDragSelectionActive = true;
+                        _dragStartCell = cell;
+                        
+                        // FORCE CAPTURE: Ensure pointer capture for reliable drag
+                        var captured = cellBorder.CapturePointer(e.Pointer);
+                        _state.Logger?.Info("🔥 DRAG START: Starting drag selection from {CellId}, Captured: {Captured}", cell.CellId, captured);
+                        
+                        // Start single selection immediately
+                        var modifiers = _coordinator?.EventManager?.ModifierKeys ?? (false, false, false);
+                        if (!modifiers.Ctrl && !modifiers.Shift)
+                        {
+                            HandleSmartCellSelection(cell, cellBorder, rowIndex, cellIndex, false, false);
+                        }
+                        
+                        e.Handled = true; // Prevent other handlers
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _state.Logger?.Error(ex, "🚨 DRAG START ERROR: Failed to start drag selection");
+                }
+            };
+
+            cellBorder.PointerMoved += (sender, e) =>
+            {
+                try
+                {
+                    if (_isDragSelectionActive && _dragStartCell != null && e.Pointer.IsInContact)
+                    {
+                        // Handle drag selection expansion
+                        HandleDragSelection(_dragStartCell, cell, rowIndex, cellIndex);
+                        _state.Logger?.Info("🔥 DRAG MOVE: Expanding selection to {CellId}", cell.CellId);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _state.Logger?.Error(ex, "🚨 DRAG MOVE ERROR: Failed to handle drag selection");
+                }
+            };
+
+            cellBorder.PointerReleased += (sender, e) =>
+            {
+                try
+                {
+                    if (_isDragSelectionActive)
+                    {
+                        _isDragSelectionActive = false;
+                        _dragStartCell = null;
+                        cellBorder.ReleasePointerCapture(e.Pointer);
+                        _state.Logger?.Info("🔥 DRAG END: Completed drag selection at {CellId}", cell.CellId);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _state.Logger?.Error(ex, "🚨 DRAG END ERROR: Failed to end drag selection");
+                }
+            };
+
             _state.Logger?.Info("✅ EVENTS ATTACHED: Cell {CellId} events attached successfully", cell.CellId);
         }
         catch (Exception ex)
@@ -1673,7 +1744,8 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             grid.Children.Insert(0, editBox);
             
             editBox.Focus(Microsoft.UI.Xaml.FocusState.Programmatic);
-            editBox.SelectAll();
+            // CRITICAL FIX: Set cursor to end instead of selecting all text to prevent accidental deletion
+            editBox.Select(editBox.Text.Length, 0);
 
             // SMART VALIDATION: Real-time validation during typing
             editBox.TextChanged += async (s, args) =>
@@ -1766,11 +1838,28 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             grid.Children.Remove(editBox);
             grid.Children.Insert(0, originalTextBlock);
 
-            // Reset cell appearance
-            cellBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White);
-            cellBorder.BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Gray);
+            // CRITICAL FIX: Apply proper styling immediately after editing
+            // Check if cell is selected and apply selection background immediately
+            var isSelected = _selectedCellIds.Contains(cell.CellId);
+            if (isSelected)
+            {
+                // Apply selection styling immediately
+                ApplySelectionStyling(cellBorder, isSelected: true);
+                _state.Logger?.Info("🎨 SELECTION: Applied selection styling immediately after edit completion");
+            }
+            else
+            {
+                // Reset to default appearance only if not selected
+                cellBorder.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White);
+                cellBorder.BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Gray);
+            }
 
-            _state.Logger?.Info("✅ EDITING COMPLETED: Cell {CellId} updated with value '{Value}' (old: '{OldValue}')", 
+            // CRITICAL FIX: Set focus properly to the cell (NOT to any buttons inside)
+            // and ensure the next Enter will start editing again, not trigger delete
+            originalTextBlock.Focus(FocusState.Programmatic);
+            SetFocusedCell(cell, cellBorder);
+
+            _state.Logger?.Info("✅ EDITING COMPLETED: Cell {CellId} updated with value '{Value}' (old: '{OldValue}') - Focus set to TextBlock", 
                 cell.CellId, newValue, oldValue);
         }
         catch (Exception ex)
@@ -1953,12 +2042,12 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
                     Convert.ToByte(colorString.Substring(2, 2), 16),
                     Convert.ToByte(colorString.Substring(4, 2), 16));
             }
-            return Microsoft.UI.Colors.Black; // Default fallback
+            return Windows.UI.Color.FromArgb(255, 0, 0, 0); // Default fallback (black)
         }
         catch (Exception ex)
         {
             _state.Logger?.Error(ex, "🚨 COLOR PARSE ERROR: Failed to parse color {ColorString}", colorString);
-            return Microsoft.UI.Colors.Black; // Safe fallback
+            return Windows.UI.Color.FromArgb(255, 0, 0, 0); // Safe fallback (black)
         }
     }
 
@@ -2214,6 +2303,34 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
         catch (Exception ex)
         {
             _state.Logger?.Error(ex, "🚨 RANGE SELECT ERROR: Failed to select cell range");
+        }
+    }
+
+    /// <summary>
+    /// Handle drag selection from start cell to current cell
+    /// </summary>
+    private void HandleDragSelection(DataGridCell startCell, DataGridCell currentCell, int currentRowIndex, int currentCellIndex)
+    {
+        try
+        {
+            // Clear all previous selections
+            ClearAllSelections();
+            
+            // Calculate range bounds
+            var startRow = Math.Min(startCell.RowIndex, currentRowIndex);
+            var endRow = Math.Max(startCell.RowIndex, currentRowIndex);
+            var startCol = Math.Min(startCell.ColumnIndex, currentCellIndex);
+            var endCol = Math.Max(startCell.ColumnIndex, currentCellIndex);
+            
+            // Select range of cells using existing method
+            SelectCellRange(startRow, endRow, startCol, endCol);
+            
+            _state.Logger?.Info("🔥 DRAG SELECTION: Selected range R{StartRow}C{StartCol} to R{EndRow}C{EndCol}",
+                startRow, startCol, endRow, endCol);
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 DRAG SELECTION ERROR: Failed to handle drag selection");
         }
     }
 
@@ -2512,8 +2629,8 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             // SMART AUTO-ADD: Last row has data, add new empty row
             await _coordinator.EnsureMinimumRowsAsync();
             
-            // Force refresh UI to show the new row
-            await RefreshUIAsync();
+            // NO REFRESH: Avoid full UI regeneration that can cause data loss
+            // await RefreshUIAsync();
 
             _state.Logger?.Info("🚀 SMART AUTO-ADD: Added new row after filling last row at R{RowIndex}C{ColumnIndex}", 
                 cell.RowIndex, cell.ColumnIndex);

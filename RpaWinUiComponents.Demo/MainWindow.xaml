@@ -92,7 +92,9 @@
         <!-- Main DataGrid Testing Area -->
         <Border Grid.Row="1" BorderBrush="{ThemeResource ControlStrokeColorDefault}" BorderThickness="1" Margin="10,5">
             <!-- Testing AdvancedDataGrid with simplified templates -->
-            <controls:AdvancedDataGrid x:Name="TestDataGrid" />
+            <controls:AdvancedDataGrid x:Name="TestDataGrid" 
+                                     HorizontalAlignment="Stretch" 
+                                     VerticalAlignment="Stretch" />
         </Border>
 
         <!-- Live Log Output -->

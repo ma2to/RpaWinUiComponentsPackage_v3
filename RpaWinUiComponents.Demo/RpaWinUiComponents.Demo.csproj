@@ -55,7 +55,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
     <PackageReference Include="RpaWinUiComponentsPackage" Version="2.1.2" />
     
-    <!-- Package reference for testing published package -->
+    <!-- REMOVED: Package reference to use project reference instead -->
     <!-- <PackageReference Include="RpaWinUiComponentsPackage" Version="2.1.2" /> -->
     
     <!-- Package reference with automatic dependencies -->

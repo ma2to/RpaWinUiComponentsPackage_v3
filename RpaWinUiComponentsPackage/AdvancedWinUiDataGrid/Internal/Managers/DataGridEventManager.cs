@@ -406,6 +406,9 @@ internal sealed class DataGridEventManager : IDisposable
             UpdateModifierKeyStates();
             await HandleKeyboardInputAsync(e.Key);
             
+            // CRITICAL FIX: Prevent event propagation to parent controls
+            e.Handled = true;
+            
             OnKeyboardInput(new KeyboardEventArgs(e.Key, _isCtrlPressed, _isShiftPressed, _isAltPressed, isKeyDown: true));
         }
         catch (Exception ex)

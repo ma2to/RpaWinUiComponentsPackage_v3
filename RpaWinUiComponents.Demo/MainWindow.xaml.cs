@@ -84,10 +84,24 @@ public sealed partial class MainWindow : Window
             {
                 AddLogMessage("🎨 INIT PHASE 1: Starting InitializeAsync...");
                 
+                // Create default color configuration with visible selection colors
+                var defaultColors = new ColorConfiguration
+                {
+                    CellBackground = "#FFFFFF",
+                    CellForeground = "#000000", 
+                    CellBorder = "#D1D5DB",
+                    HeaderBackground = "#F3F4F6",
+                    HeaderForeground = "#374151",
+                    HeaderBorder = "#D1D5DB",
+                    SelectionBackground = "#0078D4",  // Blue selection background
+                    SelectionForeground = "#FFFFFF",  // White text on selection
+                    ValidationErrorBorder = "#EF4444" // Red validation error border
+                };
+
                 await TestDataGrid.InitializeAsync(
                     columns: columns,
-                    colors: null, // Default colors
-                    validation: null, // No validation
+                    colors: defaultColors, // Enable selection colors
+                    validation: null, // No validation for basic init
                     performance: null, // Default performance
                     emptyRowsCount: 3, // TEMPORARY: Minimal for debugging WinRT COM errors
                     logger: packageLogger
@@ -336,10 +350,24 @@ public sealed partial class MainWindow : Window
                 maxFileSizeMB: 10
             );
 
+            // Create default color configuration with visible selection colors and validation error styling
+            var defaultColors = new ColorConfiguration
+            {
+                CellBackground = "#FFFFFF",
+                CellForeground = "#000000", 
+                CellBorder = "#D1D5DB",
+                HeaderBackground = "#F3F4F6",
+                HeaderForeground = "#374151",
+                HeaderBorder = "#D1D5DB",
+                SelectionBackground = "#0078D4",  // Blue selection background
+                SelectionForeground = "#FFFFFF",  // White text on selection
+                ValidationErrorBorder = "#EF4444" // Red validation error border
+            };
+            
             // FINÁLNY CLEAN API initialization with validation
             await TestDataGrid.InitializeAsync(
                 columns: columns,
-                colors: null, // Default colors
+                colors: defaultColors, // Enable selection and validation colors
                 validation: validationConfig,
                 performance: null, // Default performance
                 emptyRowsCount: 15,
