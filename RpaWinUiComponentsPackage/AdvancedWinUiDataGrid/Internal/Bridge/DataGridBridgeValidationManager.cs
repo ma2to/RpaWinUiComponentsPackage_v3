@@ -21,22 +21,92 @@ internal sealed class DataGridBridgeValidationManager : IDisposable
         _logger?.Info("✅ VALIDATION MANAGER: Created DataGridBridgeValidationManager");
     }
 
-    public Task<BatchValidationResult?> ValidateAllRowsBatchAsync(TimeSpan timeout = default, IProgress<ValidationProgress>? progress = null, CancellationToken cancellationToken = default)
+    public async Task<BatchValidationResult?> ValidateAllRowsBatchAsync(TimeSpan timeout = default, IProgress<ValidationProgress>? progress = null, CancellationToken cancellationToken = default)
     {
-        _logger?.Info("✅ VALIDATE ALL: Batch validation requested");
-        return Task.FromResult<BatchValidationResult?>(new BatchValidationResult { IsValid = true });
+        try
+        {
+            _logger?.Info("🔄 BATCH VALIDATION: Starting batch validation through internal grid");
+            
+            // Call real validation from internal grid
+            var validationResult = await _internalGrid.ValidateAllAsync(progress, cancellationToken);
+            
+            if (validationResult.IsSuccess)
+            {
+                var result = validationResult.Value;
+                _logger?.Info("✅ BATCH VALIDATION: Completed - Valid: {ValidCells}, Invalid: {InvalidCells}", 
+                    result.ValidCells, result.InvalidCells);
+                
+                // Convert to BatchValidationResult
+                return new BatchValidationResult 
+                { 
+                    IsValid = result.InvalidCells == 0,
+                    ValidRows = result.ValidCells, // Map ValidCells to ValidRows
+                    InvalidRows = result.InvalidCells, // Map InvalidCells to InvalidRows  
+                    TotalRowsValidated = result.ValidCells + result.InvalidCells,
+                    ValidationErrors = Array.Empty<Internal.Models.ValidationResult>() // Simplified for now - TODO: proper mapping
+                };
+            }
+            else
+            {
+                _logger?.Error("❌ BATCH VALIDATION: Failed - {Error}", validationResult.ErrorMessage);
+                return new BatchValidationResult 
+                { 
+                    IsValid = false,
+                    ValidRows = 0,
+                    InvalidRows = 0,
+                    TotalRowsValidated = 0,
+                    ValidationErrors = Array.Empty<Internal.Models.ValidationResult>() // Simplified for now - TODO: proper error mapping
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.Error(ex, "🚨 BATCH VALIDATION ERROR: Exception during batch validation");
+            return new BatchValidationResult 
+            { 
+                IsValid = false,
+                ValidRows = 0,
+                InvalidRows = 0,
+                TotalRowsValidated = 0,
+                ValidationErrors = Array.Empty<Internal.Models.ValidationResult>() // Simplified for now - TODO: proper exception mapping
+            };
+        }
     }
 
-    public Task<bool> AreAllNonEmptyRowsValidAsync(bool wholeDataset = true)
+    public async Task<bool> AreAllNonEmptyRowsValidAsync(bool wholeDataset = true)
     {
-        _logger?.Info("✅ VALIDATE CHECK: Checking if all non-empty rows are valid");
-        return Task.FromResult(true);
+        try
+        {
+            _logger?.Info("🔍 VALIDATION CHECK: Checking if all non-empty rows are valid - WholeDataset: {WholeDataset}", wholeDataset);
+            
+            // Call real validation check from internal grid - map wholeDataset to onlyFiltered (inverted logic)
+            var result = await _internalGrid.AreAllNonEmptyRowsValidAsync(!wholeDataset);
+            _logger?.Info("✅ VALIDATION CHECK: Result = {IsValid}", result);
+            
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger?.Error(ex, "🚨 VALIDATION CHECK ERROR: Exception during validation check");
+            return false;
+        }
     }
 
-    public Task UpdateValidationUIAsync()
+    public async Task UpdateValidationUIAsync()
     {
-        _logger?.Info("✅ VALIDATION UI: Updating validation UI");
-        return Task.CompletedTask;
+        try
+        {
+            _logger?.Info("🎨 VALIDATION UI: Updating validation UI through internal grid");
+            
+            // Call real UI update from internal grid
+            await _internalGrid.UpdateValidationUIAsync();
+            
+            _logger?.Info("✅ VALIDATION UI: UI update completed successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger?.Error(ex, "🚨 VALIDATION UI ERROR: Exception during UI update");
+        }
     }
 
     public Task AddValidationRulesAsync(string columnName, IReadOnlyList<ValidationRule> rules)

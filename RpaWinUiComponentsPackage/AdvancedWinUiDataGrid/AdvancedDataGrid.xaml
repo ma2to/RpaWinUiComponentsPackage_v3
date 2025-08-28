@@ -53,9 +53,20 @@
             </Grid>
         </ScrollViewer>
         
-        <!-- Fallback text - hidden when data is available -->
-        <TextBlock x:Name="FallbackText" Text="DataGrid Ready" HorizontalAlignment="Center" VerticalAlignment="Center" 
-                   Foreground="Gray" FontSize="12" Visibility="Visible"/>
+        <!-- Fallback overlay - covers entire table area when no data -->
+        <Border x:Name="FallbackOverlay" 
+                Background="White" 
+                HorizontalAlignment="Stretch" 
+                VerticalAlignment="Stretch" 
+                Visibility="Visible">
+            <TextBlock x:Name="FallbackText" 
+                       Text="DataGrid Ready" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center" 
+                       Foreground="Gray" 
+                       FontSize="14" 
+                       FontWeight="SemiBold"/>
+        </Border>
     </Grid>
         
 </UserControl>

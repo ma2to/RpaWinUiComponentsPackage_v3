@@ -23,7 +23,7 @@ public class UIManager : IUIManager
     {
         _dataGrid = dataGrid ?? throw new ArgumentNullException(nameof(dataGrid));
         _logger = logger;
-        _logger?.Info("UIManager initialized with DataGrid component");
+        _logger?.Info("🎨 UI MANAGER INIT: UIManager initialized with DataGrid component - Type: {DataGridType}", _dataGrid.GetType().Name);
     }
 
     #endregion
@@ -42,7 +42,7 @@ public class UIManager : IUIManager
     {
         try
         {
-            _logger?.Info("Initializing UIManager with {ColumnCount} columns", columns.Count);
+            _logger?.Info("🎨 UI MANAGER INITIALIZE: Initializing UIManager with {ColumnCount} columns", columns.Count);
 
             // Initialize UI component with columns
             // For now, this is a placeholder - actual WinUI3 DataGrid initialization would go here
@@ -68,23 +68,23 @@ public class UIManager : IUIManager
     {
         if (!_isInitialized)
         {
-            _logger?.Warning("UIManager not initialized, cannot refresh data");
+            _logger?.Warning("🎨 UI REFRESH: UIManager not initialized, cannot refresh data");
             return;
         }
 
         try
         {
-            _logger?.Info("Refreshing DataGrid UI");
+            _logger?.Info("🎨 UI REFRESH: Refreshing DataGrid UI");
 
             // Refresh the visual display
             // This would typically involve updating the DataGrid's ItemsSource
             await Task.Delay(10); // Simulate UI refresh
 
-            _logger?.Info("DataGrid UI refresh completed");
+            _logger?.Info("✅ UI REFRESH: DataGrid UI refresh completed successfully");
         }
         catch (Exception ex)
         {
-            _logger?.Error(ex, "UI refresh failed");
+            _logger?.Error(ex, "🚨 UI REFRESH ERROR: UI refresh failed");
         }
     }
 
@@ -92,23 +92,23 @@ public class UIManager : IUIManager
     {
         if (!_isInitialized)
         {
-            _logger?.Warning("UIManager not initialized, cannot highlight search results");
+            _logger?.Warning("🎨 UI HIGHLIGHT: UIManager not initialized, cannot highlight search results");
             return;
         }
 
         try
         {
-            _logger?.Info("Highlighting {MatchCount} search results", searchResult.MatchCount);
+            _logger?.Info("🎨 UI HIGHLIGHT: Highlighting {MatchCount} search results", searchResult.MatchCount);
 
             // Highlight search matches in the UI
             // This would involve visual styling of matching cells
             await Task.Delay(10); // Simulate highlighting
 
-            _logger?.Info("Search results highlighted successfully");
+            _logger?.Info("✅ UI HIGHLIGHT: Search results highlighted successfully");
         }
         catch (Exception ex)
         {
-            _logger?.Error(ex, "Search highlighting failed");
+            _logger?.Error(ex, "🚨 UI HIGHLIGHT ERROR: Search highlighting failed");
         }
     }
 
@@ -116,23 +116,24 @@ public class UIManager : IUIManager
     {
         if (!_isInitialized)
         {
-            _logger?.Warning("UIManager not initialized, cannot update validation results");
+            _logger?.Warning("🎨 UI VALIDATION: UIManager not initialized, cannot update validation results");
             return;
         }
 
         try
         {
-            _logger?.Info("Updating validation results ({InvalidCells} invalid cells)", validationResult.InvalidCells);
+            _logger?.Info("🎨 UI VALIDATION: Updating validation results - Invalid: {InvalidCells}, Total: {TotalCells}", 
+                validationResult.InvalidCells, validationResult.TotalCells);
 
             // Update UI with validation indicators
             // This would involve showing validation errors visually
             await Task.Delay(10); // Simulate validation UI update
 
-            _logger?.Info("Validation results updated successfully");
+            _logger?.Info("✅ UI VALIDATION: Validation results updated successfully");
         }
         catch (Exception ex)
         {
-            _logger?.Error(ex, "Validation UI update failed");
+            _logger?.Error(ex, "🚨 UI VALIDATION ERROR: Validation UI update failed");
         }
     }
 
@@ -140,7 +141,7 @@ public class UIManager : IUIManager
     {
         if (!_isInitialized)
         {
-            _logger?.Warning("UIManager not initialized, cannot apply color theme");
+            _logger?.Warning("🎨 UI THEME: UIManager not initialized, cannot apply color theme");
             return;
         }
 

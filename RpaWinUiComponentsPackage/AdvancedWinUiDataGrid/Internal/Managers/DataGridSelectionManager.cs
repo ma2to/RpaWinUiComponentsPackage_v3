@@ -68,7 +68,7 @@ internal sealed class DataGridSelectionManager : IDisposable
         _headers = headers ?? throw new ArgumentNullException(nameof(headers));
         _logger = logger;
 
-        _logger?.Info("🔧 DataGridSelectionManager initialized");
+        _logger?.Info("🎯 SELECTION MANAGER INIT: DataGridSelectionManager initialized - Rows: {RowCount}, Columns: {ColumnCount}", _dataRows.Count, _headers.Count);
     }
 
     #endregion
@@ -121,9 +121,13 @@ internal sealed class DataGridSelectionManager : IDisposable
     {
         try
         {
+            _logger?.Info("🎯 CELL SELECT: Selecting cell at R{Row}C{Column}, AddToSelection: {Add}, CurrentSelected: R{CurrentRow}C{CurrentCol}", 
+                rowIndex, columnIndex, addToSelection, _selectedRowIndex, _selectedColumnIndex);
+            
             if (!IsValidPosition(rowIndex, columnIndex))
             {
-                _logger?.Warning("⚠️ Invalid cell position: ({Row}, {Column})", rowIndex, columnIndex);
+                _logger?.Warning("⚠️ CELL SELECT: Invalid cell position: ({Row}, {Column}) - Valid range: R0-{MaxRow}, C0-{MaxCol}", 
+                    rowIndex, columnIndex, _dataRows.Count - 1, _headers.Count - 1);
                 return false;
             }
 
@@ -140,12 +144,13 @@ internal sealed class DataGridSelectionManager : IDisposable
             }
 
             await SelectCellInternalAsync(targetCell, rowIndex, columnIndex);
-            _logger?.Info("✅ Cell selected at ({Row}, {Column})", rowIndex, columnIndex);
+            _logger?.Info("✅ CELL SELECT: Cell selected successfully at R{Row}C{Column}, TotalSelected: {Count}", 
+                rowIndex, columnIndex, _selectedCells.Count);
             return true;
         }
         catch (Exception ex)
         {
-            _logger?.Error(ex, "🚨 Error selecting cell at ({Row}, {Column})", rowIndex, columnIndex);
+            _logger?.Error(ex, "🚨 CELL SELECT ERROR: Failed to select cell at R{Row}C{Column}", rowIndex, columnIndex);
             return false;
         }
     }
@@ -234,8 +239,12 @@ internal sealed class DataGridSelectionManager : IDisposable
     {
         try
         {
+            _logger?.Info("🎯 FOCUS SET: Setting focus to R{Row}C{Column}, CurrentFocus: R{CurrentRow}C{CurrentCol}", 
+                rowIndex, columnIndex, _focusedRowIndex, _focusedColumnIndex);
+            
             if (!IsValidPosition(rowIndex, columnIndex))
             {
+                _logger?.Warning("⚠️ FOCUS SET: Invalid position R{Row}C{Column}", rowIndex, columnIndex);
                 return false;
             }
 
@@ -246,12 +255,12 @@ internal sealed class DataGridSelectionManager : IDisposable
             }
 
             await SetFocusInternalAsync(targetCell, rowIndex, columnIndex);
-            _logger?.Info("🎯 Focus set to cell ({Row}, {Column})", rowIndex, columnIndex);
+            _logger?.Info("✅ FOCUS SET: Focus set successfully to R{Row}C{Column}", rowIndex, columnIndex);
             return true;
         }
         catch (Exception ex)
         {
-            _logger?.Error(ex, "🚨 Error setting focus to ({Row}, {Column})", rowIndex, columnIndex);
+            _logger?.Error(ex, "🚨 FOCUS SET ERROR: Failed to set focus to R{Row}C{Column}", rowIndex, columnIndex);
             return false;
         }
     }
@@ -261,6 +270,8 @@ internal sealed class DataGridSelectionManager : IDisposable
     /// </summary>
     public async Task<bool> MoveFocusAsync(NavigationDirection direction)
     {
+        _logger?.Info("➡️ FOCUS MOVE: Moving focus {Direction} from R{Row}C{Column}", 
+            direction, _focusedRowIndex, _focusedColumnIndex);
         try
         {
             var (newRow, newCol) = CalculateNewPosition(_focusedRowIndex, _focusedColumnIndex, direction);

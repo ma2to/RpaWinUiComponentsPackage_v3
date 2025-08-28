@@ -59,7 +59,7 @@ internal sealed class DataGridResizeManager : IDisposable
         _logger = logger;
 
         InitializeResizeHandles();
-        _logger?.Info("🔧 DataGridResizeManager initialized");
+        _logger?.Info("📏 RESIZE MANAGER INIT: DataGridResizeManager initialized - Columns: {ColumnCount}, MinWidth: {MinWidth}, MaxWidth: {MaxWidth}", _headers.Count, MinColumnWidth, MaxColumnWidth);
     }
 
     #endregion

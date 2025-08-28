@@ -60,7 +60,7 @@ internal sealed class DataGridEditingManager : IDisposable
         _logger = logger;
 
         InitializeEditorFactory();
-        _logger?.Info("🔧 DataGridEditingManager initialized");
+        _logger?.Info("✏️ EDITING MANAGER INIT: DataGridEditingManager initialized - Rows: {RowCount}, Columns: {ColumnCount}, RealtimeValidation: {RealtimeValidation}", _dataRows.Count, _headers.Count, _enableRealtimeValidation);
     }
 
     #endregion
@@ -102,15 +102,19 @@ internal sealed class DataGridEditingManager : IDisposable
     {
         try
         {
+            _logger?.Info("✏️ EDIT START: Starting edit for cell R{Row}C{Column}, CellId: {CellId}, CurrentlyEditing: {IsEditing}", 
+                rowIndex, columnIndex, cell.CellId, _isInEditMode);
+            
             if (_isInEditMode && _currentEditingCell != null)
             {
+                _logger?.Info("✏️ EDIT START: Ending current edit for {CurrentCellId} before starting new edit", _currentEditingCell.CellId);
                 // Save current edit before starting new one
                 await EndEditingAsync(saveChanges: true);
             }
 
             if (!CanEditCell(cell, rowIndex, columnIndex))
             {
-                _logger?.Warning("⚠️ Cannot edit cell at ({Row}, {Column})", rowIndex, columnIndex);
+                _logger?.Warning("⚠️ EDIT START: Cannot edit cell at R{Row}C{Column} - {CellId}", rowIndex, columnIndex, cell.CellId);
                 return false;
             }
 
@@ -127,13 +131,14 @@ internal sealed class DataGridEditingManager : IDisposable
             }
 
             OnEditStarted(cell, rowIndex, columnIndex);
-            _logger?.Info("✏️ Started editing cell ({Row}, {Column})", rowIndex, columnIndex);
+            _logger?.Info("✅ EDIT START: Started editing cell R{Row}C{Column} - Mode: {EditMode}, OriginalValue: '{OriginalValue}'", 
+                rowIndex, columnIndex, _currentEditMode, _originalEditValue);
             
             return true;
         }
         catch (Exception ex)
         {
-            _logger?.Error(ex, "🚨 Error starting edit for cell ({Row}, {Column})", rowIndex, columnIndex);
+            _logger?.Error(ex, "🚨 EDIT START ERROR: Failed to start editing cell R{Row}C{Column} - {CellId}", rowIndex, columnIndex, cell.CellId);
             return false;
         }
     }

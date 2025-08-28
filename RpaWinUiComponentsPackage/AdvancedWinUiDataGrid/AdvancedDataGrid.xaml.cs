@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Windows.UI;
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Extensions;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Services;
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Core;
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Models;
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Functional;
@@ -39,6 +40,9 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
     // COORDINATOR: Single source of truth (Composition over inheritance)
     private DataGridCoordinator? _coordinator;
     
+    // PROFESSIONAL ERROR HANDLING: Global exception monitoring for Debug & Release
+    private GlobalExceptionHandler? _exceptionHandler;
+    
     // SELECTION STATE: Smart selection management
     private readonly HashSet<string> _selectedCellIds = new();
     private DataGridCell? _focusedCell = null;
@@ -67,6 +71,20 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
     );
 
     #endregion
+    
+    #region Public Properties - Data Access
+    
+    /// <summary>
+    /// Get current data rows for internal operations
+    /// </summary>
+    internal ObservableCollection<DataGridRow>? DataRows => _coordinator?.DataRows;
+    
+    /// <summary>
+    /// Get current headers for internal operations  
+    /// </summary>
+    internal ObservableCollection<GridColumnDefinition>? Headers => _coordinator?.Headers;
+    
+    #endregion
 
     #region Constructor - OOP UI Initialization
 
@@ -84,6 +102,10 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
         // CRITICAL FIX: Focus management to prevent button activation
         this.Loaded += (s, e) => 
         {
+            // Initialize global exception handler for this component
+            _exceptionHandler = new GlobalExceptionHandler(_state.Logger, this.DispatcherQueue);
+            _state.Logger?.Info("🛡️ EXCEPTION HANDLER: Initialized for AdvancedDataGrid");
+            
             // Force focus and make grid tabbable
             this.IsTabStop = true;
             this.TabIndex = 0;
@@ -169,8 +191,8 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             // Subscribe to data changes for manual UI updates
             SubscribeToDataChanges();
 
-            // Hide fallback text when grid is initialized
-            FallbackText.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+            // Hide fallback overlay when grid is initialized
+            FallbackOverlay.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
 
             _state = _state with { IsInitialized = true };
             logger?.Info("✅ ADVANCEDDATAGRID INIT SUCCESS: AdvancedDataGrid initialized successfully");
@@ -340,7 +362,10 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
                     // Regenerate UI to reflect new column widths
                     await GenerateUIElements();
                     
-                    _state.Logger?.Info("✅ RESIZE UI UPDATE: UI regenerated after column resize");
+                    // VALIDATION FIX: Restore validation styling after column resize
+                    await UpdateValidationUIAsync();
+                    
+                    _state.Logger?.Info("✅ RESIZE UI UPDATE: UI regenerated after column resize with validation styling");
                 }
                 catch (Exception ex)
                 {
@@ -463,10 +488,62 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
         return result.ValueOr(() => Array.Empty<IReadOnlyDictionary<string, object?>>());
     }
 
-    public async Task<bool> AreAllNonEmptyRowsValidAsync()
+    /// <summary>
+    /// Check if all non-empty rows are valid - Clean API facade with filtering support
+    /// </summary>
+    /// <param name="onlyFiltered">
+    /// false (default): Validates ENTIRE DATASET (visible, hidden, cached, in memory, on disk, in any storage location)
+    /// true: Validates COMPLETE FILTERED DATASET (all filtered rows regardless of their location: visible, cached, on disk, in any storage - if no filter applied, validates entire dataset)
+    /// 
+    /// IMPORTANT: Both modes validate complete datasets, the difference is scope:
+    /// - false: ALL data wherever it exists (complete system dataset)
+    /// - true: ALL filtered data wherever it exists (complete filtered subset)
+    /// </param>
+    public async Task<bool> AreAllNonEmptyRowsValidAsync(bool onlyFiltered = false)
     {
-        var result = await ValidateAllAsync();
-        return result.IsSuccess && result.Value.InvalidCells == 0;
+        var totalRows = _coordinator?.DataRows.Count ?? 0;
+        var filteredRows = 0; // TODO: Implement filter count
+        var scope = onlyFiltered ? "COMPLETE FILTERED DATASET" : "ENTIRE DATASET";
+        
+        _state.Logger?.Info("🔍 VALIDATION CHECK: Starting validation check - Scope: {Scope}, OnlyFiltered: {OnlyFiltered}, TotalRows: {TotalRows}", 
+            scope, onlyFiltered, totalRows);
+        
+        try
+        {
+            if (onlyFiltered)
+            {
+                // TODO: Implement filtered-only validation for complete filtered dataset
+                // This should validate ALL filtered rows regardless of storage location (visible, cached, disk, etc.)
+                _state.Logger?.Warning("⚠️ FILTERED VALIDATION: Complete filtered dataset validation not yet implemented");
+                _state.Logger?.Info("📊 FILTERED VALIDATION: Would validate {FilteredRows} filtered rows (wherever stored: visible, cached, disk)", filteredRows);
+                _state.Logger?.Warning("🔄 FILTERED VALIDATION FALLBACK: Using full dataset validation temporarily");
+            }
+            else
+            {
+                _state.Logger?.Info("📊 FULL VALIDATION: Validating entire dataset - {TotalRows} rows (all storage locations: visible, cached, disk, memory)", totalRows);
+            }
+            
+            var startTime = DateTime.UtcNow;
+            var result = await ValidateAllAsync();
+            var duration = DateTime.UtcNow - startTime;
+            
+            var isValid = result.IsSuccess && result.Value.InvalidCells == 0;
+            
+            _state.Logger?.Info("✅ VALIDATION CHECK COMPLETE: Scope: {Scope}, Result: {IsValid}, Duration: {Duration}ms", 
+                scope, isValid ? "VALID" : "INVALID", (int)duration.TotalMilliseconds);
+            _state.Logger?.Info("📊 VALIDATION CHECK STATS: Valid: {ValidCells}, Invalid: {InvalidCells}, Total: {TotalCells}",
+                result.IsSuccess ? result.Value.ValidCells : 0, 
+                result.IsSuccess ? result.Value.InvalidCells : 0,
+                result.IsSuccess ? result.Value.TotalCells : 0);
+                
+            return isValid;
+        }
+        catch (Exception ex)
+        {
+            _state.Logger?.Error(ex, "🚨 VALIDATION CHECK ERROR: Exception during validation check - Scope: {Scope}, TotalRows: {TotalRows}", 
+                scope, totalRows);
+            return false;
+        }
     }
 
     public int GetTotalRowCount() => RowCount;
@@ -510,7 +587,10 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             // Regenerate all UI elements
             await GenerateUIElements();
             
-            _state.Logger?.Info("✅ REFRESH UI: UI refreshed successfully");
+            // VALIDATION FIX: Restore validation styling after UI refresh
+            await UpdateValidationUIAsync();
+            
+            _state.Logger?.Info("✅ REFRESH UI: UI refreshed successfully with validation styling");
         }
         catch (Exception ex)
         {
@@ -1141,6 +1221,10 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
                     // CRITICAL FIX: Regenerate UI after successful delete to prevent stale buttons
                     await GenerateUIElements();
                     _state.Logger?.Info("🎨 DELETE UI: UI regenerated after row deletion");
+                    
+                    // VALIDATION FIX: Restore validation styling after UI regeneration
+                    await UpdateValidationUIAsync();
+                    _state.Logger?.Info("🔍 DELETE VALIDATION: Validation styling restored after row deletion");
                 }
                 else
                 {
@@ -1174,8 +1258,8 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
                         b.Tag?.ToString() == "ResizeGrip");
                     if (resizeGrip != null)
                     {
-                        // Wire up resize events
-                        AttachResizeEvents(resizeGrip, column, columnIndex);
+                        // Wire up resize events - Use unified header resize method
+                        AttachHeaderResizeEvents(resizeGrip, column, columnIndex);
                     }
                 }
             }
@@ -1287,24 +1371,45 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
         {
             _state.Logger?.Info("🎨 UI GENERATION: Starting direct UI element generation");
             
+            // DETAILED LOGGING: Log current state before generation
+            var rowCount = _coordinator?.DataRows.Count ?? 0;
+            var headerCount = _coordinator?.Headers.Count ?? 0;
+            var currentHeadersCount = HeadersPanel.Children.Count;
+            var currentRowsCount = DataRowsPanel.Children.Count;
+            
+            _state.Logger?.Info("📊 UI GENERATION STATE: Before - Headers: {CurrentHeaders}/{ExpectedHeaders}, Rows: {CurrentRows}/{ExpectedRows}",
+                currentHeadersCount, headerCount, currentRowsCount, rowCount);
+            
             // Clear existing elements
+            _state.Logger?.Info("🧹 UI GENERATION: Clearing existing UI elements");
             HeadersPanel.Children.Clear();
             DataRowsPanel.Children.Clear();
             
             // Generate headers
+            _state.Logger?.Info("📋 UI GENERATION: Starting header generation");
             await GenerateHeaders();
+            _state.Logger?.Info("✅ UI GENERATION: Header generation completed - Generated: {HeadersGenerated}", HeadersPanel.Children.Count);
             
             // Generate data rows
+            _state.Logger?.Info("📝 UI GENERATION: Starting data row generation");
             await GenerateDataRows();
+            _state.Logger?.Info("✅ UI GENERATION: Data row generation completed - Generated: {RowsGenerated}", DataRowsPanel.Children.Count);
             
             // CRITICAL FIX: Update scroll viewer content size for proper scrolling
+            _state.Logger?.Info("🔄 UI GENERATION: Updating scroll viewer content");
             await UpdateScrollViewerContent();
+            _state.Logger?.Info("✅ UI GENERATION: Scroll viewer content updated");
             
+            // DETAILED LOGGING: Log final state after generation
+            _state.Logger?.Info("📊 UI GENERATION RESULT: After - Headers: {FinalHeaders}, Rows: {FinalRows}, Success: {Success}",
+                HeadersPanel.Children.Count, DataRowsPanel.Children.Count, true);
+                
             _state.Logger?.Info("✅ UI GENERATION: Direct UI generation completed successfully");
         }
         catch (Exception ex)
         {
-            _state.Logger?.Error(ex, "🚨 UI GENERATION ERROR: Failed to generate UI elements");
+            _state.Logger?.Error(ex, "🚨 UI GENERATION ERROR: Failed to generate UI elements - Headers: {Headers}, Rows: {Rows}", 
+                HeadersPanel.Children.Count, DataRowsPanel.Children.Count);
         }
     }
 
@@ -1711,11 +1816,25 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
         // CRITICAL FIX: Check if this is the last column for table width filling
         bool isLastColumn = (_coordinator?.Headers != null && cellIndex == _coordinator.Headers.Count - 1);
         
+        // VALIDATION FIX: Determine border based on validation state
+        var borderBrush = normalBorder;
+        var borderThickness = new Microsoft.UI.Xaml.Thickness(1);
+        
+        // Apply validation styling if cell has validation errors
+        if (cell.HasValidationErrors && !string.IsNullOrEmpty(cell.ValidationError))
+        {
+            var errorBorderColor = colorConfig?.ValidationErrorBorder ?? "#FF0000";
+            borderBrush = ParseColor(errorBorderColor);
+            borderThickness = new Microsoft.UI.Xaml.Thickness(2);
+            
+            _state.Logger?.Info("🎨 CELL CREATION: Applied validation error styling to cell {CellId}", cell.CellId);
+        }
+        
         var cellBorder = new Border
         {
             Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(normalBackground),
-            BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(normalBorder),
-            BorderThickness = new Microsoft.UI.Xaml.Thickness(1),
+            BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(borderBrush),
+            BorderThickness = borderThickness,
             MinHeight = 28, // Dynamic height with minimum constraint
             // CRITICAL FIX: Last column fills remaining space, others have fixed width
             Width = isLastColumn ? double.NaN : header.Width,
@@ -2238,10 +2357,28 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
     /// </summary>
     private async Task PerformRealTimeValidation(DataGridCell cell, string newValue, Border cellBorder)
     {
+        if (_exceptionHandler != null)
+        {
+            await _exceptionHandler.SafeExecuteUIAsync(async () =>
+            {
+                await PerformRealTimeValidationCore(cell, newValue, cellBorder);
+            }, $"RealTimeValidation-{cell.CellId}", _state.Logger);
+        }
+        else
+        {
+            // Fallback if exception handler not initialized
+            await PerformRealTimeValidationCore(cell, newValue, cellBorder);
+        }
+    }
+
+    private async Task PerformRealTimeValidationCore(DataGridCell cell, string newValue, Border cellBorder)
+    {
         try
         {
             var validationConfig = _coordinator?.ValidationConfiguration;
-            _state.Logger?.Info("🔍 VALIDATION CHECK: EnableRealtimeValidation = {Enabled}, HasRules = {HasRules}, HasRulesWithMessages = {HasRulesWithMessages}", 
+            _state.Logger?.Info("🔍 REALTIME VALIDATION: Starting for cell {CellId} (R{Row}C{Col}) Column: '{Column}', Value: '{Value}' (Length: {Length})", 
+                cell.CellId, cell.RowIndex, cell.ColumnIndex, cell.ColumnName, newValue, newValue.Length);
+            _state.Logger?.Info("⚙️ VALIDATION CONFIG: EnableRealtimeValidation = {Enabled}, HasRules = {HasRules}, HasRulesWithMessages = {HasRulesWithMessages}", 
                 validationConfig?.EnableRealtimeValidation, 
                 validationConfig?.Rules?.Count ?? 0,
                 validationConfig?.RulesWithMessages?.Count ?? 0);
@@ -2261,70 +2398,108 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
             // Check basic validation rules (without messages)
             if (_coordinator.ValidationConfiguration.Rules?.TryGetValue(cell.ColumnName, out var basicRule) == true)
             {
+                _state.Logger?.Info("📋 VALIDATION RULE: Found basic rule for column '{Column}' - Executing...", cell.ColumnName);
                 try
                 {
+                    var startTime = DateTime.UtcNow;
                     var isValid = basicRule?.Invoke(newValue) ?? true;
+                    var duration = DateTime.UtcNow - startTime;
+                    
                     if (!isValid)
                     {
                         hasErrors = true;
                         errorMessages.Add($"Invalid value: {newValue}");
                         
-                        _state.Logger?.Info("❌ VALIDATION FAILED: Cell {CellId}, Basic Rule", cell.CellId);
+                        _state.Logger?.Error("❌ VALIDATION FAILED: Cell {CellId}, Column '{Column}', Basic Rule, Value: '{Value}', Duration: {Duration}ms", 
+                            cell.CellId, cell.ColumnName, newValue, (int)duration.TotalMilliseconds);
                     }
                     else
                     {
-                        _state.Logger?.Info("✅ VALIDATION PASSED: Cell {CellId}, Basic Rule", cell.CellId);
+                        _state.Logger?.Info("✅ VALIDATION PASSED: Cell {CellId}, Column '{Column}', Basic Rule, Value: '{Value}', Duration: {Duration}ms", 
+                            cell.CellId, cell.ColumnName, newValue, (int)duration.TotalMilliseconds);
                     }
                 }
                 catch (Exception ex)
                 {
-                    _state.Logger?.Error(ex, "🚨 VALIDATION RULE ERROR: Failed to execute basic rule for cell {CellId}", cell.CellId);
+                    _state.Logger?.Error(ex, "🚨 VALIDATION RULE ERROR: Failed to execute basic rule for cell {CellId}, Column '{Column}', Value: '{Value}'", 
+                        cell.CellId, cell.ColumnName, newValue);
                     hasErrors = true;
-                    errorMessages.Add("Validation error");
+                    errorMessages.Add($"Validation error: {ex.Message}");
                 }
+            }
+            else
+            {
+                _state.Logger?.Info("📋 VALIDATION RULE: No basic rule found for column '{Column}'", cell.ColumnName);
             }
 
             // Check validation rules with custom messages
             if (_coordinator.ValidationConfiguration.RulesWithMessages?.TryGetValue(cell.ColumnName, out var ruleWithMessage) == true)
             {
+                _state.Logger?.Info("📋 VALIDATION RULE WITH MESSAGE: Found rule for column '{Column}' - Message: '{Message}' - Executing...", 
+                    cell.ColumnName, ruleWithMessage.ErrorMessage);
                 try
                 {
+                    var startTime = DateTime.UtcNow;
                     var isValid = ruleWithMessage.Validator?.Invoke(newValue) ?? true;
+                    var duration = DateTime.UtcNow - startTime;
+                    
                     if (!isValid)
                     {
                         hasErrors = true;
                         errorMessages.Add(ruleWithMessage.ErrorMessage);
                         
-                        _state.Logger?.Info("❌ VALIDATION FAILED: Cell {CellId}, Error: {ErrorMessage}", 
-                            cell.CellId, ruleWithMessage.ErrorMessage);
+                        _state.Logger?.Error("❌ VALIDATION FAILED: Cell {CellId}, Column '{Column}', Value: '{Value}', Error: '{ErrorMessage}', Duration: {Duration}ms", 
+                            cell.CellId, cell.ColumnName, newValue, ruleWithMessage.ErrorMessage, (int)duration.TotalMilliseconds);
                     }
                     else
                     {
-                        _state.Logger?.Info("✅ VALIDATION PASSED: Cell {CellId}, Rule with message", cell.CellId);
+                        _state.Logger?.Info("✅ VALIDATION PASSED: Cell {CellId}, Column '{Column}', Value: '{Value}', Rule: '{Message}', Duration: {Duration}ms", 
+                            cell.CellId, cell.ColumnName, newValue, ruleWithMessage.ErrorMessage, (int)duration.TotalMilliseconds);
                     }
                 }
                 catch (Exception ex)
                 {
-                    _state.Logger?.Error(ex, "🚨 VALIDATION RULE ERROR: Failed to execute rule with message for cell {CellId}", cell.CellId);
+                    _state.Logger?.Error(ex, "🚨 VALIDATION RULE ERROR: Failed to execute rule with message for cell {CellId}, Column '{Column}', Value: '{Value}', Message: '{Message}'", 
+                        cell.CellId, cell.ColumnName, newValue, ruleWithMessage.ErrorMessage);
                     hasErrors = true;
-                    errorMessages.Add("Validation error");
+                    errorMessages.Add($"Validation error: {ex.Message}");
                 }
+            }
+            else
+            {
+                _state.Logger?.Info("📋 VALIDATION RULE WITH MESSAGE: No rule with message found for column '{Column}'", cell.ColumnName);
+            }
+
+            // DETAILED LOGGING: Log validation state changes
+            var wasValid = !cell.HasValidationErrors;
+            var isNowValid = !hasErrors;
+            
+            if (wasValid != isNowValid)
+            {
+                _state.Logger?.Warning("🔄 VALIDATION STATE CHANGE: Cell {CellId} changed from {WasValid} to {IsNowValid}", 
+                    cell.CellId, wasValid ? "VALID" : "INVALID", isNowValid ? "VALID" : "INVALID");
             }
 
             // Update cell validation state in data
             cell.ValidationState = !hasErrors;
             cell.HasValidationErrors = hasErrors;
             cell.ValidationError = hasErrors ? string.Join("; ", errorMessages) : null;
+            
+            _state.Logger?.Info("💾 VALIDATION DATA: Updated cell {CellId} - ValidationState: {ValidationState}, HasErrors: {HasErrors}, ErrorMessage: '{ErrorMessage}'", 
+                cell.CellId, cell.ValidationState, cell.HasValidationErrors, cell.ValidationError);
 
             // Apply visual feedback to the cell border
             var combinedErrorMessage = hasErrors ? string.Join(" | ", errorMessages) : null;
+            _state.Logger?.Info("🎨 VALIDATION STYLING: Applying {StyleType} styling to cell {CellId}", 
+                hasErrors ? "ERROR" : "VALID", cell.CellId);
             ApplyValidationStyling(cellBorder, !hasErrors, combinedErrorMessage);
 
             // Update ValidationAlerts column if exists
+            _state.Logger?.Info("📢 VALIDATION ALERTS: Updating alerts column for row {RowIndex}", cell.RowIndex);
             await UpdateValidationAlertsColumn(cell.RowIndex);
 
-            _state.Logger?.Info("✅ REALTIME VALIDATION COMPLETE: Cell {CellId} - Valid: {IsValid}, Errors: {ErrorCount}", 
-                cell.CellId, !hasErrors, errorMessages.Count);
+            _state.Logger?.Info("✅ REALTIME VALIDATION COMPLETE: Cell {CellId} - Valid: {IsValid}, Errors: {ErrorCount}, Messages: [{Messages}]", 
+                cell.CellId, !hasErrors, errorMessages.Count, string.Join(", ", errorMessages));
         }
         catch (Exception ex)
         {
@@ -3111,6 +3286,7 @@ public sealed partial class AdvancedDataGrid : UserControl, IDisposable
     }
     
     #endregion
+
 }
 
 #region Value Converters

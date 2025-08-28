@@ -47,7 +47,8 @@
       "Read(/D:\\www\\RB0120APP/**)",
       "Bash(rg:*)",
       "Read(/D:\\www\\RB0120APP/**)",
-      "Bash(dotnet run:*)"
+      "Bash(dotnet run:*)",
+      "Read(/D:\\www\\RB0120APP\\RpaWinUiComponents.Demo/**)"
     ],
     "deny": [],
     "ask": [],

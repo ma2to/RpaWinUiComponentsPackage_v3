@@ -37,6 +37,24 @@ public class ColorConfiguration
     /// <summary>Farba pozadia validačných chýb</summary>
     public string? ValidationErrorBackground { get; set; }
     
+    /// <summary>Farba okraja pri focus</summary>
+    public string? FocusBorder { get; set; }
+    
+    /// <summary>Farba pozadia pri focus</summary>
+    public string? FocusBackground { get; set; }
+    
+    /// <summary>Farba okraja validačných varovaní</summary>
+    public string? ValidationWarningBorder { get; set; }
+    
+    /// <summary>Farba pozadia validačných varovaní</summary>
+    public string? ValidationWarningBackground { get; set; }
+    
+    /// <summary>Farba okraja validačných informácií</summary>
+    public string? ValidationInfoBorder { get; set; }
+    
+    /// <summary>Farba pozadia validačných informácií</summary>
+    public string? ValidationInfoBackground { get; set; }
+    
     /// <summary>Povoliť zebra efekt (striedanie farieb riadkov)</summary>
     public bool EnableZebraStripes { get; set; } = false;
     
@@ -54,4 +72,50 @@ public class ColorConfiguration
     
     /// <summary>Používa dark theme</summary>
     public bool UseDarkTheme { get; set; } = false;
+    
+    // HELPER METHODS - Získanie efektívnych farieb s profesionálnymi defaultmi
+    
+    /// <summary>Získanie farby pozadia bunky s defaultom</summary>
+    public string GetEffectiveCellBackground() => 
+        UseDarkTheme ? (CellBackground ?? "#1E1E1E") : (CellBackground ?? "#FFFFFF");
+    
+    /// <summary>Získanie farby textu bunky s defaultom</summary>
+    public string GetEffectiveCellForeground() => 
+        UseDarkTheme ? (CellForeground ?? "#FFFFFF") : (CellForeground ?? "#000000");
+        
+    /// <summary>Získanie farby okraja bunky s defaultom</summary>
+    public string GetEffectiveCellBorder() => 
+        UseDarkTheme ? (CellBorder ?? "#3E3E42") : (CellBorder ?? "#E0E0E0");
+        
+    /// <summary>Získanie farby pozadia hlavičky s defaultom</summary>
+    public string GetEffectiveHeaderBackground() => 
+        UseDarkTheme ? (HeaderBackground ?? "#2D2D30") : (HeaderBackground ?? "#F5F5F5");
+        
+    /// <summary>Získanie farby textu hlavičky s defaultom</summary>
+    public string GetEffectiveHeaderForeground() => 
+        UseDarkTheme ? (HeaderForeground ?? "#FFFFFF") : (HeaderForeground ?? "#333333");
+        
+    /// <summary>Získanie farby pozadia pri selection s defaultom</summary>
+    public string GetEffectiveSelectionBackground() => 
+        UseDarkTheme ? (SelectionBackground ?? "#0E639C") : (SelectionBackground ?? "#0078D4");
+        
+    /// <summary>Získanie farby pozadia alternujúcich riadkov s defaultom</summary>
+    public string GetEffectiveAlternateRowBackground() => 
+        UseDarkTheme ? (AlternateRowBackground ?? "#252526") : (AlternateRowBackground ?? "#FAFAFA");
+        
+    /// <summary>Získanie farby pozadia pri hover s defaultom</summary>
+    public string GetEffectiveHoverBackground() => 
+        UseDarkTheme ? (HoverBackground ?? "#3E3E42") : (HoverBackground ?? "#F0F0F0");
+        
+    /// <summary>Získanie farby okraja validačnej chyby s defaultom</summary>
+    public string GetEffectiveValidationErrorBorder() => ValidationErrorBorder ?? "#FF0000";
+        
+    /// <summary>Získanie farby pozadia validačnej chyby s defaultom</summary>
+    public string GetEffectiveValidationErrorBackground() => ValidationErrorBackground ?? "#FFEBEE";
+        
+    /// <summary>Získanie farby okraja pri focus s defaultom</summary>
+    public string GetEffectiveFocusBorder() => FocusBorder ?? "#0078D4";
+        
+    /// <summary>Získanie farby pozadia pri focus s defaultom</summary>
+    public string GetEffectiveFocusBackground() => FocusBackground ?? "#E7F3FF";
 }

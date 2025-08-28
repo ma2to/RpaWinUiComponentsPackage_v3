@@ -959,9 +959,9 @@ public sealed partial class MainWindow : Window
         {
             new() { ["Name"] = "John Doe", ["Age"] = 30, ["Email"] = "john@example.com", ["Salary"] = 50000m },
             new() { ["Name"] = "Jane Smith", ["Age"] = 25, ["Email"] = "jane@example.com", ["Salary"] = 55000m },
-            new() { ["Name"] = "Bob Johnson", ["Age"] = -5, ["Email"] = "invalid-email", ["Salary"] = 45000m }, // Invalid data for validation testing
-            new() { ["Name"] = "", ["Age"] = 35, ["Email"] = "bob@example.com", ["Salary"] = 60000m }, // Invalid name
-            new() { ["Name"] = "Alice Brown", ["Age"] = 28, ["Email"] = "alice@example.com", ["Salary"] = 52000m },
+            new() { ["Name"] = "Bob Johnson", ["Age"] = -5, ["Email"] = "invalid-email", ["Salary"] = 45000m }, // VALIDATION ERROR: Negative age + invalid email
+            new() { ["Name"] = "", ["Age"] = 35, ["Email"] = "bob@example.com", ["Salary"] = 60000m }, // VALIDATION ERROR: Empty name
+            new() { ["Name"] = "Alice Brown", ["Age"] = 150, ["Email"] = "jane@example.com", ["Salary"] = 52000m }, // VALIDATION ERROR: Age too high + duplicate email
         };
     }
 
