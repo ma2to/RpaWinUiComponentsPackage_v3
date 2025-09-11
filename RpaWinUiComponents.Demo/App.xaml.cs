@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
+using System;
+using System.IO;
 
 namespace RpaWinUiComponents.Demo;
 
@@ -37,16 +39,30 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// Setup Microsoft.Extensions.Logging pre testing balíka
+    /// Setup Microsoft.Extensions.Logging pre testing balíka - SENIOR DEVELOPER COMPREHENSIVE LOGGING
     /// </summary>
     private void SetupLogging()
     {
+        // Create logs directory if it doesn't exist
+        var logDirectory = Path.Combine(Path.GetTempPath(), "RpaWinUiDemo");
+        Directory.CreateDirectory(logDirectory);
+        
         LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
         {
             builder
-                .AddConsole()           // Console output  
+                .AddConsole(options =>
+                {
+                    options.IncludeScopes = true;
+                    options.TimestampFormat = "yyyy-MM-dd HH:mm:ss.fff ";
+                })
                 .AddDebug()             // Debug output
-                .SetMinimumLevel(LogLevel.Debug);
+                .SetMinimumLevel(LogLevel.Debug);  // CRITICAL: Ensure Debug level logs are processed
         });
+        
+        // Test the logger immediately
+        var testLogger = LoggerFactory.CreateLogger<App>();
+        testLogger.LogInformation("[APP-SETUP] SENIOR DEVELOPER LOGGING - Comprehensive logging initialized");
+        testLogger.LogDebug("[APP-SETUP] Log directory: {LogDirectory}", logDirectory);
+        testLogger.LogDebug("[APP-SETUP] Logger factory type: {LoggerFactoryType}", LoggerFactory.GetType().Name);
     }
 }

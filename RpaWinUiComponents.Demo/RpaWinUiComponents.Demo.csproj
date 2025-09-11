@@ -30,11 +30,18 @@
     <UseRidGraph>true</UseRidGraph>
     <WindowsPackageType>None</WindowsPackageType>
     
-    <!-- Additional PRI disabling to prevent MSB4062 error -->
+    <!-- Complete PRI disabling to prevent MSB4062 error -->
     <UseAppxBundle>false</UseAppxBundle>
     <AppxBundle>Never</AppxBundle>
     <_PriIndexName>resources</_PriIndexName>
     <EnableMrtCoreTargets>false</EnableMrtCoreTargets>
+    <DisableExpandPriContent>true</DisableExpandPriContent>
+    <EnableXamlPrecompilation>false</EnableXamlPrecompilation>
+    <UseLocalMrtCore>false</UseLocalMrtCore>
+    <GeneratePriConfigXml>false</GeneratePriConfigXml>
+    <UsePriGen>false</UsePriGen>
+    <ExpandPriContent>false</ExpandPriContent>
+    <GenerateLibraryLayout>true</GenerateLibraryLayout>
     
     <!-- Application properties -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -43,6 +50,12 @@
     <RuntimeIdentifier Condition="'$(Platform)' == 'x64'">win-x64</RuntimeIdentifier>
     <RuntimeIdentifier Condition="'$(Platform)' == 'ARM64'">win-arm64</RuntimeIdentifier>
   </PropertyGroup>
+
+  <!-- Target to skip PRI generation completely -->
+  <Target Name="ExpandPriContent" />
+  <Target Name="GeneratePriConfigXml" />
+  <Target Name="CreatePri" />
+  <Target Name="PackagePri" />
 
   <ItemGroup>
     <!-- CRITICAL: Project reference for development testing -->
@@ -54,9 +67,10 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.8" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
     <PackageReference Include="RpaWinUiComponentsPackage" Version="2.1.2" />
-    
-    <!-- REMOVED: Package reference to use project reference instead -->
     <!-- <PackageReference Include="RpaWinUiComponentsPackage" Version="2.1.2" /> -->
+    
+    <!-- REMOVED: Package reference to avoid circular dependency -->
+    <!-- Using ProjectReference instead for development testing --> 
     
     <!-- Package reference with automatic dependencies -->
   </ItemGroup>

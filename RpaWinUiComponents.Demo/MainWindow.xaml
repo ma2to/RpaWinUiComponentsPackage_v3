@@ -90,11 +90,18 @@
         </ScrollViewer>
 
         <!-- Main DataGrid Testing Area - FULL WIDTH/HEIGHT -->
-        <controls:AdvancedDataGrid x:Name="TestDataGrid" 
-                                 Grid.Row="1"
-                                 HorizontalAlignment="Stretch" 
-                                 VerticalAlignment="Stretch" 
-                                 Margin="0" />
+        <Border x:Name="GridContainer" 
+                Grid.Row="1"
+                HorizontalAlignment="Stretch" 
+                VerticalAlignment="Stretch" 
+                Margin="0" 
+                BorderBrush="{ThemeResource ControlStrokeColorDefault}" 
+                BorderThickness="1">
+            <TextBlock Text="DataGrid will be loaded here after initialization..." 
+                      HorizontalAlignment="Center" 
+                      VerticalAlignment="Center"
+                      Foreground="{ThemeResource TextFillColorSecondary}"/>
+        </Border>
 
         <!-- Live Log Output -->
         <Border Grid.Row="2" BorderBrush="{ThemeResource ControlStrokeColorDefault}" BorderThickness="1,0,1,1" Margin="10,0,10,10">
