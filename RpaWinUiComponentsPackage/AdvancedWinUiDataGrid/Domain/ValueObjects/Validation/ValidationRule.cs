@@ -1,13 +1,13 @@
 using System;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
 
 /// <summary>
 /// DDD: Value object for single-column validation rule
 /// ENTERPRISE: Business rule validation at domain level
 /// </summary>
-public record ValidationRule
+internal record ValidationRule
 {
     public required string RuleName { get; init; }
     public required string ColumnName { get; init; }
@@ -31,7 +31,7 @@ public record ValidationRule
 /// DDD: Value object for cross-column validation rule
 /// ENTERPRISE: Business rule validation across multiple columns
 /// </summary>
-public record CrossColumnValidationRule
+internal record CrossColumnValidationRule
 {
     public required string RuleName { get; init; }
     public required string[] ColumnNames { get; init; }
@@ -44,7 +44,7 @@ public record CrossColumnValidationRule
 /// DDD: Value object for global validation rule
 /// ENTERPRISE: Business rule validation across entire row/grid
 /// </summary>
-public record GlobalValidationRule
+internal record GlobalValidationRule
 {
     public required string RuleName { get; init; }
     public required Func<List<Dictionary<string, object?>>, ValidationError[]> Validator { get; init; }

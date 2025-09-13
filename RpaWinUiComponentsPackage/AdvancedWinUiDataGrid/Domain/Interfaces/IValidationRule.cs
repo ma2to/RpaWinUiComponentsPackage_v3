@@ -1,16 +1,16 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Interfaces;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Interfaces;
 
 /// <summary>
 /// DOCUMENTATION: Validation rule interface per specification
 /// ENTERPRISE: Contract for custom validation rules
 /// EXTENSIBLE: Supports single-cell, cross-column, and cross-row validation
 /// </summary>
-public interface IValidationRule
+internal interface IValidationRule
 {
     /// <summary>Rule name for identification and debugging</summary>
     string RuleName { get; }
@@ -39,7 +39,7 @@ public interface IValidationRule
 /// DOCUMENTATION: Validation rule types per specification
 /// ENTERPRISE: Different validation scopes for flexibility
 /// </summary>
-public enum ValidationRuleType
+internal enum ValidationRuleType
 {
     /// <summary>Single cell validation</summary>
     Cell = 0,
@@ -61,7 +61,7 @@ public enum ValidationRuleType
 /// DOCUMENTATION: Validation rule result per specification
 /// ENTERPRISE: Comprehensive validation result with error details
 /// </summary>
-public record ValidationRuleResult
+internal record ValidationRuleResult
 {
     /// <summary>Whether validation passed</summary>
     public bool IsValid { get; init; }
@@ -70,7 +70,7 @@ public record ValidationRuleResult
     public string? ErrorMessage { get; init; }
     
     /// <summary>Validation level (Error, Warning, Success)</summary>
-    public RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation.ValidationLevel Level { get; init; } = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation.ValidationLevel.Error;
+    public RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation.ValidationLevel Level { get; init; } = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation.ValidationLevel.Error;
     
     /// <summary>Additional context or details</summary>
     public Dictionary<string, object?>? Context { get; init; }
@@ -79,13 +79,13 @@ public record ValidationRuleResult
     public string? Error => ErrorMessage;
     
     /// <summary>Create successful validation result</summary>
-    public static ValidationRuleResult Success() => new() { IsValid = true, Level = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation.ValidationLevel.Success };
+    public static ValidationRuleResult Success() => new() { IsValid = true, Level = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation.ValidationLevel.Success };
     
     /// <summary>Create failed validation result</summary>
-    public static ValidationRuleResult Failure(string errorMessage, RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation.ValidationLevel level = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation.ValidationLevel.Error) => 
+    public static ValidationRuleResult Failure(string errorMessage, RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation.ValidationLevel level = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation.ValidationLevel.Error) => 
         new() { IsValid = false, ErrorMessage = errorMessage, Level = level };
     
     /// <summary>Create warning validation result</summary>
     public static ValidationRuleResult Warning(string warningMessage) => 
-        new() { IsValid = true, ErrorMessage = warningMessage, Level = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation.ValidationLevel.Warning };
+        new() { IsValid = true, ErrorMessage = warningMessage, Level = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation.ValidationLevel.Warning };
 }

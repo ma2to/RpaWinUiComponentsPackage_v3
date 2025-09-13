@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Entities;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Interfaces;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Entities;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Interfaces;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Infrastructure.Services;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Infrastructure.Services;
 
 /// <summary>
 /// INFRASTRUCTURE: Implementation of data grid sort service
 /// ENTERPRISE: Production-ready sorting functionality
 /// </summary>
-public class DataGridSortService : IDataGridSortService
+internal class DataGridSortService : IDataGridSortService
 {
     private readonly ILogger _logger;
     private readonly List<SortCriteria> _activeSorts = new();

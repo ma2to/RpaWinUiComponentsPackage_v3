@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Primitives;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Primitives;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Entities;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Entities;
 
 /// <summary>
 /// DDD: Rich domain entity representing a data grid row
 /// ENTERPRISE: Encapsulates row behavior and business rules
 /// </summary>
-public class GridRow : Entity
+internal class GridRow : Entity
 {
     private readonly Dictionary<string, object?> _data;
     private readonly List<string> _validationErrors;

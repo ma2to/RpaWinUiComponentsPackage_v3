@@ -7,13 +7,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
-using DomainColumnDefinition = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core.ColumnDefinition;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
+using DomainColumnDefinition = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core.ColumnDefinition;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Infrastructure.Services;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Infrastructure.Services;
 
 /// <summary>
 /// INFRASTRUCTURE: Row height calculation service implementation
@@ -21,7 +21,7 @@ namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Infrastructure.Service
 /// ENTERPRISE: Production-ready height calculation with monitoring
 /// WinUI3: Native WinUI text measurement integration
 /// </summary>
-public sealed class RowHeightCalculationService : IRowHeightCalculationService
+internal sealed class RowHeightCalculationService : IRowHeightCalculationService
 {
     #region Private Fields
 
@@ -357,7 +357,7 @@ public sealed class RowHeightCalculationService : IRowHeightCalculationService
     {
         // Simplified width calculation - in real implementation would consider
         // ColumnWidth configuration and actual layout measurements
-        return column.Width.Type == RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core.ColumnWidth.ColumnWidthType.Pixels ? column.Width.Value : defaultWidth;
+        return column.Width.Type == RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core.ColumnWidth.ColumnWidthType.Pixels ? column.Width.Value : defaultWidth;
     }
 
     /// <summary>

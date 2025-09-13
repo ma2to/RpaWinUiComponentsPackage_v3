@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
 
 /// <summary>
 /// DDD: Value object for data operation results
 /// ENTERPRISE: Result tracking for data operations
 /// IMMUTABLE: Record pattern ensuring consistent result state
 /// </summary>
-public record DataOperationResult
+internal record DataOperationResult
 {
     public string OperationType { get; init; } = string.Empty;
     public bool Success { get; init; }

@@ -4,18 +4,18 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Infrastructure.Services;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Infrastructure.Services;
 
 /// <summary>
 /// INFRASTRUCTURE: Performance monitoring and metrics service
 /// CLEAN ARCHITECTURE: Infrastructure implementation of performance concerns
 /// ENTERPRISE: Production-ready performance monitoring
 /// </summary>
-public class DataGridPerformanceService : IDisposable
+internal class DataGridPerformanceService : IDisposable
 {
     private readonly ILogger _logger;
     private readonly Dictionary<string, Stopwatch> _activeOperations;
@@ -145,7 +145,7 @@ public class DataGridPerformanceService : IDisposable
 /// <summary>
 /// Performance metric record
 /// </summary>
-public record PerformanceMetric
+internal record PerformanceMetric
 {
     public string OperationName { get; init; } = string.Empty;
     public TimeSpan Duration { get; init; }

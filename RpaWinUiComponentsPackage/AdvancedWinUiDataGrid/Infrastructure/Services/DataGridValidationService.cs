@@ -3,29 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Infrastructure.Services;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Infrastructure.Services;
 
 /// <summary>
 /// INFRASTRUCTURE: Data validation service implementation
 /// CLEAN ARCHITECTURE: Infrastructure implementation of validation concerns
 /// ENTERPRISE: Production-ready data validation
 /// </summary>
-public class DataGridValidationService : IDataGridValidationService
+internal class DataGridValidationService : IDataGridValidationService
 {
     private readonly ILogger _logger;
     private readonly ValidationConfiguration _configuration;
     private bool _disposed = false;
 
-    public DataGridValidationService(ILogger logger, ValidationConfiguration? configuration = null)
+    public DataGridValidationService(ILogger? logger, ValidationConfiguration? configuration = null)
     {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
         _configuration = configuration ?? ValidationConfiguration.CreateDefault();
         
         _logger.LogDebug("DataGridValidationService initialized");

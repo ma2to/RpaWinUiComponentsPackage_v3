@@ -1,12 +1,12 @@
 using System;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
 
 /// <summary>
 /// DDD: Value object representing search performance statistics
 /// ENTERPRISE: Search monitoring and analytics
 /// </summary>
-public record SearchStatistics
+internal record SearchStatistics
 {
     /// <summary>Total number of searches performed in session</summary>
     public int TotalSearches { get; init; }

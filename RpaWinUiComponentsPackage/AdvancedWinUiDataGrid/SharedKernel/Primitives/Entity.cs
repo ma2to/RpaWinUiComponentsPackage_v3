@@ -1,12 +1,12 @@
 using System;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Primitives;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Primitives;
 
 /// <summary>
 /// SHARED KERNEL: Base entity with identity
 /// DDD: Entity abstraction for domain entities
 /// </summary>
-public abstract class Entity<TId> : IEquatable<Entity<TId>>
+internal abstract class Entity<TId> : IEquatable<Entity<TId>>
     where TId : IEquatable<TId>
 {
     public TId Id { get; protected set; }
@@ -43,7 +43,7 @@ public abstract class Entity<TId> : IEquatable<Entity<TId>>
 /// DDD: Base entity class with int identity
 /// ENTERPRISE: Convenience base class for integer IDs
 /// </summary>
-public abstract class Entity : Entity<int>
+internal abstract class Entity : Entity<int>
 {
     protected Entity(int id) : base(id)
     {

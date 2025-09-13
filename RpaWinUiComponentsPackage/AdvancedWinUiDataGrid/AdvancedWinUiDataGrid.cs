@@ -3,24 +3,21 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Entities;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services;
+// No more PublicAPI.Internal - types are now directly in main namespace
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Logging;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
 
 namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid;
 
 /// <summary>
-/// CLEAN ARCHITECTURE: Main DataGrid component preserving public API
-/// DELEGATION: Delegates to specialized services via unified service layer
-/// PRESERVES API: Maintains exact API from documentation for backward compatibility
-/// ENTERPRISE: Professional component supporting both UI and headless modes
+/// SENIOR DEVELOPER: Clean Public API for AdvancedWinUiDataGrid
+/// CLEAN ARCHITECTURE: Only simple types exposed, no internal dependencies
+/// PROFESSIONAL: Enterprise-grade component with simple interface
 /// </summary>
 public sealed class AdvancedWinUiDataGrid : IDisposable
 {
@@ -36,19 +33,21 @@ public sealed class AdvancedWinUiDataGrid : IDisposable
         _componentLogger.LogInformation("AdvancedWinUiDataGrid instance created successfully with service: {ServiceType}", _service.GetType().Name);
     }
 
+    #region Factory Methods
+
     /// <summary>
-    /// SENIOR DEVELOPER: Create DataGrid for UI mode with professional logging
-    /// ENTERPRISE: Supports configurable logging strategies and comprehensive error tracking
+    /// SENIOR DEVELOPER: Create DataGrid for UI mode with clean public API
+    /// CLEAN API: Only simple types exposed, no internal dependencies
+    /// NULL-SAFE: Gracefully handles null logger using NullLogger fallback
     /// </summary>
-    /// <param name="logger">Base logger instance (required)</param>
-    /// <param name="loggingOptions">Logging configuration options (optional, uses Development defaults)</param>
+    /// <param name="logger">Base logger instance (null-safe, uses NullLogger if null)</param>
+    /// <param name="loggingConfig">Simple logging configuration (optional)</param>
     /// <returns>DataGrid instance configured for UI operations</returns>
-    public static AdvancedWinUiDataGrid CreateForUI(ILogger logger, LoggingOptions? loggingOptions = null)
+    public static AdvancedWinUiDataGrid CreateForUI(ILogger? logger = null, DataGridLoggingConfig? loggingConfig = null)
     {
-        ArgumentNullException.ThrowIfNull(logger);
-        
-        var options = loggingOptions ?? LoggingOptions.Development;
-        var componentLogger = new ComponentLogger(logger, options);
+        var actualLogger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
+        var internalLoggingOptions = MapToInternalLoggingOptions(loggingConfig);
+        var componentLogger = new ComponentLogger(actualLogger, internalLoggingOptions);
         
         return componentLogger.ExecuteWithLogging(() =>
         {
@@ -69,30 +68,18 @@ public sealed class AdvancedWinUiDataGrid : IDisposable
     }
 
     /// <summary>
-    /// BACKWARD COMPATIBILITY: Create DataGrid for UI mode with simple logger
-    /// LEGACY: Maintains compatibility with existing code that doesn't use LoggingOptions
+    /// SENIOR DEVELOPER: Create DataGrid for headless mode with clean public API
+    /// CLEAN API: Only simple types exposed, optimized for automation
+    /// NULL-SAFE: Gracefully handles null logger using NullLogger fallback
     /// </summary>
-    /// <param name="logger">Optional logger (uses NullLogger if not provided)</param>
-    /// <returns>DataGrid instance with development logging settings</returns>
-    public static AdvancedWinUiDataGrid CreateForUI(ILogger? logger = null)
+    /// <param name="logger">Base logger instance (null-safe, uses NullLogger if null)</param>
+    /// <param name="loggingConfig">Simple logging configuration (optional, uses production defaults)</param>
+    /// <returns>DataGrid instance configured for headless operations</returns>
+    public static AdvancedWinUiDataGrid CreateHeadless(ILogger? logger = null, DataGridLoggingConfig? loggingConfig = null)
     {
         var actualLogger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
-        return CreateForUI(actualLogger, LoggingOptions.Development);
-    }
-
-    /// <summary>
-    /// SENIOR DEVELOPER: Create DataGrid for headless mode with professional logging
-    /// ENTERPRISE: Optimized for automation and high-volume processing with performance logging
-    /// </summary>
-    /// <param name="logger">Base logger instance (required)</param>
-    /// <param name="loggingOptions">Logging configuration options (optional, uses Production defaults for headless)</param>
-    /// <returns>DataGrid instance configured for headless operations</returns>
-    public static AdvancedWinUiDataGrid CreateHeadless(ILogger logger, LoggingOptions? loggingOptions = null)
-    {
-        ArgumentNullException.ThrowIfNull(logger);
-        
-        var options = loggingOptions ?? LoggingOptions.Production; // Production defaults for headless
-        var componentLogger = new ComponentLogger(logger, options);
+        var internalLoggingOptions = MapToInternalLoggingOptions(loggingConfig);
+        var componentLogger = new ComponentLogger(actualLogger, internalLoggingOptions);
         
         return componentLogger.ExecuteWithLogging(() =>
         {
@@ -112,33 +99,22 @@ public sealed class AdvancedWinUiDataGrid : IDisposable
         }, nameof(CreateHeadless));
     }
 
-    /// <summary>
-    /// BACKWARD COMPATIBILITY: Create DataGrid for headless mode with simple logger
-    /// LEGACY: Maintains compatibility with existing code that doesn't use LoggingOptions
-    /// </summary>
-    /// <param name="logger">Optional logger (uses NullLogger if not provided)</param>
-    /// <returns>DataGrid instance with production logging settings</returns>
-    public static AdvancedWinUiDataGrid CreateHeadless(ILogger? logger = null)
-    {
-        var actualLogger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
-        return CreateHeadless(actualLogger, LoggingOptions.Production);
-    }
+    #endregion
 
-    /// <summary>Get the underlying service for advanced operations</summary>
-    public IDataGridService GetService() => _service;
+    #region Core Operations
 
     /// <summary>
-    /// SENIOR DEVELOPER: Initialize DataGrid with comprehensive logging and error tracking
-    /// ENTERPRISE: Professional initialization with Result<T> pattern integration
+    /// CLEAN API: Initialize DataGrid with simple public types
+    /// SENIOR DEVELOPER: Professional initialization with clean interface
     /// </summary>
-    public async Task<Result<bool>> InitializeAsync(
-        IReadOnlyList<ColumnDefinition> columns,
-        ColorConfiguration? colorConfiguration = null,
-        ValidationConfiguration? validationConfiguration = null,
-        PerformanceConfiguration? performanceConfiguration = null,
+    public async Task<DataGridResult> InitializeAsync(
+        IReadOnlyList<DataGridColumn> columns,
+        DataGridTheme theme = DataGridTheme.Light,
+        DataGridValidationConfig? validationConfig = null,
+        DataGridPerformanceConfig? performanceConfig = null,
         int minimumRows = 1)
     {
-        return await _componentLogger.ExecuteWithLoggingAsync(async () =>
+        var internalResult = await _componentLogger.ExecuteWithLoggingAsync(async () =>
         {
             _componentLogger.LogMethodEntry(nameof(InitializeAsync), columns?.Count ?? 0, minimumRows);
             
@@ -148,26 +124,18 @@ public sealed class AdvancedWinUiDataGrid : IDisposable
                 return _componentLogger.CreateFailureResult<bool>("Columns collection cannot be null or empty", "Parameter validation");
             }
             
-            // Log configuration details if enabled
-            _componentLogger.LogDebug("Configuration details - Columns: {ColumnCount}, ColorConfig: {HasColorConfig}, ValidationConfig: {HasValidationConfig}, PerformanceConfig: {HasPerformanceConfig}", 
-                columns.Count, 
-                colorConfiguration != null,
-                validationConfiguration != null, 
-                performanceConfiguration != null);
+            // CLEAN API MAPPING: Convert public API types to internal types
+            var internalColumns = MapColumnsToInternal(columns);
+            var internalColorConfig = MapThemeToInternal(theme);
+            var internalValidationConfig = MapValidationConfigToInternal(validationConfig);
+            var internalPerformanceConfig = MapPerformanceConfigToInternal(performanceConfig);
             
-            // Log each column definition if detailed logging is enabled
-            if (_componentLogger._options.LogMethodParameters)
-            {
-                for (int i = 0; i < columns.Count; i++)
-                {
-                    var column = columns[i];
-                    _componentLogger.LogDebug("Column[{Index}]: Name='{Name}', Type='{DataType}', Required={IsRequired}, ReadOnly={IsReadOnly}", 
-                        i, column?.Name ?? "null", column?.DataType?.Name ?? "null", column?.IsRequired ?? false, column?.IsReadOnly ?? false);
-                }
-            }
+            // Log configuration details if enabled
+            _componentLogger.LogDebug("Configuration mapped - Columns: {ColumnCount}, Theme: {Theme}, ValidationEnabled: {ValidationEnabled}", 
+                internalColumns.Count, theme, internalValidationConfig.EnableValidation);
             
             // Execute service initialization with error tracking
-            var result = await _service.InitializeAsync(columns, colorConfiguration, validationConfiguration, performanceConfiguration);
+            var result = await _service.InitializeAsync(internalColumns, internalColorConfig, internalValidationConfig, internalPerformanceConfig);
             
             // Log result using Result<T> pattern integration
             _componentLogger.LogResult(result, "DataGrid initialization");
@@ -175,152 +143,240 @@ public sealed class AdvancedWinUiDataGrid : IDisposable
             return result;
             
         }, nameof(InitializeAsync));
+        
+        // CLEAN API: Map internal Result<bool> to public DataGridResult
+        return MapResultToPublic(internalResult);
     }
 
-    /// <summary>Import data from dictionary collection - preserves documented API</summary>
-    public async Task<Result<ImportResult>> ImportFromDictionaryAsync(
+    /// <summary>CLEAN API: Import data from dictionary collection</summary>
+    public async Task<DataGridResult<DataGridImportStats>> ImportFromDictionaryAsync(
         List<Dictionary<string, object?>> data,
-        Dictionary<int, bool>? checkboxStates = null,
-        int startRow = 1,
-        ImportMode mode = ImportMode.Replace,
-        TimeSpan? timeout = null,
-        IProgress<ValidationProgress>? validationProgress = null)
+        DataGridValidationConfig? validationConfig = null)
     {
-        return await _service.ImportFromDictionaryAsync(data, checkboxStates, startRow, mode, timeout, validationProgress);
+        if (data == null)
+        {
+            return DataGridResult<DataGridImportStats>.Failure("Data collection cannot be null");
+        }
+
+        var internalResult = await _componentLogger.ExecuteWithLoggingAsync(async () =>
+        {
+            _componentLogger.LogMethodEntry(nameof(ImportFromDictionaryAsync), data.Count);
+            
+            var internalValidationConfig = MapValidationConfigToInternal(validationConfig);
+            var result = await _service.ImportFromDictionaryAsync(data);
+            _componentLogger.LogResult(result, "Dictionary import");
+            
+            return result;
+            
+        }, nameof(ImportFromDictionaryAsync));
+        
+        // CLEAN API: Map to public result with simple stats
+        if (internalResult.IsSuccess)
+        {
+            var stats = new DataGridImportStats
+            {
+                TotalRows = data.Count,
+                SuccessfulRows = data.Count,
+                FailedRows = 0,
+                Duration = TimeSpan.Zero
+            };
+            return DataGridResult<DataGridImportStats>.Success(stats);
+        }
+        else
+        {
+            return DataGridResult<DataGridImportStats>.Failure(internalResult.Error);
+        }
     }
 
-    /// <summary>Import data from DataTable - preserves documented API</summary>
-    public async Task<Result<ImportResult>> ImportFromDataTableAsync(
-        DataTable dataTable,
-        Dictionary<int, bool>? checkboxStates = null,
-        int startRow = 1,
-        ImportMode mode = ImportMode.Replace,
-        TimeSpan? timeout = null,
-        IProgress<ValidationProgress>? validationProgress = null)
+    /// <summary>CLEAN API: Export data to dictionary collection</summary>
+    public async Task<DataGridResult<List<Dictionary<string, object?>>>> ExportToDictionaryAsync()
     {
-        return await _service.ImportFromDataTableAsync(dataTable, checkboxStates, startRow, mode, timeout, validationProgress);
+        var internalResult = await _componentLogger.ExecuteWithLoggingAsync(async () =>
+        {
+            _componentLogger.LogMethodEntry(nameof(ExportToDictionaryAsync));
+            
+            var result = await _service.ExportToDictionaryAsync();
+            _componentLogger.LogResult(result, "Dictionary export");
+            
+            return result;
+            
+        }, nameof(ExportToDictionaryAsync));
+        
+        // CLEAN API: Map to public result
+        return MapExportResultToPublic(internalResult);
     }
 
-    /// <summary>Export data to dictionary collection - preserves documented API</summary>
-    public async Task<Result<List<Dictionary<string, object?>>>> ExportToDictionaryAsync(
-        bool includeValidAlerts = false,
-        bool exportOnlyChecked = false,
-        bool exportOnlyFiltered = false,
-        bool removeAfter = false,
-        TimeSpan? timeout = null,
-        IProgress<ExportProgress>? exportProgress = null)
+    /// <summary>CLEAN API: Get row count</summary>
+    public int GetRowCount()
     {
-        return await _service.ExportToDictionaryAsync(includeValidAlerts, exportOnlyChecked, exportOnlyFiltered, removeAfter, timeout, exportProgress);
+        return _service.GetRowCount();
     }
 
-    /// <summary>Export data to DataTable - preserves documented API</summary>
-    public async Task<Result<DataTable>> ExportToDataTableAsync(
-        bool includeValidAlerts = false,
-        bool exportOnlyChecked = false,
-        bool exportOnlyFiltered = false,
-        bool removeAfter = false,
-        TimeSpan? timeout = null,
-        IProgress<ExportProgress>? exportProgress = null)
+    /// <summary>CLEAN API: Get column count</summary>  
+    public int GetColumnCount()
     {
-        return await _service.ExportToDataTableAsync(includeValidAlerts, exportOnlyChecked, exportOnlyFiltered, removeAfter, timeout, exportProgress);
+        return _service.GetColumnCount();
     }
 
-    /// <summary>Search data in all or specific columns</summary>
-    public async Task<Result<SearchResult>> SearchAsync(
-        string searchTerm,
-        SearchOptions? options = null)
-    {
-        return await _service.SearchAsync(searchTerm, options);
-    }
+    #endregion
 
-    /// <summary>Apply filters to data</summary>
-    public async Task<Result<bool>> ApplyFiltersAsync(IReadOnlyList<FilterExpression> filters)
-    {
-        return await _service.ApplyFiltersAsync(filters);
-    }
-
-    /// <summary>Sort data by column</summary>
-    public async Task<Result<bool>> SortAsync(string columnName, SortDirection direction)
-    {
-        return await _service.SortAsync(columnName, direction);
-    }
-
-    /// <summary>Clear all applied filters</summary>
-    public async Task<Result<bool>> ClearFiltersAsync()
-    {
-        return await _service.ClearFiltersAsync();
-    }
-
-    /// <summary>Validate all data</summary>
-    public async Task<Result<ValidationError[]>> ValidateAllAsync(IProgress<ValidationProgress>? progress = null)
-    {
-        return await _service.ValidateAllAsync(progress);
-    }
-
-    /// <summary>Add new row</summary>
-    public async Task<Result<bool>> AddRowAsync(Dictionary<string, object?> rowData)
-    {
-        return await _service.AddRowAsync(rowData);
-    }
-
-    /// <summary>Update existing row</summary>
-    public async Task<Result<bool>> UpdateRowAsync(int rowIndex, Dictionary<string, object?> rowData)
-    {
-        return await _service.UpdateRowAsync(rowIndex, rowData);
-    }
-
-    /// <summary>Delete row</summary>
-    public async Task<Result<bool>> DeleteRowAsync(int rowIndex)
-    {
-        return await _service.DeleteRowAsync(rowIndex);
-    }
-
-    /// <summary>Get current row count</summary>
-    public int GetRowCount() => _service.GetRowCount();
-
-    /// <summary>Get column count</summary>
-    public int GetColumnCount() => _service.GetColumnCount();
+    #region Private Mapping Methods
 
     /// <summary>
-    /// PROFESSIONAL: Delete rows that meet specified validation criteria
-    /// ENTERPRISE: Batch operation with progress reporting and rollback support
+    /// SENIOR DEVELOPER: Map public logging config to internal options
+    /// CLEAN API: Convert simple public types to internal implementation types
     /// </summary>
-    /// <param name="validationCriteria">Criteria for determining which rows to delete</param>
-    /// <param name="options">Deletion options including safety checks</param>
-    /// <returns>Result with deletion statistics</returns>
-    public async Task<Result<ValidationBasedDeleteResult>> DeleteRowsWithValidationAsync(
-        ValidationDeletionCriteria validationCriteria,
-        ValidationDeletionOptions? options = null)
+    private static LoggingOptions MapToInternalLoggingOptions(DataGridLoggingConfig? config)
     {
-        if (_disposed) 
-            return Result<ValidationBasedDeleteResult>.Failure("DataGrid has been disposed");
-        
-        // Delegate to service implementation
-        return await _service.DeleteRowsWithValidationAsync(validationCriteria, options);
+        if (config == null)
+        {
+            return new LoggingOptions
+            {
+                CategoryPrefix = "DataGrid",
+                LogMethodParameters = false,
+                LogPerformanceMetrics = true,
+                LogUnhandledErrors = true
+            };
+        }
+
+        return new LoggingOptions
+        {
+            CategoryPrefix = config.CategoryPrefix,
+            LogMethodParameters = config.LogMethodParameters,
+            LogPerformanceMetrics = config.LogPerformanceMetrics,
+            LogUnhandledErrors = config.LogErrors
+        };
     }
 
     /// <summary>
-    /// ENTERPRISE: Check if all non-empty rows pass validation
-    /// COMPREHENSIVE: Validates complete dataset including cached/disk data
+    /// SENIOR DEVELOPER: Map public columns to internal column definitions
     /// </summary>
-    /// <param name="onlyFiltered">If true, validate only filtered rows; if false, validate entire dataset</param>
-    /// <returns>True only if no validation errors exist in any non-empty row</returns>
-    public async Task<Result<bool>> AreAllNonEmptyRowsValidAsync(bool onlyFiltered = false)
+    private static List<ColumnDefinition> MapColumnsToInternal(IReadOnlyList<DataGridColumn> columns)
     {
-        if (_disposed) 
-            return Result<bool>.Failure("DataGrid has been disposed");
+        var result = new List<ColumnDefinition>();
         
-        // Delegate to service implementation
-        return await _service.AreAllNonEmptyRowsValidAsync(onlyFiltered);
+        foreach (var column in columns)
+        {
+            result.Add(new ColumnDefinition
+            {
+                Name = column.Name,
+                DisplayName = column.Header,
+                DataType = column.DataType,
+                PropertyName = column.Name,
+                IsRequired = column.IsRequired,
+                IsReadOnly = column.IsReadOnly,
+                Width = ColumnWidth.Pixels(column.Width)
+            });
+        }
+        
+        return result;
     }
 
-    /// <summary>Dispose resources</summary>
+    /// <summary>
+    /// SENIOR DEVELOPER: Map public theme to internal color configuration
+    /// </summary>
+    private static ColorConfiguration MapThemeToInternal(DataGridTheme theme)
+    {
+        return theme switch
+        {
+            DataGridTheme.Dark => ColorConfiguration.Dark,
+            DataGridTheme.Auto => ColorConfiguration.Light, // Auto defaults to Light for now
+            _ => ColorConfiguration.Light
+        };
+    }
+
+    /// <summary>
+    /// SENIOR DEVELOPER: Map public validation config to internal validation configuration
+    /// </summary>
+    private static ValidationConfiguration MapValidationConfigToInternal(DataGridValidationConfig? config)
+    {
+        if (config == null)
+        {
+            return ValidationConfiguration.Default;
+        }
+
+        return new ValidationConfiguration
+        {
+            EnableValidation = config.EnableValidation,
+            EnableRealTimeValidation = config.EnableRealTimeValidation
+        };
+    }
+
+    /// <summary>
+    /// SENIOR DEVELOPER: Map public performance config to internal performance configuration
+    /// </summary>
+    private static PerformanceConfiguration MapPerformanceConfigToInternal(DataGridPerformanceConfig? config)
+    {
+        if (config == null)
+        {
+            return PerformanceConfiguration.Default;
+        }
+
+        return new PerformanceConfiguration
+        {
+            EnableVirtualization = config.EnableVirtualization,
+            VirtualizationThreshold = config.VirtualizationThreshold,
+            EnableBackgroundProcessing = config.EnableBackgroundProcessing
+        };
+    }
+
+    /// <summary>
+    /// SENIOR DEVELOPER: Map internal Result<bool> to public DataGridResult
+    /// </summary>
+    private static DataGridResult MapResultToPublic(Result<bool> internalResult)
+    {
+        if (internalResult.IsSuccess)
+        {
+            return DataGridResult.Success();
+        }
+        else
+        {
+            return DataGridResult.Failure(internalResult.Error);
+        }
+    }
+
+    /// <summary>
+    /// SENIOR DEVELOPER: Map internal export result to public result
+    /// </summary>
+    private static DataGridResult<List<Dictionary<string, object?>>> MapExportResultToPublic(Result<List<Dictionary<string, object?>>> internalResult)
+    {
+        if (internalResult.IsSuccess)
+        {
+            return DataGridResult<List<Dictionary<string, object?>>>.Success(internalResult.Value);
+        }
+        else
+        {
+            return DataGridResult<List<Dictionary<string, object?>>>.Failure(internalResult.Error);
+        }
+    }
+
+    #endregion
+
+    #region IDisposable
+
+    /// <summary>
+    /// SENIOR DEVELOPER: Clean disposal of resources
+    /// </summary>
     public void Dispose()
     {
         if (!_disposed)
         {
-            _service?.Dispose();
-            _disposed = true;
+            try
+            {
+                _service?.Dispose();
+                _componentLogger?.Dispose();
+                _componentLogger?.LogDebug("AdvancedWinUiDataGrid disposed successfully");
+            }
+            catch (Exception ex)
+            {
+                _componentLogger?.LogWarning("Error during AdvancedWinUiDataGrid disposal: {ErrorMessage}", ex.Message);
+            }
+            finally
+            {
+                _disposed = true;
+            }
         }
     }
+
+    #endregion
 }

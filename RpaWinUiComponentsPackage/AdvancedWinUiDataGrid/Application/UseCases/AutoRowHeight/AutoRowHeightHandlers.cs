@@ -3,18 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.AutoRowHeight;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.AutoRowHeight;
 
 /// <summary>
 /// CQRS: Command handlers for auto row height operations
 /// ENTERPRISE: Production-ready use case handlers with proper error handling
 /// CLEAN ARCHITECTURE: Application layer use case handlers
 /// </summary>
-public class AutoRowHeightHandlers
+internal class AutoRowHeightHandlers
 {
     private readonly IRowHeightCalculationService _rowHeightService;
     private readonly IDataGridUIService _uiService;
@@ -35,7 +35,7 @@ public class AutoRowHeightHandlers
     /// <summary>
     /// Handle single row height calculation
     /// </summary>
-    public async Task<Result<double>> HandleAsync(CalculateRowHeightCommand command)
+    internal async Task<Result<double>> HandleAsync(CalculateRowHeightCommand command)
     {
         if (command == null) return Result<double>.Failure("Command cannot be null");
 
@@ -72,7 +72,7 @@ public class AutoRowHeightHandlers
     /// <summary>
     /// Handle batch row height calculations
     /// </summary>
-    public async Task<Result<Dictionary<int, double>>> HandleAsync(CalculateBatchRowHeightsCommand command)
+    internal async Task<Result<Dictionary<int, double>>> HandleAsync(CalculateBatchRowHeightsCommand command)
     {
         if (command == null) return Result<Dictionary<int, double>>.Failure("Command cannot be null");
 
@@ -108,7 +108,7 @@ public class AutoRowHeightHandlers
     /// <summary>
     /// Handle applying calculated row heights to UI
     /// </summary>
-    public async Task<Result<bool>> HandleAsync(ApplyRowHeightsCommand command)
+    internal async Task<Result<bool>> HandleAsync(ApplyRowHeightsCommand command)
     {
         if (command == null) return Result<bool>.Failure("Command cannot be null");
 
@@ -161,7 +161,7 @@ public class AutoRowHeightHandlers
     /// <summary>
     /// Handle toggling auto row height functionality
     /// </summary>
-    public async Task<Result<bool>> HandleAsync(ToggleAutoRowHeightCommand command)
+    internal async Task<Result<bool>> HandleAsync(ToggleAutoRowHeightCommand command)
     {
         if (command == null) return Result<bool>.Failure("Command cannot be null");
 

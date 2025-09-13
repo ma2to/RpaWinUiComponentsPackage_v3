@@ -1,14 +1,14 @@
 using System;
 using System.Threading.Tasks;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Extensions;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Extensions;
 
 /// <summary>
 /// SHARED KERNEL: Functional programming extensions
 /// RAILWAY ORIENTED PROGRAMMING: Extension methods for Result<T> chaining
 /// </summary>
-public static class FunctionalExtensions
+internal static class FunctionalExtensions
 {
     /// <summary>
     /// FUNCTIONAL: Map extension for transforming successful results
@@ -21,7 +21,7 @@ public static class FunctionalExtensions
     /// <summary>
     /// FUNCTIONAL: Async map extension
     /// </summary>
-    public static async Task<Result<TOut>> MapAsync<TIn, TOut>(this Result<TIn> result, Func<TIn, Task<TOut>> transform)
+    internal static async Task<Result<TOut>> MapAsync<TIn, TOut>(this Result<TIn> result, Func<TIn, Task<TOut>> transform)
     {
         return await result.MapAsync(transform);
     }
@@ -37,7 +37,7 @@ public static class FunctionalExtensions
     /// <summary>
     /// FUNCTIONAL: Async bind extension
     /// </summary>
-    public static async Task<Result<TOut>> BindAsync<TIn, TOut>(this Result<TIn> result, Func<TIn, Task<Result<TOut>>> transform)
+    internal static async Task<Result<TOut>> BindAsync<TIn, TOut>(this Result<TIn> result, Func<TIn, Task<Result<TOut>>> transform)
     {
         return await result.BindAsync(transform);
     }

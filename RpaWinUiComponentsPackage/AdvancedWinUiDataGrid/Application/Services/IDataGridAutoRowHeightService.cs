@@ -1,18 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.AutoRowHeight;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.AutoRowHeight;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services;
 
 /// <summary>
 /// APPLICATION: Auto row height service interface
 /// ENTERPRISE: High-level orchestration of auto row height functionality
 /// CLEAN ARCHITECTURE: Application layer service abstraction
 /// </summary>
-public interface IDataGridAutoRowHeightService : IDisposable
+internal interface IDataGridAutoRowHeightService : IDisposable
 {
     /// <summary>
     /// ORCHESTRATION: Calculate and apply row height for single row when data changes

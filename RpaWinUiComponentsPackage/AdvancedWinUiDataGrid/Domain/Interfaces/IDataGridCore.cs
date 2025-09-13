@@ -2,15 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Interfaces;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Interfaces;
 
 /// <summary>
 /// DOCUMENTATION: Core DataGrid interface per specification
@@ -18,7 +18,7 @@ namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Interfaces;
 /// ENTERPRISE: Contract for both UI and headless implementations
 /// SOLID: Interface Segregation - focused on core data operations only
 /// </summary>
-public interface IDataGridCore : IDisposable
+internal interface IDataGridCore : IDisposable
 {
     #region DOCUMENTATION: Core Properties
     
@@ -166,7 +166,7 @@ public interface IDataGridCore : IDisposable
 /// DOCUMENTATION: DataGrid initialization options per specification
 /// ENTERPRISE: Simplified options for IDataGridCore interface
 /// </summary>
-public record DataGridCoreOptions
+internal record DataGridCoreOptions
 {
     /// <summary>Color configuration for UI mode</summary>
     public ColorConfiguration? ColorConfiguration { get; init; }

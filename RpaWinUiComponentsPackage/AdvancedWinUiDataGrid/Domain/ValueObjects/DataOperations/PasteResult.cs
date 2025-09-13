@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
 
 /// <summary>
 /// ENTERPRISE: Result of clipboard paste operation
 /// CLIPBOARD: Contains detailed information about paste results
 /// </summary>
-public record PasteResult
+internal record PasteResult
 {
     /// <summary>Whether paste operation was successful</summary>
     public bool Success { get; init; }

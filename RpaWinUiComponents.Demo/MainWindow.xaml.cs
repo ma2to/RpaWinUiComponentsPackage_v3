@@ -5,22 +5,10 @@ using System.Data;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
-// CLEAN PUBLIC API - Single using statement per component!
+// 🎯 CLEAN PUBLIC API - Only two using statements needed!
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid;
 using RpaWinUiComponentsPackage.AdvancedWinUiLogger;
-using RpaWinUiComponentsPackage.AdvancedWinUiLogger.Configuration;
-// Internal types - temporarily needed until moved to main namespace
-using ColumnDefinition = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core.ColumnDefinition;
-using ColumnWidth = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core.ColumnWidth;
-using ColumnValidationRule = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core.ColumnValidationRule;
-using ColorConfiguration = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI.ColorConfiguration;
-using ValidationConfiguration = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation.ValidationConfiguration;
-using PerformanceConfiguration = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration.PerformanceConfiguration;
-using ImportResult = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations.ImportResult;
-using ValidationError = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results.ValidationError;
-using ValidationProgress = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations.ValidationProgress;
-using LoggingOptions = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Logging.LoggingOptions;
-// Result<T> is generic, so no type alias needed
+// ✅ NO MORE INTERNAL TYPE ALIASES - Clean API achieved!
 
 namespace RpaWinUiComponents.Demo;
 
@@ -34,8 +22,8 @@ public sealed partial class MainWindow : Window
 {
     #region Private Fields
 
-    private readonly ILogger<MainWindow> _logger;
-    private readonly ILogger _fileLogger;
+    private readonly ILogger<MainWindow> _baseLogger;
+    private readonly ILogger _advancedWinUiLogger;
     private readonly System.Text.StringBuilder _logOutput = new();
     private AdvancedWinUiDataGrid? _testDataGrid;
     private bool _isGridInitialized = false;
@@ -48,24 +36,31 @@ public sealed partial class MainWindow : Window
     {
         this.InitializeComponent();
         
-        // Setup comprehensive logging for SENIOR DEVELOPER debugging
-        _logger = App.LoggerFactory?.CreateLogger<MainWindow>() ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<MainWindow>.Instance;
+        // 📋 STEP 1: Setup base Microsoft.Extensions.Logging logger
+        _baseLogger = App.LoggerFactory?.CreateLogger<MainWindow>() ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<MainWindow>.Instance;
         
-        var loggerOptions = new LoggerOptions
-        {
-            LogDirectory = Path.Combine(Path.GetTempPath(), "RpaWinUiDemo"),
-            BaseFileName = "demo",
-            MaxFileSizeMB = 5
-        };
-        _fileLogger = LoggerAPI.CreateFileLogger(_logger, loggerOptions);
+        // 📋 STEP 2: Create AdvancedWinUiLogger with file rotation (10MB limit as requested)
+        string logDirectory = Path.Combine(Path.GetTempPath(), "RpaWinUiDemo");
+        string baseFileName = "AdvancedDataGridDemo";
+        int maxFileSizeMB = 10; // 10MB rotation as requested
         
-        // SENIOR DEV: Log initial logger setup to verify it works
-        _logger?.LogInformation("[DEMO-SETUP] MainWindow logger initialized - Type: {LoggerType}", _logger?.GetType()?.Name ?? "null");
-        _logger?.LogDebug("[DEMO-SETUP] File logger setup: Directory={Directory}, FileName={FileName}", loggerOptions.LogDirectory, loggerOptions.BaseFileName);
+        _advancedWinUiLogger = LoggerAPI.CreateFileLogger(
+            externalLogger: _baseLogger,    // Pass base logger to AdvancedWinUiLogger
+            logDirectory: logDirectory,
+            baseFileName: baseFileName,
+            maxFileSizeMB: maxFileSizeMB);
+        
+        // SENIOR DEV: Log initial setup to verify configuration
+        _baseLogger.LogInformation("🔧 [DEMO-SETUP] Base logger initialized - Type: {LoggerType}", _baseLogger.GetType().Name);
+        _advancedWinUiLogger.LogInformation("📁 [DEMO-SETUP] AdvancedWinUiLogger created with 10MB rotation");
+        _advancedWinUiLogger.LogInformation("📂 [DEMO-SETUP] Log directory: {LogDirectory}", logDirectory);
+        _advancedWinUiLogger.LogInformation("📄 [DEMO-SETUP] Base filename: {BaseFileName} (will create {BaseFileName}.log)", baseFileName);
+        _advancedWinUiLogger.LogInformation("🔄 [DEMO-SETUP] File rotation: Every {MaxSizeMB}MB", maxFileSizeMB);
 
         AddLogMessage("🚀 Demo application started");
-        AddLogMessage("✅ Modern Public API - No Legacy Layers");
-        AddLogMessage($"📂 File logging: {loggerOptions.LogDirectory}");
+        AddLogMessage("✅ CLEAN PUBLIC API - No more internal type aliases needed!");
+        AddLogMessage($"📂 File logging with 10MB rotation: {logDirectory}");
+        AddLogMessage($"📄 Log files: {baseFileName}.log (rotating)");
     }
 
     #endregion
@@ -79,99 +74,102 @@ public sealed partial class MainWindow : Window
             AddLogMessage("🔧 MODERN API DEMO: Basic initialization...");
             
             // SENIOR DEV: Detailed pre-initialization logging
-            _logger?.LogInformation("[DEMO-INIT] Basic initialization started");
-            _logger?.LogDebug("[DEMO-INIT] Logger instance check - HasLogger: {HasLogger}, LoggerType: {LoggerType}", 
-                _logger != null, _logger?.GetType()?.Name ?? "null");
+            _advancedWinUiLogger.LogInformation("[DEMO-INIT] Basic initialization started");
+            _advancedWinUiLogger.LogDebug("[DEMO-INIT] Using AdvancedWinUiLogger - Type: {LoggerType}", _advancedWinUiLogger.GetType().Name);
 
-            // 📋 STEP 1: Define columns using modern ColumnDefinition factory methods
-            var columns = new List<ColumnDefinition>
+            // 📋 STEP 1: Define columns using CLEAN PUBLIC API - simple DataGridColumn objects
+            var columns = new List<DataGridColumn>
             {
-                // Standard data columns using proper factory methods
-                ColumnDefinition.Numeric<int>("ID", "ID") with { IsReadOnly = true, Width = ColumnWidth.Pixels(80) },
-                ColumnDefinition.Required("Name", typeof(string), "Name") with { Width = ColumnWidth.Pixels(200) },
-                ColumnDefinition.Text("Email", "Email") with { Width = ColumnWidth.Pixels(250) },
-                ColumnDefinition.CheckBox("Active", "Active"),
+                // Standard data columns using simple public API
+                new DataGridColumn { Name = "ID", Header = "ID", DataType = typeof(int), ColumnType = DataGridColumnType.Numeric, IsReadOnly = true, Width = 80 },
+                new DataGridColumn { Name = "Name", Header = "Name", DataType = typeof(string), ColumnType = DataGridColumnType.Required, Width = 200 },
+                new DataGridColumn { Name = "Email", Header = "Email", DataType = typeof(string), ColumnType = DataGridColumnType.Text, Width = 250 },
+                new DataGridColumn { Name = "Active", Header = "Active", DataType = typeof(bool), ColumnType = DataGridColumnType.CheckBox, Width = 80 },
                 
-                // Special columns using factory methods
-                ColumnDefinition.ValidAlerts("Validation", 120),
-                ColumnDefinition.DeleteRow("Delete")
+                // Special columns using simple public API
+                new DataGridColumn { Name = "Validation", Header = "Validation", DataType = typeof(string), ColumnType = DataGridColumnType.ValidAlerts, Width = 120 },
+                new DataGridColumn { Name = "Delete", Header = "Delete", DataType = typeof(bool), ColumnType = DataGridColumnType.DeleteRow, Width = 50 }
             };
 
-            _logger?.LogDebug("[DEMO-INIT] Created {ColumnCount} column definitions", columns.Count);
+            _advancedWinUiLogger.LogDebug("[DEMO-INIT] Created {ColumnCount} column definitions", columns.Count);
             for (int i = 0; i < columns.Count; i++)
             {
-                _logger?.LogDebug("[DEMO-INIT] Column[{Index}]: Name='{Name}', Type='{DataType}'", 
+                _advancedWinUiLogger.LogDebug("[DEMO-INIT] Column[{Index}]: Name='{Name}', Type='{DataType}'", 
                     i, columns[i]?.Name ?? "null", columns[i]?.DataType?.Name ?? "null");
             }
 
-            // 📋 STEP 2: Create DataGrid for UI mode with professional logging options
-            _logger?.LogInformation("[DEMO-INIT] About to call AdvancedWinUiDataGrid.CreateForUI with professional logging options");
-            _logger?.LogDebug("[DEMO-INIT] Calling CreateForUI with logger type: {LoggerType}", _logger?.GetType()?.Name ?? "null");
+            // 📋 STEP 2: Create simple logging config for AdvancedWinUiDataGrid using CLEAN PUBLIC API
+            _advancedWinUiLogger.LogInformation("[DEMO-INIT] Creating DataGridLoggingConfig for AdvancedWinUiDataGrid component");
             
-            // SENIOR DEVELOPER: Create comprehensive logging options for development/debugging
-            var loggingOptions = LoggingOptions.Development with
+            // SENIOR DEVELOPER: Use simple public API logging config
+            var loggingConfig = new DataGridLoggingConfig
             {
-                LogMethodParameters = true,       // Log all method parameters for debugging
-                LogPerformanceMetrics = true,     // Track performance for optimization
-                LogConfigurationDetails = true,   // Log configuration for troubleshooting
-                LogUnhandledErrors = true,        // Capture all unhandled errors
-                LogResultPatternStates = true     // Log Result<T> success/failure states
+                CategoryPrefix = "DataGridDemo",                    // Custom prefix for easy log filtering
+                LogMethodParameters = true,                         // Enable detailed method logging for demo
+                LogPerformanceMetrics = true,                       // Track performance metrics
+                LogErrors = true,                                   // Essential error capture
+                MinimumLevel = DataGridLoggingLevel.Debug           // Debug level for comprehensive logging
             };
             
-            _logger?.LogDebug("[DEMO-INIT] Created LoggingOptions - Strategy: {Strategy}, LogParameters: {LogParams}, LogPerformance: {LogPerf}", 
-                loggingOptions.Strategy, loggingOptions.LogMethodParameters, loggingOptions.LogPerformanceMetrics);
+            _advancedWinUiLogger.LogInformation("[DEMO-INIT] DataGridLoggingConfig configured - Prefix: {Prefix}, MethodParams: {LogParams}", 
+                loggingConfig.CategoryPrefix, loggingConfig.LogMethodParameters);
             
-            _testDataGrid = AdvancedWinUiDataGrid.CreateForUI(_logger!, loggingOptions); // Use null-forgiving operator since _logger is initialized in constructor
+            // 📋 STEP 3: Create DataGrid using AdvancedWinUiLogger and simple DataGridLoggingConfig
+            _advancedWinUiLogger.LogInformation("[DEMO-INIT] Creating AdvancedWinUiDataGrid with clean public API");
             
-            _logger?.LogInformation("[DEMO-INIT] AdvancedWinUiDataGrid.CreateForUI completed - DataGrid: {DataGridType}", 
+            _testDataGrid = AdvancedWinUiDataGrid.CreateForUI(_advancedWinUiLogger, loggingConfig);
+            
+            _advancedWinUiLogger.LogInformation("[DEMO-INIT] AdvancedWinUiDataGrid.CreateForUI completed successfully - DataGrid type: {DataGridType}", 
                 _testDataGrid?.GetType()?.Name ?? "null");
 
-            // 📋 STEP 3: Use Light theme and standard validation
-            var colorConfig = ColorConfiguration.Light;
-            var validationConfig = new ValidationConfiguration
+            // 📋 STEP 4: Configure DataGrid settings using CLEAN PUBLIC API
+            var theme = DataGridTheme.Light;
+            var validationConfig = new DataGridValidationConfig
             {
                 EnableValidation = true,
                 EnableRealTimeValidation = true,
-                StrictValidation = false
+                StrictValidation = false,
+                ValidateEmptyRows = false
             };
-            var performanceConfig = new PerformanceConfiguration
+            var performanceConfig = new DataGridPerformanceConfig
             {
                 EnableVirtualization = true,
-                VirtualizationThreshold = 1000
+                VirtualizationThreshold = 1000,
+                EnableBackgroundProcessing = false
             };
             
-            _logger?.LogDebug("[DEMO-INIT] Configuration created - ColorConfig: {ColorConfig}, ValidationEnabled: {ValidationEnabled}",
-                colorConfig?.GetType()?.Name ?? "null", validationConfig?.EnableValidation ?? false);
+            _advancedWinUiLogger.LogDebug("[DEMO-INIT] Configuration created - Theme: {Theme}, ValidationEnabled: {ValidationEnabled}",
+                theme, validationConfig.EnableValidation);
             
-            AddLogMessage($"📊 Initializing with {columns.Count} columns using modern API");
+            AddLogMessage($"📊 Initializing with {columns.Count} columns using CLEAN PUBLIC API");
             
-            _logger?.LogInformation("[DEMO-INIT] About to call InitializeAsync on DataGrid");
-            var result = await _testDataGrid.InitializeAsync(columns, colorConfig, validationConfig, performanceConfig, minimumRows: 20);
-            _logger?.LogInformation("[DEMO-INIT] InitializeAsync completed - Success: {Success}", result.IsSuccess);
+            // 📋 STEP 5: Initialize DataGrid with clean public API
+            _advancedWinUiLogger.LogInformation("[DEMO-INIT] About to call InitializeAsync on DataGrid using clean public API");
+            var result = await _testDataGrid.InitializeAsync(columns, theme, validationConfig, performanceConfig, minimumRows: 20);
+            _advancedWinUiLogger.LogInformation("[DEMO-INIT] InitializeAsync completed - Success: {Success}, Error: {Error}", 
+                result.IsSuccess, result.ErrorMessage ?? "None");
             
             if (result.IsSuccess)
             {
                 _isGridInitialized = true;
-                AddLogMessage("✅ MODERN API DEMO: Basic initialization completed!");
-                _logger?.LogInformation("[DEMO-INIT] Initialization SUCCESS - Grid is ready");
+                AddLogMessage("✅ CLEAN API DEMO: Basic initialization completed with professional logging!");
+                _advancedWinUiLogger.LogInformation("[DEMO-INIT] Initialization SUCCESS - Grid is ready using clean public API");
             }
             else
             {
-                AddLogMessage($"❌ MODERN API DEMO: Initialization failed: {result.Error}");
-                _logger?.LogError("[DEMO-INIT] Initialization FAILED - Error: {Error}", result.Error ?? "Unknown error");
+                AddLogMessage($"❌ CLEAN API DEMO: Initialization failed: {result.ErrorMessage}");
+                _advancedWinUiLogger.LogError("[DEMO-INIT] Initialization FAILED - Error: {Error}", result.ErrorMessage ?? "Unknown error");
             }
         }
         catch (Exception ex)
         {
             AddLogMessage($"❌ Error: {ex.Message}");
-            _logger?.LogError(ex, "[DEMO-INIT] EXCEPTION in initialization - Message: {ErrorMessage}, StackTrace: {StackTrace}", 
-                ex.Message, ex.StackTrace);
+            _advancedWinUiLogger.LogError(ex, "[DEMO-INIT] EXCEPTION in initialization - Message: {ErrorMessage}", ex.Message);
             
             // SENIOR DEV: Log inner exception details if present
             if (ex.InnerException != null)
             {
-                _logger?.LogError("[DEMO-INIT] Inner Exception: {InnerMessage}, InnerStackTrace: {InnerStackTrace}",
-                    ex.InnerException.Message, ex.InnerException.StackTrace);
+                _advancedWinUiLogger.LogError("[DEMO-INIT] Inner Exception: {InnerMessage}", ex.InnerException.Message);
             }
         }
     }
@@ -180,72 +178,69 @@ public sealed partial class MainWindow : Window
     {
         try
         {
-            AddLogMessage("🔧 MODERN API DEMO: Advanced initialization with dark theme...");
+            AddLogMessage("🔧 CLEAN API DEMO: Advanced initialization with dark theme...");
 
-            // 📋 Advanced columns with comprehensive validation
-            var columns = new List<ColumnDefinition>
+            // 📋 Advanced columns with comprehensive validation using CLEAN PUBLIC API
+            var columns = new List<DataGridColumn>
             {
-                // Standard data columns using factory methods with validation
-                ColumnDefinition.Numeric<int>("ProductID", "Product ID") with { Width = ColumnWidth.Pixels(100) },
-                ColumnDefinition.WithValidation("ProductName", typeof(string),
-                    ColumnValidationRule.Required(),
-                    ColumnValidationRule.MaxLength(50)) with { Width = ColumnWidth.Pixels(200) },
-                ColumnDefinition.Text("Price", "Price") with { Width = ColumnWidth.Pixels(120) },
-                ColumnDefinition.CheckBox("InStock", "In Stock"),
+                // Standard data columns using simple public API
+                new DataGridColumn { Name = "ProductID", Header = "Product ID", DataType = typeof(int), ColumnType = DataGridColumnType.Numeric, Width = 100 },
+                new DataGridColumn { Name = "ProductName", Header = "Product Name", DataType = typeof(string), ColumnType = DataGridColumnType.Required, Width = 200, MaxLength = 50 },
+                new DataGridColumn { Name = "Price", Header = "Price", DataType = typeof(decimal), ColumnType = DataGridColumnType.Text, Width = 120 },
+                new DataGridColumn { Name = "InStock", Header = "In Stock", DataType = typeof(bool), ColumnType = DataGridColumnType.CheckBox, Width = 80 },
                 
-                // Special columns with proper configuration
-                ColumnDefinition.ValidAlerts("Alerts", 100),
-                ColumnDefinition.DeleteRow("🗑️") with { Width = ColumnWidth.Pixels(50) }
+                // Special columns using clean public API
+                new DataGridColumn { Name = "Alerts", Header = "Alerts", DataType = typeof(string), ColumnType = DataGridColumnType.ValidAlerts, Width = 100 },
+                new DataGridColumn { Name = "Delete", Header = "🗑️", DataType = typeof(bool), ColumnType = DataGridColumnType.DeleteRow, Width = 50 }
             };
 
-            // 📋 Create DataGrid for UI mode with strict validation logging
-            // SENIOR DEVELOPER: Use high-performance logging for validation-heavy scenarios
-            var loggingOptions = LoggingOptions.Development with
+            // 📋 Create DataGrid for validation demo using CLEAN PUBLIC API
+            // SENIOR DEVELOPER: Use optimized logging config for validation scenarios
+            var validationLoggingConfig = new DataGridLoggingConfig
             {
-                LogMethodParameters = false,      // Reduce noise for validation scenarios
-                LogPerformanceMetrics = true,     // Track validation performance
-                LogConfigurationDetails = true,   // Log configuration for troubleshooting
-                LogUnhandledErrors = true,        // Capture all unhandled errors
-                LogResultPatternStates = true,    // Essential for validation results
-                CategoryPrefix = "ValidationDemo" // Custom prefix for easy filtering
+                CategoryPrefix = "ValidationDemo",      // Custom prefix for validation demo
+                LogMethodParameters = false,            // Reduce noise for validation scenarios
+                LogPerformanceMetrics = true,           // Track validation performance - important
+                LogErrors = true,                       // Capture all errors
+                MinimumLevel = DataGridLoggingLevel.Information // Less verbose for validation scenario
             };
             
-            _testDataGrid = AdvancedWinUiDataGrid.CreateForUI(_logger!, loggingOptions); // Use null-forgiving operator since _logger is initialized in constructor
+            _testDataGrid = AdvancedWinUiDataGrid.CreateForUI(_advancedWinUiLogger, validationLoggingConfig);
 
-            // 📋 CUSTOM CONFIGURATION: Dark theme + strict validation
-            var colorConfig = ColorConfiguration.Dark;
-            var validationConfig = new ValidationConfiguration
+            // 📋 CUSTOM CONFIGURATION: Dark theme + strict validation using CLEAN PUBLIC API
+            var theme = DataGridTheme.Dark;
+            var validationConfig = new DataGridValidationConfig
             {
                 EnableValidation = true,
                 EnableRealTimeValidation = true,
                 StrictValidation = true,  // Strict validation mode
                 ValidateEmptyRows = false
             };
-            var performanceConfig = new PerformanceConfiguration
+            var performanceConfig = new DataGridPerformanceConfig
             {
                 EnableVirtualization = true,
                 VirtualizationThreshold = 1000,
                 EnableBackgroundProcessing = true
             };
             
-            AddLogMessage($"📊 Using custom configuration: Dark theme + Strict validation");
+            AddLogMessage($"📊 Using CLEAN PUBLIC API: Dark theme + Strict validation");
             
-            var result = await _testDataGrid.InitializeAsync(columns, colorConfig, validationConfig, performanceConfig, minimumRows: 20);
+            var result = await _testDataGrid.InitializeAsync(columns, theme, validationConfig, performanceConfig, minimumRows: 20);
             
             if (result.IsSuccess)
             {
                 _isGridInitialized = true;
-                AddLogMessage("✅ MODERN API DEMO: Advanced initialization completed!");
+                AddLogMessage("✅ CLEAN API DEMO: Advanced initialization completed!");
             }
             else
             {
-                AddLogMessage($"❌ MODERN API DEMO: Advanced initialization failed: {result.Error}");
+                AddLogMessage($"❌ CLEAN API DEMO: Advanced initialization failed: {result.ErrorMessage}");
             }
         }
         catch (Exception ex)
         {
             AddLogMessage($"❌ Error: {ex.Message}");
-            _logger?.LogError(ex, "Advanced initialization failed");
+            _advancedWinUiLogger.LogError(ex, "[DEMO-VALIDATION] Advanced initialization failed - Message: {ErrorMessage}", ex.Message);
         }
     }
 
@@ -277,7 +272,7 @@ public sealed partial class MainWindow : Window
             }
             else
             {
-                AddLogMessage($"❌ Import failed: {result.Error}");
+                AddLogMessage($"❌ Import failed: {result.ErrorMessage}");
             }
         }
         catch (Exception ex)
@@ -306,7 +301,7 @@ public sealed partial class MainWindow : Window
             }
             else
             {
-                AddLogMessage($"❌ Export failed: {result.Error}");
+                AddLogMessage($"❌ Export failed: {result.ErrorMessage}");
             }
         }
         catch (Exception ex)
@@ -337,7 +332,7 @@ public sealed partial class MainWindow : Window
             }
             else
             {
-                AddLogMessage($"❌ Clear failed: {result.Error}");
+                AddLogMessage($"❌ Clear failed: {result.ErrorMessage}");
             }
         }
         catch (Exception ex)
@@ -460,8 +455,8 @@ public sealed partial class MainWindow : Window
             }
         });
         
-        // Log to file as well
-        _fileLogger?.LogInformation(message);
+        // Log to AdvancedWinUiLogger file system as well
+        _advancedWinUiLogger?.LogInformation("[UI-MESSAGE] {Message}", message);
     }
 
     #endregion

@@ -1,27 +1,27 @@
 using System.Collections.Generic;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Entities;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Entities;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.InitializeGrid;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.InitializeGrid;
 
 /// <summary>
 /// Command for initializing the data grid
 /// </summary>
-public record InitializeGridCommand
+internal record InitializeGridCommand
 {
-    public IReadOnlyList<ColumnDefinition> Columns { get; init; } = [];
-    public ColorConfiguration? ColorConfiguration { get; init; }
-    public ValidationConfiguration? ValidationConfiguration { get; init; }
-    public PerformanceConfiguration? PerformanceConfiguration { get; init; }
-    public int MinimumRows { get; init; } = 1;
+    internal IReadOnlyList<ColumnDefinition> Columns { get; init; } = [];
+    internal ColorConfiguration? ColorConfiguration { get; init; }
+    internal ValidationConfiguration? ValidationConfiguration { get; init; }
+    internal PerformanceConfiguration? PerformanceConfiguration { get; init; }
+    internal int MinimumRows { get; init; } = 1;
 
-    public static InitializeGridCommand Create(
+    internal static InitializeGridCommand Create(
         IReadOnlyList<ColumnDefinition> columns,
         ColorConfiguration? colorConfiguration = null,
         ValidationConfiguration? validationConfiguration = null,
@@ -41,7 +41,7 @@ public record InitializeGridCommand
     /// <summary>
     /// Validate the command parameters
     /// </summary>
-    public virtual Result<bool> Validate()
+    internal virtual Result<bool> Validate()
     {
         if (Columns == null || Columns.Count == 0)
             return Result<bool>.Failure("Columns cannot be null or empty");
@@ -56,9 +56,9 @@ public record InitializeGridCommand
 /// <summary>
 /// COMPATIBILITY: Type alias for InitializeGridCommand
 /// </summary>
-public sealed record InitializeDataGridCommand : InitializeGridCommand
+internal sealed record InitializeDataGridCommand : InitializeGridCommand
 {
-    public static new InitializeDataGridCommand Create(
+    internal static new InitializeDataGridCommand Create(
         IReadOnlyList<ColumnDefinition> columns,
         ColorConfiguration? colorConfiguration = null,
         ValidationConfiguration? validationConfiguration = null,

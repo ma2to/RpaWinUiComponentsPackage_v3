@@ -1,12 +1,12 @@
 using System;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
 
 /// <summary>
 /// DDD: Value object for sort progress tracking
 /// ENTERPRISE: Progress reporting for long-running sort operations
 /// </summary>
-public record SortProgress
+internal record SortProgress
 {
     public int TotalRows { get; init; }
     public int ProcessedRows { get; init; }
@@ -64,7 +64,7 @@ public record SortProgress
 /// DDD: Value object for filter progress tracking
 /// ENTERPRISE: Progress reporting for long-running filter operations
 /// </summary>
-public record FilterProgress
+internal record FilterProgress
 {
     public int TotalRows { get; init; }
     public int ProcessedRows { get; init; }
@@ -117,7 +117,7 @@ public record FilterProgress
 /// <summary>
 /// DDD: Status enumeration for sort operations
 /// </summary>
-public enum SortStatus
+internal enum SortStatus
 {
     NotStarted,
     Starting,
@@ -130,7 +130,7 @@ public enum SortStatus
 /// <summary>
 /// DDD: Status enumeration for filter operations
 /// </summary>
-public enum FilterStatus
+internal enum FilterStatus
 {
     NotStarted,
     Starting,

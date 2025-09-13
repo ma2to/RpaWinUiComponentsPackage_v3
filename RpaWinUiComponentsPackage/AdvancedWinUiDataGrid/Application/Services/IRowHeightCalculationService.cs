@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services;
 
 /// <summary>
 /// ENTERPRISE: Row height calculation service interface
@@ -14,7 +14,7 @@ namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services;
 /// DDD: Domain service for UI layout calculations
 /// PERFORMANCE: Efficient height calculation with caching
 /// </summary>
-public interface IRowHeightCalculationService : IDisposable
+internal interface IRowHeightCalculationService : IDisposable
 {
     /// <summary>
     /// Calculate required height for a specific row based on content and column configurations
@@ -72,7 +72,7 @@ public interface IRowHeightCalculationService : IDisposable
 /// <summary>
 /// Statistics for height calculation performance monitoring
 /// </summary>
-public record HeightCalculationStatistics
+internal record HeightCalculationStatistics
 {
     public int TotalCalculations { get; init; }
     public int CacheHits { get; init; }

@@ -1,8 +1,6 @@
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiLogger.Infrastructure.Services;
-using RpaWinUiComponentsPackage.AdvancedWinUiLogger.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiLogger.Internal.Infrastructure.Services;
+using RpaWinUiComponentsPackage.AdvancedWinUiLogger.Internal.Configuration;
 
 // CLEAN API DESIGN - Single namespace, single using statement
 namespace RpaWinUiComponentsPackage.AdvancedWinUiLogger;
@@ -37,7 +35,7 @@ public sealed class LoggerAPIComponent : IDisposable
     #region Private Fields - Professional Architecture
     
     private readonly ILogger? _logger;
-    private readonly Core.Interfaces.ILoggerCore _coreService;
+    private readonly Internal.Core.Interfaces.ILoggerCore _coreService;
     private bool _isInitialized;
     private bool _disposed;
 
@@ -78,7 +76,7 @@ public sealed class LoggerAPIComponent : IDisposable
     private LoggerAPIComponent(ILogger? logger)
     {
         _logger = logger;
-        _coreService = new Infrastructure.Services.LoggerCore(logger);
+        _coreService = new Internal.Infrastructure.Services.LoggerCore(logger);
         
         logger?.Info("✅ LoggerAPI: File-based instance created");
     }
@@ -91,7 +89,7 @@ public sealed class LoggerAPIComponent : IDisposable
     /// Initialize logger with configuration
     /// Simplified for file-based operations only
     /// </summary>
-    public async Task<Result<bool>> InitializeAsync(LoggerOptions config)
+    public async Task<LoggerResult<bool>> InitializeAsync(LoggerOptions config)
     {
         try
         {
@@ -109,12 +107,12 @@ public sealed class LoggerAPIComponent : IDisposable
                 _logger?.Error("❌ LoggerAPI: Initialization failed: {Error}", result.ErrorMessage);
             }
 
-            return _isInitialized ? Result<bool>.Success(true) : Result<bool>.Failure(result.ErrorMessage);
+            return _isInitialized ? LoggerResult<bool>.Success(true) : LoggerResult<bool>.Failure(result.ErrorMessage);
         }
         catch (Exception ex)
         {
             _logger?.Error(ex, "🚨 LoggerAPI: Critical error during initialization");
-            return Result<bool>.Failure("Initialization failed: " + ex.Message);
+            return LoggerResult<bool>.Failure("Initialization failed: " + ex.Message);
         }
     }
 
@@ -125,51 +123,51 @@ public sealed class LoggerAPIComponent : IDisposable
     /// <summary>
     /// Set log directory for file operations
     /// </summary>
-    public async Task<Result<bool>> SetLogDirectoryAsync(string logDirectory)
+    public async Task<LoggerResult<bool>> SetLogDirectoryAsync(string logDirectory)
     {
         try
         {
             var result = await _coreService.SetLogDirectoryAsync(logDirectory);
-            return result.IsSuccess ? Result<bool>.Success(true) : Result<bool>.Failure(result.ErrorMessage);
+            return result.IsSuccess ? LoggerResult<bool>.Success(true) : LoggerResult<bool>.Failure(result.ErrorMessage);
         }
         catch (Exception ex)
         {
             _logger?.Error(ex, "🚨 Error setting log directory: {Directory}", logDirectory);
-            return Result<bool>.Failure(ex.Message);
+            return LoggerResult<bool>.Failure(ex.Message);
         }
     }
 
     /// <summary>
     /// Rotate log files based on size and date
     /// </summary>
-    public async Task<Result<bool>> RotateLogsAsync()
+    public async Task<LoggerResult<bool>> RotateLogsAsync()
     {
         try
         {
             var result = await _coreService.RotateLogsAsync();
-            return result.IsSuccess ? Result<bool>.Success(true) : Result<bool>.Failure(result.ErrorMessage);
+            return result.IsSuccess ? LoggerResult<bool>.Success(true) : LoggerResult<bool>.Failure(result.ErrorMessage);
         }
         catch (Exception ex)
         {
             _logger?.Error(ex, "🚨 Error rotating logs");
-            return Result<bool>.Failure(ex.Message);
+            return LoggerResult<bool>.Failure(ex.Message);
         }
     }
 
     /// <summary>
     /// Get current log file path
     /// </summary>
-    public async Task<Result<string>> GetCurrentLogFileAsync()
+    public async Task<LoggerResult<string>> GetCurrentLogFileAsync()
     {
         try
         {
             var result = await _coreService.GetCurrentLogFileAsync();
-            return result.IsSuccess ? Result<string>.Success(result.Value) : Result<string>.Failure(result.ErrorMessage);
+            return result.IsSuccess ? LoggerResult<string>.Success(result.Value) : LoggerResult<string>.Failure(result.ErrorMessage);
         }
         catch (Exception ex)
         {
             _logger?.Error(ex, "🚨 Error getting current log file");
-            return Result<string>.Failure(ex.Message);
+            return LoggerResult<string>.Failure(ex.Message);
         }
     }
 

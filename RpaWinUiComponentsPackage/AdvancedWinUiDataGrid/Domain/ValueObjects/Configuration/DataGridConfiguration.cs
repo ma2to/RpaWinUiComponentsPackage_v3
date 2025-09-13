@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using Windows.UI;
 using Microsoft.UI.Xaml;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
 
 
 
@@ -15,7 +15,7 @@ namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Co
 /// DDD: Aggregate root configuration
 /// IMMUTABLE: Configuration object following functional principles
 /// </summary>
-public record DataGridConfiguration
+internal record DataGridConfiguration
 {
     // CORE: Basic configuration
     public string Name { get; init; } = "DataGrid";
@@ -50,7 +50,7 @@ public record DataGridConfiguration
 /// SOLID: Single Responsibility - only UI concerns
 /// DECORATOR: Optional UI decoration for core functionality
 /// </summary>
-public record UIConfiguration
+internal record UIConfiguration
 {
     // THEMING: Direct color configuration (no themes as per requirements)
     public ColorConfiguration Colors { get; init; } = ColorConfiguration.Default;
@@ -81,7 +81,7 @@ public record UIConfiguration
 /// ENTERPRISE: Selection mode enumeration
 /// UI: User selection behavior configuration
 /// </summary>
-public enum SelectionMode
+internal enum SelectionMode
 {
     None,
     Single,

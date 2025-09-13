@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
 
 /// <summary>
 /// DDD: Rich domain model for DataGrid column definition
@@ -12,7 +12,7 @@ namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Co
 /// IMMUTABLE: Value object following DDD principles with factory pattern
 /// CLEAN API: Professional interface for column configuration
 /// </summary>
-public record ColumnDefinition
+internal record ColumnDefinition
 {
     #region Core Properties
     
@@ -387,7 +387,7 @@ public record ColumnDefinition
 /// DDD: Value object for column width specification
 /// ENTERPRISE: Flexible width configuration supporting different strategies with min/max constraints
 /// </summary>
-public record ColumnWidth
+internal record ColumnWidth
 {
     public double Value { get; init; }
     public ColumnWidthType Type { get; init; }
@@ -415,7 +415,7 @@ public record ColumnWidth
 /// DDD: Column validation rule value object
 /// ENTERPRISE: Business rule validation at domain level
 /// </summary>
-public record ColumnValidationRule
+internal record ColumnValidationRule
 {
     public required string RuleName { get; init; }
     public required Func<object?, ValidationError?> Validator { get; init; }
@@ -457,7 +457,7 @@ public record ColumnValidationRule
 /// ENTERPRISE: Column alignment options
 /// UI: Visual alignment configuration for data display
 /// </summary>
-public enum ColumnAlignment
+internal enum ColumnAlignment
 {
     /// <summary>Left-aligned (default for text)</summary>
     Left,

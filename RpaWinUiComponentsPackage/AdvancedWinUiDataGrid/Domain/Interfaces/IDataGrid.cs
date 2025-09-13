@@ -2,18 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml.Controls;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.ManageRows;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.InitializeGrid;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.ExportData;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.ManageRows;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.InitializeGrid;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.ExportData;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Interfaces;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Interfaces;
 
 /// <summary>
 /// CLEAN ARCHITECTURE: Core domain interface for DataGrid operations
@@ -21,7 +21,7 @@ namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Interfaces;
 /// DDD: Represents the DataGrid aggregate root contract
 /// LAYER: Core (no dependencies - pure abstraction)
 /// </summary>
-public interface IDataGrid : IDisposable
+internal interface IDataGrid : IDisposable
 {
     /// <summary>
     /// ENTERPRISE: Initialize DataGrid with domain configuration
@@ -68,7 +68,7 @@ public interface IDataGrid : IDisposable
 /// SOLID: Interface Segregation - separate UI concerns
 /// DECORATOR: Decorates core service with UI functionality
 /// </summary>
-public interface IDataGridUIService : IDisposable
+internal interface IDataGridUIService : IDisposable
 {
     Task<Result<bool>> InitializeAsync(InitializeUICommand command);
     Task<Result<bool>> RefreshAsync();
@@ -81,7 +81,7 @@ public interface IDataGridUIService : IDisposable
 /// OBSERVABILITY: Metrics collection and performance tracking
 /// SCALABILITY: Handles 1M+ row scenarios
 /// </summary>
-public interface IDataGridPerformanceService : IDisposable
+internal interface IDataGridPerformanceService : IDisposable
 {
     IPerformanceScope CreateScope(string operationName);
     Task<PerformanceMetrics> GetMetricsAsync();
@@ -90,7 +90,7 @@ public interface IDataGridPerformanceService : IDisposable
 /// <summary>
 /// PERFORMANCE: Disposable scope for operation timing
 /// </summary>
-public interface IPerformanceScope : IDisposable
+internal interface IPerformanceScope : IDisposable
 {
     void RecordMetric(string name, double value);
 }
@@ -99,6 +99,6 @@ public interface IPerformanceScope : IDisposable
 /// ENTERPRISE: UI Service alias for clean API
 /// PUBLIC API: Type alias for IDataGridUIService
 /// </summary>
-public interface IUIService : IDataGridUIService
+internal interface IUIService : IDataGridUIService
 {
 }

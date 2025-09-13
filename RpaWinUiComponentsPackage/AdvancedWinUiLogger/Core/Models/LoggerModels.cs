@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiLogger.Core.Models;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiLogger.Internal.Core.Models;
 
 /// <summary>
 /// Logger level enumeration for UI display

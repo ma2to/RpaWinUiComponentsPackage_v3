@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services;
 
 /// <summary>
 /// CLIPBOARD: Interface for clipboard operations
 /// EXCEL_COMPATIBLE: Excel format support
 /// ENTERPRISE: Production-ready copy/paste interface
 /// </summary>
-public interface IClipboardService : IDisposable
+internal interface IClipboardService : IDisposable
 {
     /// <summary>
     /// Copy selected data to clipboard in Excel-compatible format

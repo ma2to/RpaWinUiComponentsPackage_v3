@@ -1,13 +1,13 @@
 using System;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Interfaces;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Interfaces;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
 
 /// <summary>
 /// DDD: Value object representing search navigation operation result
 /// ENTERPRISE: Navigation state for search results
 /// </summary>
-public record SearchNavigationResult
+internal record SearchNavigationResult
 {
     /// <summary>Current result position (0-based)</summary>
     public int CurrentPosition { get; init; }

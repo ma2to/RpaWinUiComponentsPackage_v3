@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Entities;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Entities;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
 
 /// <summary>
 /// DDD: Value object representing sort operation results
 /// ENTERPRISE: Comprehensive sort result with metadata
 /// </summary>
-public record SortResult
+internal record SortResult
 {
     public IReadOnlyList<int> SortedIndices { get; init; } = [];
     public int TotalRows { get; init; }
@@ -55,7 +55,7 @@ public record SortResult
 /// <summary>
 /// DDD: Value object for sort criteria
 /// </summary>
-public record SortCriteria
+internal record SortCriteria
 {
     public string ColumnName { get; init; } = string.Empty;
     public SortDirection Direction { get; init; } = SortDirection.Ascending;
@@ -74,7 +74,7 @@ public record SortCriteria
 /// <summary>
 /// DDD: Value object for current sort state
 /// </summary>
-public record CurrentSortState
+internal record CurrentSortState
 {
     public IReadOnlyList<SortCriteria> ActiveSorts { get; init; } = [];
     public bool HasActiveSorting => ActiveSorts.Count > 0;
@@ -101,7 +101,7 @@ public record CurrentSortState
 /// <summary>
 /// DDD: Value object for sort statistics and performance metrics
 /// </summary>
-public record SortStatistics
+internal record SortStatistics
 {
     public int TotalOperations { get; init; }
     public int TotalSorts => TotalOperations;
@@ -119,7 +119,7 @@ public record SortStatistics
 /// ENTERPRISE: Sort algorithm enumeration
 /// PERFORMANCE: Choose optimal algorithm based on data characteristics
 /// </summary>
-public enum SortAlgorithm
+internal enum SortAlgorithm
 {
     QuickSort,    // Fast for random data
     MergeSort,    // Stable sorting, good for partially sorted data

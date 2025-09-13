@@ -1,13 +1,13 @@
 using System;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
 
 /// <summary>
 /// DDD: Value object for tracking import progress
 /// ENTERPRISE: Progress reporting for long-running import operations
 /// IMMUTABLE: Record pattern ensuring consistent progress state
 /// </summary>
-public record ImportProgress
+internal record ImportProgress
 {
     public int TotalRows { get; init; }
     public int ProcessedRows { get; init; }
@@ -84,7 +84,7 @@ public record ImportProgress
 /// ENTERPRISE: Progress reporting for long-running export operations
 /// IMMUTABLE: Record pattern ensuring consistent progress state
 /// </summary>
-public record ExportProgress
+internal record ExportProgress
 {
     public int TotalRows { get; init; }
     public int ProcessedRows { get; init; }
@@ -175,7 +175,7 @@ public record ExportProgress
 /// ENTERPRISE: Progress reporting for long-running validation operations
 /// IMMUTABLE: Record pattern ensuring consistent progress state
 /// </summary>
-public record ValidationProgress
+internal record ValidationProgress
 {
     public int TotalRows { get; init; }
     public int ProcessedRows { get; init; }

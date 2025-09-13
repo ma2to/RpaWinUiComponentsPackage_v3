@@ -3,23 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Interfaces;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Interfaces;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Management;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.ManageRows;
 
 /// <summary>
 /// DOCUMENTATION: Smart row management per specification
 /// ENTERPRISE: Intelligent row insertion, deletion, and maintenance
 /// SMART: Automatically manages empty last row per specification
 /// </summary>
-public class SmartRowManager : IDisposable
+internal class SmartRowManager : IDisposable
 {
     #region DOCUMENTATION: Private Fields
 
@@ -487,20 +487,20 @@ public class SmartRowManager : IDisposable
 /// DOCUMENTATION: Row operation result per specification
 /// ENTERPRISE: Comprehensive operation result with validation details
 /// </summary>
-public record RowOperationResult
+internal record RowOperationResult
 {
-    public bool Success { get; init; }
-    public int RowIndex { get; init; }
-    public RowOperationType OperationType { get; init; }
-    public List<ValidationError> ValidationErrors { get; init; } = new();
-    public int AffectedRows { get; init; }
-    public Dictionary<string, object?>? Context { get; init; }
+    internal bool Success { get; init; }
+    internal int RowIndex { get; init; }
+    internal RowOperationType OperationType { get; init; }
+    internal List<ValidationError> ValidationErrors { get; init; } = new();
+    internal int AffectedRows { get; init; }
+    internal Dictionary<string, object?>? Context { get; init; }
 }
 
 /// <summary>
 /// DOCUMENTATION: Row operation types
 /// </summary>
-public enum RowOperationType
+internal enum RowOperationType
 {
     Add,
     Delete,
@@ -512,7 +512,7 @@ public enum RowOperationType
 /// <summary>
 /// DOCUMENTATION: Row changed event arguments
 /// </summary>
-public class RowChangedEventArgs : EventArgs
+internal class RowChangedEventArgs : EventArgs
 {
     public int RowIndex { get; set; }
     public Dictionary<string, object?>? RowData { get; set; }
@@ -522,10 +522,10 @@ public class RowChangedEventArgs : EventArgs
 /// <summary>
 /// DOCUMENTATION: Row validation event arguments
 /// </summary>
-public class RowValidationEventArgs : EventArgs
+internal class RowValidationEventArgs : EventArgs
 {
-    public int RowIndex { get; set; }
-    public List<ValidationError> ValidationErrors { get; set; } = new();
+    internal int RowIndex { get; set; }
+    internal List<ValidationError> ValidationErrors { get; set; } = new();
 }
 
 #endregion

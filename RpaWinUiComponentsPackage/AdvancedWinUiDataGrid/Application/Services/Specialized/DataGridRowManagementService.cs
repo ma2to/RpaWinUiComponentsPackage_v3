@@ -4,18 +4,18 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Entities;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Interfaces;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.SearchGrid;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Entities;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Interfaces;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.SearchGrid;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services.Specialized;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services.Specialized;
 
 /// <summary>
 /// SOLID: Single Responsibility - Row lifecycle management only
@@ -23,7 +23,7 @@ namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services.S
 /// CLEAN ARCHITECTURE: Application layer service
 /// ENTERPRISE: Comprehensive row management with validation and constraints
 /// </summary>
-public sealed class DataGridRowManagementService : IDataGridRowManagementService
+internal sealed class DataGridRowManagementService : IDataGridRowManagementService
 {
     #region Private Fields
     
@@ -682,7 +682,7 @@ public sealed class DataGridRowManagementService : IDataGridRowManagementService
 /// <summary>
 /// SOLID: Interface segregation for Row Management operations
 /// </summary>
-public interface IDataGridRowManagementService : IDisposable
+internal interface IDataGridRowManagementService : IDisposable
 {
     // Row addition
     Task<Result<bool>> AddRowAsync(GridState currentState, AddRowCommand command);

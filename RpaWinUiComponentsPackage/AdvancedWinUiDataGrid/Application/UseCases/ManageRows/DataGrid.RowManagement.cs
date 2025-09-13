@@ -2,22 +2,22 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Management;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases;
 
 /// <summary>
 /// ENTERPRISE: DataGrid row management functionality
 /// ANTI-GOD-FILE: Separated row management concerns from main DataGrid class
 /// SMART BEHAVIOR: Intelligent row expansion and deletion based on configuration
 /// </summary>
-public sealed partial class DataGrid
+internal sealed partial class DataGrid
 {
     #region ENTERPRISE: Smart Row Management System
 
@@ -27,7 +27,7 @@ public sealed partial class DataGrid
     /// CONFIGURATION: Set row management behavior configuration
     /// SMART: Configure intelligent row expansion and deletion behavior
     /// </summary>
-    public async Task<Result<bool>> ConfigureRowManagementAsync(
+    internal async Task<Result<bool>> ConfigureRowManagementAsync(
         RowManagementConfiguration configuration,
         TimeSpan? timeout = null)
     {
@@ -68,7 +68,7 @@ public sealed partial class DataGrid
     /// SMART EXPANSION: Add rows automatically when data is imported/pasted
     /// BEHAVIOR: Automatic row expansion when paste/import brings more rows
     /// </summary>
-    public async Task<Result<int>> ExpandRowsAsync(
+    internal async Task<Result<int>> ExpandRowsAsync(
         int additionalRows,
         bool alwaysKeepEmptyRow = true,
         TimeSpan? timeout = null)
@@ -141,7 +141,7 @@ public sealed partial class DataGrid
     /// - Rows > MinimumRows: DELETE = Delete complete row (keep empty row at end)
     /// - Rows <= MinimumRows: DELETE = Clear content only (preserve structure)
     /// </summary>
-    public async Task<Result<SmartDeleteResult>> SmartDeleteRowsAsync(
+    internal async Task<Result<SmartDeleteResult>> SmartDeleteRowsAsync(
         IReadOnlyList<int> rowIndices,
         TimeSpan? timeout = null)
     {
@@ -232,7 +232,7 @@ public sealed partial class DataGrid
     /// SMART DELETE: Delete single row with intelligent behavior
     /// CONVENIENCE: Single row version of smart delete
     /// </summary>
-    public async Task<Result<SmartDeleteResult>> SmartDeleteRowAsync(
+    internal async Task<Result<SmartDeleteResult>> SmartDeleteRowAsync(
         int rowIndex,
         TimeSpan? timeout = null)
     {
@@ -292,7 +292,7 @@ public sealed partial class DataGrid
     /// QUERY: Get current row management configuration
     /// INTROSPECTION: Allow external access to current configuration
     /// </summary>
-    public RowManagementConfiguration GetRowManagementConfiguration()
+    internal RowManagementConfiguration GetRowManagementConfiguration()
     {
         return _rowManagementConfig;
     }
@@ -301,7 +301,7 @@ public sealed partial class DataGrid
     /// QUERY: Check if row can be deleted (vs cleared)
     /// UTILITY: Determine deletion behavior for specific row
     /// </summary>
-    public bool CanDeleteRow(int rowIndex)
+    internal bool CanDeleteRow(int rowIndex)
     {
         if (_disposed || !_isInitialized) return false;
         
@@ -319,13 +319,13 @@ public sealed partial class DataGrid
 /// ENTERPRISE: Smart delete operation result
 /// FUNCTIONAL: Immutable result record
 /// </summary>
-public record SmartDeleteResult
+internal record SmartDeleteResult
 {
-    public bool IsSuccess { get; init; }
-    public int DeletedRows { get; init; }
-    public int ClearedRows { get; init; }
-    public int TotalProcessedRows { get; init; }
-    public int FinalRowCount { get; init; }
-    public DateTime DeletionTime { get; init; }
-    public string? ErrorMessage { get; init; }
+    internal bool IsSuccess { get; init; }
+    internal int DeletedRows { get; init; }
+    internal int ClearedRows { get; init; }
+    internal int TotalProcessedRows { get; init; }
+    internal int FinalRowCount { get; init; }
+    internal DateTime DeletionTime { get; init; }
+    internal string? ErrorMessage { get; init; }
 }

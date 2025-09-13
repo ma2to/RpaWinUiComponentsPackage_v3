@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Primitives;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Primitives;
 
 /// <summary>
 /// SHARED KERNEL: Value object base class
 /// DDD: Value object abstraction for immutable values
 /// </summary>
-public abstract class ValueObject : IEquatable<ValueObject>
+internal abstract class ValueObject : IEquatable<ValueObject>
 {
     protected abstract IEnumerable<object?> GetEqualityComponents();
 

@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
 /// <summary>
 /// FUNCTIONAL: Railway-Oriented Programming for enterprise error handling
@@ -19,7 +19,7 @@ namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
 /// - Thread-safe by design (readonly struct)
 /// - Performance optimized (stack-allocated value type)
 /// </summary>
-public readonly struct Result<T>
+internal readonly struct Result<T>
 {
     #region FUNCTIONAL: Immutable State
     
@@ -60,7 +60,7 @@ public readonly struct Result<T>
     /// <summary>
     /// Create failure result with validation errors
     /// </summary>
-    public static Result<T> Failure(string error, IReadOnlyList<ValidationError> validationErrors) => 
+    internal static Result<T> Failure(string error, IReadOnlyList<ValidationError> validationErrors) => 
         new(default, error, null, false, validationErrors);
     
     #endregion
@@ -98,7 +98,7 @@ public readonly struct Result<T>
     public Exception? Exception => _exception;
     
     /// <summary>Validation errors collection</summary>
-    public IReadOnlyList<ValidationError>? ValidationErrors => _validationErrors;
+    internal IReadOnlyList<ValidationError>? ValidationErrors => _validationErrors;
     
     #endregion
     
@@ -129,7 +129,7 @@ public readonly struct Result<T>
     /// <summary>
     /// FUNCTIONAL: Async map operation
     /// </summary>
-    public async Task<Result<TOut>> MapAsync<TOut>(Func<T, Task<TOut>> transform)
+    internal async Task<Result<TOut>> MapAsync<TOut>(Func<T, Task<TOut>> transform)
     {
         if (_isSuccess)
         {
@@ -171,7 +171,7 @@ public readonly struct Result<T>
     /// <summary>
     /// FUNCTIONAL: Async bind operation
     /// </summary>
-    public async Task<Result<TOut>> BindAsync<TOut>(Func<T, Task<Result<TOut>>> transform)
+    internal async Task<Result<TOut>> BindAsync<TOut>(Func<T, Task<Result<TOut>>> transform)
     {
         if (_isSuccess)
         {
@@ -230,7 +230,7 @@ public readonly struct Result<T>
     /// <summary>
     /// ENTERPRISE: Add validation errors to existing result
     /// </summary>
-    public Result<T> WithValidationErrors(IReadOnlyList<ValidationError>? errors)
+    internal Result<T> WithValidationErrors(IReadOnlyList<ValidationError>? errors)
     {
         if (errors == null || !errors.Any()) return this;
         
@@ -309,7 +309,7 @@ public readonly struct Result<T>
     /// <summary>
     /// FUNCTIONAL: Execute async operation safely with Result wrapper
     /// </summary>
-    public static async Task<Result<T>> TryAsync(Func<Task<T>> operation)
+    internal static async Task<Result<T>> TryAsync(Func<Task<T>> operation)
     {
         try
         {
@@ -357,7 +357,7 @@ public readonly struct Result<T>
 /// ENTERPRISE: Validation error for business rule violations
 /// DDD: Value object representing validation failure
 /// </summary>
-public record ValidationError(
+internal record ValidationError(
     string Property,
     string Message,
     object? AttemptedValue = null,
@@ -389,7 +389,7 @@ public record ValidationError(
 /// ENTERPRISE: Collection of validation errors
 /// FUNCTIONAL: Immutable collection for validation results
 /// </summary>
-public class ValidationResult
+internal class ValidationResult
 {
     public bool IsValid => !ValidationErrors.Any();
     public bool IsFailure => ValidationErrors.Any();

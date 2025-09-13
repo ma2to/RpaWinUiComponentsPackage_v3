@@ -1,15 +1,15 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Entities;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Entities;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Repositories;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Repositories;
 
 /// <summary>
 /// DOMAIN: Repository abstraction for data grid persistence
 /// CLEAN ARCHITECTURE: Dependency inversion - domain defines interface, infrastructure implements
 /// </summary>
-public interface IDataGridRepository
+internal interface IDataGridRepository
 {
     Task<Result<GridState>> GetGridStateAsync();
     Task<Result<bool>> SaveGridStateAsync(GridState state);

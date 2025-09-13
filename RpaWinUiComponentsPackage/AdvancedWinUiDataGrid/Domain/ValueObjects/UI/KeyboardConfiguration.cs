@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using Windows.System;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
 
 /// <summary>
 /// ENTERPRISE: Keyboard shortcut configuration per documentation
 /// </summary>
-public record KeyboardShortcutConfiguration
+internal record KeyboardShortcutConfiguration
 {
     /// <summary>Enable keyboard shortcuts</summary>
     public bool EnableShortcuts { get; init; } = true;
@@ -47,7 +47,7 @@ public record KeyboardShortcutConfiguration
 /// <summary>
 /// ENTERPRISE: Logger options for logger component
 /// </summary>
-public record LoggerOptions
+internal record LoggerOptions
 {
     /// <summary>Log level</summary>
     public LogLevel LogLevel { get; init; } = LogLevel.Information;
@@ -108,7 +108,7 @@ public record LoggerOptions
 /// <summary>
 /// ENTERPRISE: Log level enumeration
 /// </summary>
-public enum LogLevel
+internal enum LogLevel
 {
     Trace = 0,
     Debug = 1,

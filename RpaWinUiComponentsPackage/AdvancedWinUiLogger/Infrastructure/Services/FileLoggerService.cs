@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiLogger.Infrastructure.Services;
-using RpaWinUiComponentsPackage.AdvancedWinUiLogger.Core.Models;
-using LoggerConfiguration = RpaWinUiComponentsPackage.AdvancedWinUiLogger.Core.Models.LoggerConfiguration;
+using RpaWinUiComponentsPackage.AdvancedWinUiLogger.Internal.Infrastructure.Services;
+using RpaWinUiComponentsPackage.AdvancedWinUiLogger.Internal.Core.Models;
+using LoggerConfiguration = RpaWinUiComponentsPackage.AdvancedWinUiLogger.Internal.Core.Models.LoggerConfiguration;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiLogger.Infrastructure.Services;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiLogger.Internal.Infrastructure.Services;
 
 /// <summary>
 /// File logger service that implements ILogger interface

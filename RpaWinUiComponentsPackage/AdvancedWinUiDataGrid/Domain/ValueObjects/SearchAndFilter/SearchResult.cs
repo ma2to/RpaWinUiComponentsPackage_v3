@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
 
 /// <summary>
 /// DDD: Value object representing search operation results
 /// ENTERPRISE: Comprehensive search result with metadata
 /// </summary>
-public record SearchResult
+internal record SearchResult
 {
     public IReadOnlyList<int> MatchingRowIndices { get; init; } = [];
     public int TotalMatches { get; init; }
@@ -35,7 +35,7 @@ public record SearchResult
 /// <summary>
 /// DDD: Value object for search criteria
 /// </summary>
-public record SearchCriteria
+internal record SearchCriteria
 {
     public string SearchTerm { get; init; } = string.Empty;
     public IReadOnlyList<string>? ColumnNames { get; init; }
@@ -47,7 +47,7 @@ public record SearchCriteria
 /// <summary>
 /// DDD: Value object for advanced search criteria
 /// </summary>
-public record AdvancedSearchCriteria : SearchCriteria
+internal record AdvancedSearchCriteria : SearchCriteria
 {
     public bool UseRegex { get; init; } = false;
     public IReadOnlyDictionary<string, object?>? FilterValues { get; init; }
@@ -61,7 +61,7 @@ public record AdvancedSearchCriteria : SearchCriteria
 /// <summary>
 /// DDD: Enum for search scope
 /// </summary>
-public enum SearchScope
+internal enum SearchScope
 {
     AllColumns,
     SelectedColumns,
@@ -71,7 +71,7 @@ public enum SearchScope
 /// <summary>
 /// DDD: Enum for search algorithms
 /// </summary>
-public enum SearchAlgorithm
+internal enum SearchAlgorithm
 {
     Linear,
     Indexed,

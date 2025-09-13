@@ -1,6 +1,6 @@
 using System;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
 
 /// <summary>
 /// DDD: Value object for DataGrid performance configuration
@@ -8,7 +8,7 @@ namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Co
 /// IMMUTABLE: Record pattern ensuring configuration consistency
 /// OPTIMIZATION: Comprehensive performance tuning options
 /// </summary>
-public record PerformanceConfiguration
+internal record PerformanceConfiguration
 {
     #region Core Performance Settings
     
@@ -371,7 +371,7 @@ public record PerformanceConfiguration
 /// BUILDER: Fluent builder for PerformanceConfiguration
 /// PROFESSIONAL: Type-safe configuration with validation
 /// </summary>
-public class PerformanceConfigurationBuilder
+internal class PerformanceConfigurationBuilder
 {
     private PerformanceConfiguration _config;
     

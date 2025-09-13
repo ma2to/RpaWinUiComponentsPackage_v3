@@ -60,14 +60,14 @@
   <ItemGroup>
     <!-- CRITICAL: Project reference for development testing -->
     <!-- Testing latest modular structure with clean API -->
-    <ProjectReference Include="..\RpaWinUiComponentsPackage\RpaWinUiComponentsPackage.csproj" />
+    <!--<ProjectReference Include="..\RpaWinUiComponentsPackage\RpaWinUiComponentsPackage.csproj" />-->
     
     <!-- External logging implementation for testing -->
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.8" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.8" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
-    <PackageReference Include="RpaWinUiComponentsPackage" Version="2.1.2" />
-    <!-- <PackageReference Include="RpaWinUiComponentsPackage" Version="2.1.2" /> -->
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.9" />
+    <PackageReference Include="RpaWinUiComponentsPackage" Version="2.1.4" />
+
     
     <!-- REMOVED: Package reference to avoid circular dependency -->
     <!-- Using ProjectReference instead for development testing --> 
@@ -79,5 +79,10 @@
     <Content Include="Assets\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
+    <PackageReference Update="Microsoft.WindowsAppSDK" Version="1.8.250907003" />
   </ItemGroup>
 </Project>

@@ -23,13 +23,13 @@
 
   <!-- Automatic Windows App SDK package reference -->
   <ItemGroup Condition="'$(RpaWinUiComponentsPackageSkipWindowsAppSDK)' != 'true'">
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" 
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.250907003" 
                       Condition="'$(UseWinUI)' == 'true'" />
   </ItemGroup>
 
   <!-- Logging abstractions (only if not already referenced) -->
   <ItemGroup Condition="'$(RpaWinUiComponentsPackageSkipLogging)' != 'true'">
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
   </ItemGroup>
 
 </Project>

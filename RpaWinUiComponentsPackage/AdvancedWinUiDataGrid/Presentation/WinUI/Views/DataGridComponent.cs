@@ -5,31 +5,31 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Entities;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Interfaces;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.ImportData;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.ExportData;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.InitializeGrid;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.SearchGrid;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.ManageRows;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Infrastructure.Services;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Entities;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Interfaces;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.ImportData;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.ExportData;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.InitializeGrid;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.SearchGrid;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.ManageRows;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Infrastructure.Services;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.UI.Components;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.UI.Components;
 
 /// <summary>
 /// UI: Main AdvancedDataGrid component
 /// CLEAN ARCHITECTURE: UI layer - WinUI 3 UserControl
 /// RESPONSIBILITY: Handle UI interactions and coordinate with application services
 /// </summary>
-public sealed partial class AdvancedDataGridComponent : UserControl, IDisposable
+internal sealed partial class AdvancedDataGridComponent : UserControl, IDisposable
 {
     #region UI: Private Fields
     
@@ -366,7 +366,7 @@ public sealed partial class AdvancedDataGridComponent : UserControl, IDisposable
         {
             if (_dataGridService == null) return null;
             
-            var command = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.SearchGrid.ValidateAllCommand.Create(progress);
+            var command = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.SearchGrid.ValidateAllCommand.Create(progress);
             
             var result = await _dataGridService.ValidateAllAsync(command.Progress);
             
@@ -618,7 +618,7 @@ public sealed partial class AdvancedDataGridComponent : UserControl, IDisposable
 
 #region UI: Event Args Classes
 
-public class DataChangedEventArgs : EventArgs
+internal class DataChangedEventArgs : EventArgs
 {
     public string Operation { get; }
     public int AffectedRows { get; }
@@ -632,19 +632,19 @@ public class DataChangedEventArgs : EventArgs
     }
 }
 
-public class ValidationCompletedEventArgs : EventArgs
+internal class ValidationCompletedEventArgs : EventArgs
 {
-    public IReadOnlyList<ValidationError> ValidationErrors { get; }
-    public DateTime Timestamp { get; }
+    internal IReadOnlyList<ValidationError> ValidationErrors { get; }
+    internal DateTime Timestamp { get; }
     
-    public ValidationCompletedEventArgs(IReadOnlyList<ValidationError> validationErrors)
+    internal ValidationCompletedEventArgs(IReadOnlyList<ValidationError> validationErrors)
     {
         ValidationErrors = validationErrors;
         Timestamp = DateTime.UtcNow;
     }
 }
 
-public class OperationCompletedEventArgs : EventArgs
+internal class OperationCompletedEventArgs : EventArgs
 {
     public string Operation { get; }
     public object? Result { get; }
@@ -658,7 +658,7 @@ public class OperationCompletedEventArgs : EventArgs
     }
 }
 
-public class ErrorEventArgs : EventArgs
+internal class ErrorEventArgs : EventArgs
 {
     public string Message { get; }
     public Exception? Exception { get; }
@@ -676,7 +676,7 @@ public class ErrorEventArgs : EventArgs
 /// XAML EVENT ARGS: Item click event arguments
 /// SENIOR DESIGN: Enterprise-grade event handling with type safety
 /// </summary>
-public class ItemClickedEventArgs : EventArgs
+internal class ItemClickedEventArgs : EventArgs
 {
     public object ClickedItem { get; }
     public DateTime Timestamp { get; }
@@ -692,7 +692,7 @@ public class ItemClickedEventArgs : EventArgs
 /// XAML EVENT ARGS: Selection change event arguments  
 /// SENIOR DESIGN: Robust selection management with collection safety
 /// </summary>
-public class DataGridSelectionChangedEventArgs : EventArgs
+internal class DataGridSelectionChangedEventArgs : EventArgs
 {
     public IReadOnlyList<object> SelectedItems { get; }
     public int SelectedCount => SelectedItems.Count;

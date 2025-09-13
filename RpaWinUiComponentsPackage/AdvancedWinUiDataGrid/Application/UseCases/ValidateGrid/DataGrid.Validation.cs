@@ -3,22 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Management;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases;
 
 /// <summary>
 /// ENTERPRISE: DataGrid real-time validation functionality
 /// ANTI-GOD-FILE: Separated real-time validation concerns from main DataGrid class
 /// PERFORMANCE: Optimized cell-level validation with timeout protection
 /// </summary>
-public sealed partial class DataGrid
+internal sealed partial class DataGrid
 {
     #region ENTERPRISE: Real-Time Cell Validation System
 
@@ -30,7 +30,7 @@ public sealed partial class DataGrid
     /// PERFORMANCE: Cached validation results to avoid repeated validation
     /// UX: Immediate visual feedback for validation errors
     /// </summary>
-    public async Task<Result<CellValidationResult>> ValidateCellOnEditAsync(
+    internal async Task<Result<CellValidationResult>> ValidateCellOnEditAsync(
         int rowIndex,
         int columnIndex,
         object? newValue,
@@ -164,7 +164,7 @@ public sealed partial class DataGrid
     /// BATCH: Validate import/paste data with fast batch processing
     /// PERFORMANCE: 1. Import/paste all data first (fast) 2. Then validate everything (batch)
     /// </summary>
-    public async Task<Result<BatchValidationResult>> ValidateImportedDataAsync(
+    internal async Task<Result<BatchValidationResult>> ValidateImportedDataAsync(
         IProgress<ValidationProgress>? progress = null,
         TimeSpan? timeout = null)
     {
@@ -270,7 +270,7 @@ public sealed partial class DataGrid
     /// COMPREHENSIVE: Validate all non-empty rows in the entire dataset
     /// FULL COVERAGE: Validates COMPLETE dataset, not just visible rows
     /// </summary>
-    public async Task<Result<bool>> AreAllNonEmptyRowsValidAsync(TimeSpan? timeout = null)
+    internal async Task<Result<bool>> AreAllNonEmptyRowsValidAsync(TimeSpan? timeout = null)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(DataGrid));
         if (!_isInitialized)
@@ -383,7 +383,7 @@ public sealed partial class DataGrid
     /// MAINTENANCE: Clear validation cache
     /// PERFORMANCE: Free memory and force fresh validation
     /// </summary>
-    public void ClearValidationCache()
+    internal void ClearValidationCache()
     {
         _cellValidationCache.Clear();
         _logger.LogDebug("🧹 VALIDATION CACHE: Validation cache cleared");
@@ -393,7 +393,7 @@ public sealed partial class DataGrid
     /// CONFIGURATION: Set validation cache expiry time
     /// PERFORMANCE: Control cache duration vs validation freshness
     /// </summary>
-    public void SetValidationCacheExpiry(TimeSpan expiry)
+    internal void SetValidationCacheExpiry(TimeSpan expiry)
     {
         _cellValidationCacheExpiry = expiry;
         _logger.LogDebug("⏰ VALIDATION CACHE: Cache expiry set to {Expiry}", expiry);
@@ -406,30 +406,30 @@ public sealed partial class DataGrid
 /// REAL-TIME: Cell validation result
 /// FUNCTIONAL: Immutable validation result for single cell
 /// </summary>
-public record CellValidationResult
+internal record CellValidationResult
 {
-    public bool IsValid { get; init; }
-    public int RowIndex { get; init; }
-    public int ColumnIndex { get; init; }
-    public string? ColumnName { get; init; }
-    public object? ValidatedValue { get; init; }
-    public IReadOnlyList<ValidationError> ValidationErrors { get; init; } = Array.Empty<ValidationError>();
-    public TimeSpan ValidationDuration { get; init; }
-    public bool UsedCache { get; init; }
+    internal bool IsValid { get; init; }
+    internal int RowIndex { get; init; }
+    internal int ColumnIndex { get; init; }
+    internal string? ColumnName { get; init; }
+    internal object? ValidatedValue { get; init; }
+    internal IReadOnlyList<ValidationError> ValidationErrors { get; init; } = Array.Empty<ValidationError>();
+    internal TimeSpan ValidationDuration { get; init; }
+    internal bool UsedCache { get; init; }
 }
 
 /// <summary>
 /// BATCH: Batch validation result
 /// FUNCTIONAL: Immutable result for batch validation operations
 /// </summary>
-public record BatchValidationResult
+internal record BatchValidationResult
 {
-    public bool IsSuccess { get; init; }
-    public int ValidatedRows { get; init; }
-    public int TotalErrors { get; init; }
-    public IReadOnlyList<ValidationError> ValidationErrors { get; init; } = Array.Empty<ValidationError>();
-    public TimeSpan ValidationDuration { get; init; }
-    public DateTime ValidationTime { get; init; }
-    public double AverageTimePerRow { get; init; }
-    public string? ErrorMessage { get; init; }
+    internal bool IsSuccess { get; init; }
+    internal int ValidatedRows { get; init; }
+    internal int TotalErrors { get; init; }
+    internal IReadOnlyList<ValidationError> ValidationErrors { get; init; } = Array.Empty<ValidationError>();
+    internal TimeSpan ValidationDuration { get; init; }
+    internal DateTime ValidationTime { get; init; }
+    internal double AverageTimePerRow { get; init; }
+    internal string? ErrorMessage { get; init; }
 }

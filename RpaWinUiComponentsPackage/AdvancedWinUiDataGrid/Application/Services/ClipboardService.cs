@@ -4,18 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 using Windows.ApplicationModel.DataTransfer;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services;
 
 /// <summary>
 /// CLIPBOARD: Advanced clipboard operations for DataGrid
 /// EXCEL_COMPATIBLE: Full Excel format support with TSV/CSV parsing
 /// ENTERPRISE: Production-ready copy/paste functionality
 /// </summary>
-public class ClipboardService : IClipboardService
+internal class ClipboardService : IClipboardService
 {
     #region Private Fields
 
@@ -544,7 +544,7 @@ public class ClipboardService : IClipboardService
 /// <summary>
 /// Result of clipboard parsing operation
 /// </summary>
-public record ClipboardParseResult
+internal record ClipboardParseResult
 {
     /// <summary>Parsed row data</summary>
     public required List<Dictionary<string, object?>> ParsedRows { get; init; }

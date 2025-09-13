@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
 
 /// <summary>
 /// ENTERPRISE: Core options for DataGrid engine per documentation
 /// CLEAN ARCHITECTURE: Core layer configuration separate from UI layer
 /// </summary>
-public record DataGridEngineOptions
+internal record DataGridEngineOptions
 {
     /// <summary>Minimum number of rows to maintain</summary>
     public int MinimumRows { get; init; } = 1;

@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
 
 /// <summary>
 /// ENTERPRISE: Import options configuration
 /// </summary>
-public record ImportOptions
+internal record ImportOptions
 {
     public ImportMode Mode { get; init; } = ImportMode.Replace;
     public int StartRow { get; init; } = 1;
@@ -23,7 +23,7 @@ public record ImportOptions
 /// <summary>
 /// ENTERPRISE: Export options configuration
 /// </summary>
-public record ExportOptions
+internal record ExportOptions
 {
     public bool IncludeValidAlerts { get; init; } = false;
     public bool ExportOnlyChecked { get; init; } = false;
@@ -41,7 +41,7 @@ public record ExportOptions
 /// <summary>
 /// ENTERPRISE: Data import result with metadata
 /// </summary>
-public record DataImportResult
+internal record DataImportResult
 {
     public bool Success { get; init; }
     public int TotalRows { get; init; }
@@ -68,7 +68,7 @@ public record DataImportResult
 /// <summary>
 /// ENTERPRISE: Data export result with metadata
 /// </summary>
-public record DataExportResult
+internal record DataExportResult
 {
     public bool Success { get; init; }
     public int TotalRows { get; init; }
@@ -95,7 +95,7 @@ public record DataExportResult
 /// <summary>
 /// ENTERPRISE: DataGrid initialization result
 /// </summary>
-public record DataGridInitializationResult
+internal record DataGridInitializationResult
 {
     public bool Success { get; init; }
     public string? Message { get; init; }
@@ -124,7 +124,7 @@ public record DataGridInitializationResult
 /// <summary>
 /// ENTERPRISE: DataGrid health status
 /// </summary>
-public record DataGridHealthStatus
+internal record DataGridHealthStatus
 {
     public bool IsHealthy { get; init; }
     public string Status { get; init; } = "Unknown";
@@ -142,7 +142,7 @@ public record DataGridHealthStatus
 /// <summary>
 /// ENTERPRISE: Performance metrics for monitoring
 /// </summary>
-public record PerformanceMetrics
+internal record PerformanceMetrics
 {
     public TimeSpan LastOperationTime { get; init; }
     public TimeSpan AverageOperationTime { get; init; }
@@ -165,7 +165,7 @@ public record PerformanceMetrics
 /// <summary>
 /// ENTERPRISE: Grid performance statistics
 /// </summary>
-public record GridPerformanceStatistics
+internal record GridPerformanceStatistics
 {
     public PerformanceMetrics ImportMetrics { get; init; } = PerformanceMetrics.Default;
     public PerformanceMetrics ExportMetrics { get; init; } = PerformanceMetrics.Default;

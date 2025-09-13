@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Entities;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Interfaces;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Entities;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Interfaces;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.ManageRows;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.ManageRows;
 
 // Note: ImportProgress and ExportProgress are now defined in Domain/ValueObjects/ProgressTracking.cs
 
@@ -25,7 +25,7 @@ namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.M
 /// APPLICATION: Initialize DataGrid command
 /// DDD: Use case for DataGrid initialization
 /// </summary>
-public sealed record InitializeDataGridCommand(
+internal sealed record InitializeDataGridCommand(
     IReadOnlyList<ColumnDefinition> Columns,
     ColorConfiguration? ColorConfiguration = null,
     ValidationConfiguration? ValidationConfiguration = null,
@@ -36,7 +36,7 @@ public sealed record InitializeDataGridCommand(
     /// ENTERPRISE: Command validation
     /// DDD: Business rule validation at application boundary
     /// </summary>
-    public IEnumerable<string> Validate()
+    internal IEnumerable<string> Validate()
     {
         if (Columns == null || Columns.Count == 0)
             yield return "Columns collection cannot be empty";
@@ -78,7 +78,7 @@ public sealed record InitializeDataGridCommand(
 /// <summary>
 /// APPLICATION: Import from dictionary command
 /// </summary>
-public sealed record ImportFromDictionaryCommand(
+internal sealed record ImportFromDictionaryCommand(
     List<Dictionary<string, object?>> Data,
     Dictionary<int, bool>? CheckboxStates = null,
     int StartRow = 1,
@@ -86,7 +86,7 @@ public sealed record ImportFromDictionaryCommand(
     TimeSpan? Timeout = null,
     IProgress<ImportProgress>? Progress = null)
 {
-    public IEnumerable<string> Validate()
+    internal IEnumerable<string> Validate()
     {
         if (Data == null)
             yield return "Data cannot be null";
@@ -105,7 +105,7 @@ public sealed record ImportFromDictionaryCommand(
 /// <summary>
 /// APPLICATION: Import from DataTable command
 /// </summary>
-public sealed record ImportFromDataTableCommand(
+internal sealed record ImportFromDataTableCommand(
     DataTable DataTable,
     Dictionary<int, bool>? CheckboxStates = null,
     int StartRow = 1,
@@ -113,7 +113,7 @@ public sealed record ImportFromDataTableCommand(
     TimeSpan? Timeout = null,
     IProgress<ImportProgress>? Progress = null)
 {
-    public IEnumerable<string> Validate()
+    internal IEnumerable<string> Validate()
     {
         if (DataTable == null)
             yield return "DataTable cannot be null";
@@ -132,14 +132,14 @@ public sealed record ImportFromDataTableCommand(
 /// <summary>
 /// APPLICATION: Export to dictionary command
 /// </summary>
-public sealed record ExportToDictionaryCommand(
+internal sealed record ExportToDictionaryCommand(
     bool ExportOnlyFiltered = false,
     bool IncludeValidationAlerts = false,
     bool ExportOnlyChecked = false,
     TimeSpan? Timeout = null,
     IProgress<ExportProgress>? Progress = null)
 {
-    public IEnumerable<string> Validate()
+    internal IEnumerable<string> Validate()
     {
         if (Timeout.HasValue && Timeout.Value <= TimeSpan.Zero)
             yield return "Timeout must be positive";
@@ -149,14 +149,14 @@ public sealed record ExportToDictionaryCommand(
 /// <summary>
 /// APPLICATION: Export to DataTable command
 /// </summary>
-public sealed record ExportToDataTableCommand(
+internal sealed record ExportToDataTableCommand(
     bool ExportOnlyFiltered = false,
     bool IncludeValidationAlerts = false,
     bool ExportOnlyChecked = false,
     TimeSpan? Timeout = null,
     IProgress<ExportProgress>? Progress = null)
 {
-    public IEnumerable<string> Validate()
+    internal IEnumerable<string> Validate()
     {
         if (Timeout.HasValue && Timeout.Value <= TimeSpan.Zero)
             yield return "Timeout must be positive";
@@ -166,7 +166,7 @@ public sealed record ExportToDataTableCommand(
 /// <summary>
 /// APPLICATION: Search command
 /// </summary>
-public sealed record SearchCommand(
+internal sealed record SearchCommand(
     string SearchText,
     IReadOnlyList<string>? TargetColumns = null,
     bool CaseSensitive = false,
@@ -174,7 +174,7 @@ public sealed record SearchCommand(
     int MaxResults = 1000,
     TimeSpan? Timeout = null)
 {
-    public IEnumerable<string> Validate()
+    internal IEnumerable<string> Validate()
     {
         if (string.IsNullOrWhiteSpace(SearchText))
             yield return "SearchText cannot be empty";
@@ -190,12 +190,12 @@ public sealed record SearchCommand(
 /// <summary>
 /// APPLICATION: Apply filters command
 /// </summary>
-public sealed record ApplyFiltersCommand(
+internal sealed record ApplyFiltersCommand(
     IReadOnlyList<FilterDefinition> Filters,
     FilterLogicOperator LogicOperator = FilterLogicOperator.And,
     TimeSpan? Timeout = null)
 {
-    public IEnumerable<string> Validate()
+    internal IEnumerable<string> Validate()
     {
         if (Filters == null)
             yield return "Filters cannot be null";
@@ -217,12 +217,12 @@ public sealed record ApplyFiltersCommand(
 /// <summary>
 /// APPLICATION: Sort command
 /// </summary>
-public sealed record SortCommand(
+internal sealed record SortCommand(
     string ColumnName,
     SortDirection Direction = SortDirection.Ascending,
     TimeSpan? Timeout = null)
 {
-    public IEnumerable<string> Validate()
+    internal IEnumerable<string> Validate()
     {
         if (string.IsNullOrWhiteSpace(ColumnName))
             yield return "ColumnName cannot be empty";
@@ -238,13 +238,13 @@ public sealed record SortCommand(
 /// <summary>
 /// APPLICATION: Validate all command
 /// </summary>
-public sealed record ValidateAllCommand(
+internal sealed record ValidateAllCommand(
     bool OnlyFiltered = false,
     bool OnlyVisible = false,
     TimeSpan? Timeout = null,
     IProgress<ValidationProgress>? Progress = null)
 {
-    public IEnumerable<string> Validate()
+    internal IEnumerable<string> Validate()
     {
         if (Timeout.HasValue && Timeout.Value <= TimeSpan.Zero)
             yield return "Timeout must be positive";
@@ -254,12 +254,12 @@ public sealed record ValidateAllCommand(
 /// <summary>
 /// APPLICATION: Add row command
 /// </summary>
-public sealed record AddRowCommand(
+internal sealed record AddRowCommand(
     Dictionary<string, object?> RowData,
     int? InsertIndex = null,
     bool ValidateBeforeAdd = true)
 {
-    public IEnumerable<string> Validate()
+    internal IEnumerable<string> Validate()
     {
         if (RowData == null)
             yield return "RowData cannot be null";
@@ -272,12 +272,12 @@ public sealed record AddRowCommand(
 /// <summary>
 /// APPLICATION: Delete row command
 /// </summary>
-public sealed record DeleteRowCommand(
+internal sealed record DeleteRowCommand(
     int RowIndex,
     bool RequireConfirmation = true,
     bool SmartDelete = true)
 {
-    public IEnumerable<string> Validate()
+    internal IEnumerable<string> Validate()
     {
         if (RowIndex < 0)
             yield return "RowIndex cannot be negative";
@@ -287,12 +287,12 @@ public sealed record DeleteRowCommand(
 /// <summary>
 /// APPLICATION: Update row command
 /// </summary>
-public sealed record UpdateRowCommand(
+internal sealed record UpdateRowCommand(
     int RowIndex,
     Dictionary<string, object?> NewData,
     bool ValidateAfterUpdate = true)
 {
-    public IEnumerable<string> Validate()
+    internal IEnumerable<string> Validate()
     {
         if (RowIndex < 0)
             yield return "RowIndex cannot be negative";

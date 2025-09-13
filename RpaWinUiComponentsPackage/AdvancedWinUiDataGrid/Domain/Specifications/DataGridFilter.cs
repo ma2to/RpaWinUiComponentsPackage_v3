@@ -2,23 +2,23 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Interfaces;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Interfaces;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Management;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases;
 
 /// <summary>
 /// ENTERPRISE: DataGrid filtering functionality
 /// ANTI-GOD-FILE: Separated filtering concerns from main DataGrid class
 /// PERFORMANCE: Optimized for 1M+ row datasets with smart indexing
 /// </summary>
-public sealed partial class DataGrid
+internal sealed partial class DataGrid
 {
     #region ENTERPRISE: Advanced Filtering System
 
@@ -26,7 +26,7 @@ public sealed partial class DataGrid
     /// PERFORMANCE: Apply simple column-based filters
     /// ENTERPRISE: Quick filtering for common scenarios
     /// </summary>
-    public async Task<Result<FilterResult>> ApplySimpleFilterAsync(
+    internal async Task<Result<FilterResult>> ApplySimpleFilterAsync(
         string columnName,
         FilterOperator filterOperator,
         object? value,
@@ -81,7 +81,7 @@ public sealed partial class DataGrid
     /// ADVANCED: Apply complex multi-column filters with grouping
     /// ENTERPRISE: Complex filter expressions (Age > 18 AND (Dept = "IT" OR Salary > 50000))
     /// </summary>
-    public async Task<Result<FilterResult>> ApplyAdvancedFiltersAsync(
+    internal async Task<Result<FilterResult>> ApplyAdvancedFiltersAsync(
         IReadOnlyList<AdvancedFilter> filters,
         FilterCombinationMode mode = FilterCombinationMode.And,
         TimeSpan? timeout = null)
@@ -135,7 +135,7 @@ public sealed partial class DataGrid
     /// PERFORMANCE: Clear all filters and show all data
     /// MEMORY: Efficient cleanup and index reset
     /// </summary>
-    public async Task<Result<bool>> ClearAllFiltersAsync(TimeSpan? timeout = null)
+    internal async Task<Result<bool>> ClearAllFiltersAsync(TimeSpan? timeout = null)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(DataGrid));
 
@@ -179,7 +179,7 @@ public sealed partial class DataGrid
     /// ENTERPRISE: Remove specific filter by column name
     /// FLEXIBILITY: Granular filter management
     /// </summary>
-    public async Task<Result<bool>> RemoveFilterAsync(string columnName, TimeSpan? timeout = null)
+    internal async Task<Result<bool>> RemoveFilterAsync(string columnName, TimeSpan? timeout = null)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(DataGrid));
         if (string.IsNullOrWhiteSpace(columnName))
@@ -225,7 +225,7 @@ public sealed partial class DataGrid
     /// ENTERPRISE: Get current filter state
     /// INTROSPECTION: Allow external components to query filter state
     /// </summary>
-    public async Task<Result<CurrentFilterState>> GetFilterStateAsync(TimeSpan? timeout = null)
+    internal async Task<Result<CurrentFilterState>> GetFilterStateAsync(TimeSpan? timeout = null)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(DataGrid));
 
@@ -264,7 +264,7 @@ public sealed partial class DataGrid
     /// ADVANCED: Create and save custom filter presets
     /// UX: Allow users to save common filter combinations
     /// </summary>
-    public async Task<Result<bool>> SaveFilterPresetAsync(
+    internal async Task<Result<bool>> SaveFilterPresetAsync(
         string presetName, 
         IReadOnlyList<AdvancedFilter> filters,
         TimeSpan? timeout = null)
@@ -309,7 +309,7 @@ public sealed partial class DataGrid
     /// CONVENIENCE: Load and apply saved filter preset
     /// UX: Quick access to saved filter combinations
     /// </summary>
-    public async Task<Result<FilterResult>> LoadFilterPresetAsync(string presetName, TimeSpan? timeout = null)
+    internal async Task<Result<FilterResult>> LoadFilterPresetAsync(string presetName, TimeSpan? timeout = null)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(DataGrid));
         if (string.IsNullOrWhiteSpace(presetName))
@@ -356,7 +356,7 @@ public sealed partial class DataGrid
     /// PERFORMANCE: Get filtering statistics and performance metrics
     /// MONITORING: Filter operation analysis
     /// </summary>
-    public async Task<Result<FilterStatistics>> GetFilterStatisticsAsync(TimeSpan? timeout = null)
+    internal async Task<Result<FilterStatistics>> GetFilterStatisticsAsync(TimeSpan? timeout = null)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(DataGrid));
 

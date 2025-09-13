@@ -2,7 +2,7 @@ using System;
 using Windows.UI;
 using Microsoft.UI;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
 
 /// <summary>
 /// DDD: Value object for DataGrid color configuration
@@ -10,7 +10,7 @@ namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI
 /// IMMUTABLE: Record pattern for configuration consistency
 /// ACCESSIBILITY: High contrast and dark theme support
 /// </summary>
-public record ColorConfiguration
+internal record ColorConfiguration
 {
     #region Core Colors
     
@@ -324,7 +324,7 @@ public record ColorConfiguration
 /// BUILDER: Fluent builder for ColorConfiguration
 /// PROFESSIONAL: Type-safe color configuration with validation
 /// </summary>
-public class ColorConfigurationBuilder
+internal class ColorConfigurationBuilder
 {
     private ColorConfiguration _config;
     

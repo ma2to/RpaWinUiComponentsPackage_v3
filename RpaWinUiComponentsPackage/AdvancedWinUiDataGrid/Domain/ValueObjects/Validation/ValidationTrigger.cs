@@ -1,12 +1,12 @@
 using System;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
 
 
 /// <summary>
 /// ENTERPRISE: Validation trigger enumeration per documentation
 /// </summary>
-public enum ValidationTrigger
+internal enum ValidationTrigger
 {
     /// <summary>No automatic validation</summary>
     None,

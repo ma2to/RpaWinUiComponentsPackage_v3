@@ -4,22 +4,22 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Entities;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Interfaces;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.ImportData;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.ExportData;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.InitializeGrid;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Logging;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Entities;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Interfaces;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.ImportData;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.ExportData;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.InitializeGrid;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Logging;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services;
 
 /// <summary>
 /// API: Main DataGrid API facade
@@ -27,7 +27,7 @@ namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services;
 /// ENTERPRISE: Unified API for both UI and headless operations
 /// FACTORY: Service factory pattern for different operational modes
 /// </summary>
-public static class DataGridAPI
+internal static class DataGridAPI
 {
     /// <summary>
     /// SENIOR DEVELOPER: Create DataGrid service for UI mode with professional logging
@@ -115,12 +115,12 @@ public static class DataGridAPI
 /// ENTERPRISE: High-level API for frequent operations
 /// FACADE: Simplified interface over the complex domain
 /// </summary>
-public static class SimpleDataGridAPI
+internal static class SimpleDataGridAPI
 {
     /// <summary>
     /// ENTERPRISE: Quick initialization with minimal configuration
     /// </summary>
-    public static async Task<IDataGridService> QuickInitializeAsync(
+    internal static async Task<IDataGridService> QuickInitializeAsync(
         IReadOnlyList<string> columnNames,
         ILogger? logger = null)
     {
@@ -151,7 +151,7 @@ public static class SimpleDataGridAPI
     /// <summary>
     /// ENTERPRISE: Quick import from dictionary with default settings
     /// </summary>
-    public static async Task<bool> QuickImportAsync(
+    internal static async Task<bool> QuickImportAsync(
         IDataGridService service,
         List<Dictionary<string, object?>> data)
     {
@@ -162,7 +162,7 @@ public static class SimpleDataGridAPI
     /// <summary>
     /// ENTERPRISE: Quick export to dictionary with default settings
     /// </summary>
-    public static async Task<List<Dictionary<string, object?>>?> QuickExportAsync(IDataGridService service)
+    internal static async Task<List<Dictionary<string, object?>>?> QuickExportAsync(IDataGridService service)
     {
         var result = await service.ExportToDictionaryAsync();
         return result.IsSuccess ? result.Value : null;
@@ -171,7 +171,7 @@ public static class SimpleDataGridAPI
     /// <summary>
     /// ENTERPRISE: Quick validation of all data
     /// </summary>
-    public static async Task<ValidationError[]?> QuickValidateAsync(IDataGridService service)
+    internal static async Task<ValidationError[]?> QuickValidateAsync(IDataGridService service)
     {
         // Validate all - using direct service call instead of command
         var result = await service.ValidateAllAsync();
@@ -181,7 +181,7 @@ public static class SimpleDataGridAPI
     /// <summary>
     /// ENTERPRISE: Quick search in all columns
     /// </summary>
-    public static async Task<SearchResult?> QuickSearchAsync(
+    internal static async Task<SearchResult?> QuickSearchAsync(
         IDataGridService service, 
         string searchText)
     {
@@ -196,7 +196,7 @@ public static class SimpleDataGridAPI
 /// ENTERPRISE: Builder pattern for complex configurations
 /// FLUENT: Fluent interface for intuitive configuration
 /// </summary>
-public static class DataGridConfigurationBuilder
+internal static class DataGridConfigurationBuilder
 {
     /// <summary>
     /// ENTERPRISE: Create simple column configuration
@@ -240,7 +240,7 @@ public static class DataGridConfigurationBuilder
 /// <summary>
 /// API: Fluent validation configuration builder
 /// </summary>
-public class ValidationConfigurationBuilder
+internal class ValidationConfigurationBuilder
 {
     private bool _strictValidation = false;
     private bool _validateEmptyRows = false;
@@ -298,7 +298,7 @@ public class ValidationConfigurationBuilder
 /// <summary>
 /// API: Fluent color configuration builder
 /// </summary>
-public class ColorConfigurationBuilder
+internal class ColorConfigurationBuilder
 {
     private string? _headerBackgroundColor;
     private string? _headerForegroundColor;
@@ -351,7 +351,7 @@ public class ColorConfigurationBuilder
 /// <summary>
 /// API: Fluent performance configuration builder
 /// </summary>
-public class PerformanceConfigurationBuilder
+internal class PerformanceConfigurationBuilder
 {
     private bool _enableVirtualization = true;
     private int _virtualizedRowCount = 1000;

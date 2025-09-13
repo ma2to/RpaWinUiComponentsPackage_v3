@@ -1,6 +1,6 @@
 using System;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
 
 /// <summary>
 /// DDD: Value object for row management configuration
@@ -8,7 +8,7 @@ namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Co
 /// IMMUTABLE: Record pattern ensuring configuration consistency
 /// COMPREHENSIVE: All aspects of row creation, deletion, editing, and interaction
 /// </summary>
-public record RowManagementConfiguration
+internal record RowManagementConfiguration
 {
     #region Row Lifecycle Management
     
@@ -310,7 +310,7 @@ public record RowManagementConfiguration
 /// BUILDER: Fluent builder for RowManagementConfiguration
 /// PROFESSIONAL: Type-safe configuration with validation
 /// </summary>
-public class RowManagementConfigurationBuilder
+internal class RowManagementConfigurationBuilder
 {
     private RowManagementConfiguration _config;
     

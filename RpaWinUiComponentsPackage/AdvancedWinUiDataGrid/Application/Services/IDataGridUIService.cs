@@ -1,14 +1,14 @@
 using System;
 using System.Threading.Tasks;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services;
 
 /// <summary>
 /// ENTERPRISE: UI service interface for DataGrid UI operations
 /// APPLICATION: Application layer UI abstraction
 /// </summary>
-public interface IDataGridUIService : IDisposable
+internal interface IDataGridUIService : IDisposable
 {
     /// <summary>
     /// REFRESH: Update UI display after data changes

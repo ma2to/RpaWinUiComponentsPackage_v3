@@ -1,11 +1,11 @@
 using System;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
 
 /// <summary>
 /// ENTERPRISE: Log rotation result for logger
 /// </summary>
-public record RotationResult
+internal record RotationResult
 {
     public bool IsSuccess { get; init; }
     public string? ErrorMessage { get; init; }
@@ -34,7 +34,7 @@ public record RotationResult
 /// <summary>
 /// ENTERPRISE: Cleanup result for logger
 /// </summary>
-public record CleanupResult
+internal record CleanupResult
 {
     public bool IsSuccess { get; init; }
     public string? ErrorMessage { get; init; }
@@ -61,7 +61,7 @@ public record CleanupResult
 /// <summary>
 /// ENTERPRISE: Log file information
 /// </summary>
-public record LogFileInfo
+internal record LogFileInfo
 {
     public string FilePath { get; init; } = string.Empty;
     public long SizeBytes { get; init; }

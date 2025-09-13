@@ -1,10 +1,10 @@
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
 
 /// <summary>
 /// DDD: Value object defining import modes for data grid
 /// ENTERPRISE: Support for different data import strategies
 /// </summary>
-public enum ImportMode
+internal enum ImportMode
 {
     /// <summary>Replace all existing data</summary>
     Replace,

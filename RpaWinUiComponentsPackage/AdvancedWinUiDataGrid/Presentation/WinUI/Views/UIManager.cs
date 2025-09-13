@@ -7,17 +7,17 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Entities;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.UI.Components;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Entities;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.UI.Components;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.UI.Managers;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.UI.Managers;
 
 /// <summary>
 /// UI: DataGrid UI management
@@ -56,7 +56,8 @@ internal sealed class DataGridUIManager : IDisposable
         IReadOnlyList<GridColumn> columns,
         ColorConfiguration? colorConfiguration = null)
     {
-        try
+        // NOMADIC PATTERN: Use Result<T>.Try for automatic exception handling
+        var result = await Task.FromResult(Result<bool>.Try(() =>
         {
             _logger?.LogDebug("Updating {ColumnCount} columns", columns.Count);
             _colorConfiguration = colorConfiguration;
@@ -69,13 +70,13 @@ internal sealed class DataGridUIManager : IDisposable
             });
             
             _logger?.LogDebug("Successfully updated columns");
-            return Result<bool>.Success(true);
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "Failed to update columns");
-            return Result<bool>.Failure("Column update failed", ex);
-        }
+            return true;
+        }));
+        
+        // NOMADIC: Side effects for logging
+        return result
+            .OnSuccess(_ => _logger?.LogDebug("Column update pipeline completed successfully"))
+            .OnFailure((error, ex) => _logger?.LogError(ex, "Failed to update columns: {Error}", error));
     }
     
     private void CreateListViewTemplate(List<GridColumn> columns)
@@ -102,7 +103,8 @@ internal sealed class DataGridUIManager : IDisposable
     
     public async Task<Result<bool>> UpdateDataAsync(IReadOnlyList<GridRow> rows)
     {
-        try
+        // NOMADIC PATTERN: Use Result<T>.Try for automatic exception handling
+        var result = await Task.FromResult(Result<bool>.Try(() =>
         {
             _logger?.LogDebug("Updating UI with {RowCount} rows", rows.Count);
             
@@ -113,13 +115,13 @@ internal sealed class DataGridUIManager : IDisposable
             });
             
             _logger?.LogDebug("Successfully updated data");
-            return Result<bool>.Success(true);
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, "Failed to update data");
-            return Result<bool>.Failure("Data update failed", ex);
-        }
+            return true;
+        }));
+        
+        // NOMADIC: Side effects for logging
+        return result
+            .OnSuccess(_ => _logger?.LogDebug("Data update pipeline completed successfully"))
+            .OnFailure((error, ex) => _logger?.LogError(ex, "Failed to update data: {Error}", error));
     }
     
     public async Task<Result<bool>> HighlightRowsAsync(IReadOnlyList<int> rowIndices, SolidColorBrush highlightColor)
@@ -314,7 +316,7 @@ internal class DataGridRowViewModel
 /// <summary>
 /// Status type enumeration
 /// </summary>
-public enum StatusType
+internal enum StatusType
 {
     Info,
     Success,

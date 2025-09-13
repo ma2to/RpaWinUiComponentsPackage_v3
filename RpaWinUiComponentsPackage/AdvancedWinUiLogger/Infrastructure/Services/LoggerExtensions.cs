@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiLogger.Infrastructure.Services;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiLogger.Internal.Infrastructure.Services;
 
 /// <summary>
 /// Extension methods for ILogger with professional null-safe patterns

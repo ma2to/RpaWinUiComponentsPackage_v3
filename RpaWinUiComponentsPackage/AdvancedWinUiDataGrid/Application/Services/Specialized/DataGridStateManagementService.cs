@@ -4,18 +4,18 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Entities;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Interfaces;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.InitializeGrid;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Entities;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Interfaces;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.InitializeGrid;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services.Specialized;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services.Specialized;
 
 /// <summary>
 /// SOLID: Single Responsibility - Grid state and lifecycle management only
@@ -23,7 +23,7 @@ namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services.S
 /// CLEAN ARCHITECTURE: Application layer service
 /// ENTERPRISE: Comprehensive state management with persistence and recovery
 /// </summary>
-public sealed class DataGridStateManagementService : IDataGridStateManagementService
+internal sealed class DataGridStateManagementService : IDataGridStateManagementService
 {
     #region Private Fields
     
@@ -605,7 +605,7 @@ public sealed class DataGridStateManagementService : IDataGridStateManagementSer
 /// <summary>
 /// SOLID: Interface segregation for State Management operations
 /// </summary>
-public interface IDataGridStateManagementService : IDisposable
+internal interface IDataGridStateManagementService : IDisposable
 {
     // State properties
     GridState? CurrentState { get; }
@@ -636,7 +636,7 @@ public interface IDataGridStateManagementService : IDisposable
 /// <summary>
 /// DDD: Value object for state snapshots
 /// </summary>
-public record GridStateSnapshot
+internal record GridStateSnapshot
 {
     public required string Description { get; init; }
     public DateTime CreatedAt { get; init; }
@@ -652,7 +652,7 @@ public record GridStateSnapshot
 /// <summary>
 /// DDD: Value object for performance statistics
 /// </summary>
-public record GridPerformanceStatistics
+internal record GridPerformanceStatistics
 {
     public required Dictionary<string, TimeSpan> OperationTimes { get; init; }
     public int TotalRows { get; init; }

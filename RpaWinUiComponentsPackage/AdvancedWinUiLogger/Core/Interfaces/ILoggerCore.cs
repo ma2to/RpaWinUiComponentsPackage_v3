@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiLogger.Core.Results;
-using RpaWinUiComponentsPackage.AdvancedWinUiLogger.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiLogger.Internal.Core.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiLogger.Internal.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiLogger.Core.Interfaces;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiLogger.Internal.Core.Interfaces;
 
 /// <summary>
 /// Core interface for Logger file operations

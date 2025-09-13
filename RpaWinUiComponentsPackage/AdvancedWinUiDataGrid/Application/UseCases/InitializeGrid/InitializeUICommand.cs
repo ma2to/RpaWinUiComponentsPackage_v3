@@ -1,24 +1,24 @@
 using System.Collections.Generic;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.InitializeGrid;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.InitializeGrid;
 
 /// <summary>
 /// COMPATIBILITY: UI-specific initialization command
 /// </summary>
-public sealed record InitializeUICommand : InitializeGridCommand
+internal sealed record InitializeUICommand : InitializeGridCommand
 {
-    public bool EnableUI { get; init; } = true;
-    public string? WindowTitle { get; init; }
-    public int? InitialWidth { get; init; }
-    public int? InitialHeight { get; init; }
+    internal bool EnableUI { get; init; } = true;
+    internal string? WindowTitle { get; init; }
+    internal int? InitialWidth { get; init; }
+    internal int? InitialHeight { get; init; }
     
-    public static InitializeUICommand Create(
+    internal static InitializeUICommand Create(
         IReadOnlyList<ColumnDefinition> columns,
         ColorConfiguration? colorConfiguration = null,
         ValidationConfiguration? validationConfiguration = null,

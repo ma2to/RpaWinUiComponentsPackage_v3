@@ -1,12 +1,12 @@
 using Windows.UI;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
 
 /// <summary>
 /// DDD: Value object for special column configuration
 /// ENTERPRISE: Configuration for specialized column behaviors
 /// </summary>
-public record SpecialColumnConfiguration
+internal record SpecialColumnConfiguration
 {
     /// <summary>Text to display for delete button</summary>
     public string? DeleteButtonText { get; init; } = "Delete";
@@ -55,7 +55,7 @@ public record SpecialColumnConfiguration
 /// <summary>
 /// DDD: Value object for checkbox appearance configuration
 /// </summary>
-public record CheckBoxAppearance
+internal record CheckBoxAppearance
 {
     public Color? CheckedColor { get; init; }
     public Color? UncheckedColor { get; init; }

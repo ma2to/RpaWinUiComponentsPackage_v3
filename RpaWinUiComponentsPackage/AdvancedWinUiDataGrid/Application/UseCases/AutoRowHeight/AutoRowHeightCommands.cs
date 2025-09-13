@@ -1,28 +1,28 @@
 using System;
 using System.Collections.Generic;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.AutoRowHeight;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.AutoRowHeight;
 
 /// <summary>
 /// CQRS: Command for calculating row height for specific row
 /// ENTERPRISE: Single row height calculation with caching
 /// </summary>
-public sealed record CalculateRowHeightCommand
+internal sealed record CalculateRowHeightCommand
 {
-    public required int RowIndex { get; init; }
-    public required Dictionary<string, object?> RowData { get; init; }
-    public required IReadOnlyList<ColumnDefinition> Columns { get; init; }
-    public required UIConfiguration UIConfiguration { get; init; }
-    public required double AvailableWidth { get; init; }
-    public bool UseCache { get; init; } = true;
+    internal required int RowIndex { get; init; }
+    internal required Dictionary<string, object?> RowData { get; init; }
+    internal required IReadOnlyList<ColumnDefinition> Columns { get; init; }
+    internal required UIConfiguration UIConfiguration { get; init; }
+    internal required double AvailableWidth { get; init; }
+    internal bool UseCache { get; init; } = true;
     
     /// <summary>
     /// Factory method for single row calculation
     /// </summary>
-    public static CalculateRowHeightCommand Create(
+    internal static CalculateRowHeightCommand Create(
         int rowIndex,
         Dictionary<string, object?> rowData,
         IReadOnlyList<ColumnDefinition> columns,
@@ -42,20 +42,20 @@ public sealed record CalculateRowHeightCommand
 /// CQRS: Command for calculating multiple row heights in batch
 /// PERFORMANCE: Optimized batch processing for better performance
 /// </summary>
-public sealed record CalculateBatchRowHeightsCommand
+internal sealed record CalculateBatchRowHeightsCommand
 {
-    public required IReadOnlyList<Dictionary<string, object?>> RowsData { get; init; }
-    public required IReadOnlyList<ColumnDefinition> Columns { get; init; }
-    public required UIConfiguration UIConfiguration { get; init; }
-    public required double AvailableWidth { get; init; }
-    public bool UseCache { get; init; } = true;
-    public int BatchSize { get; init; } = 50;
-    public IProgress<BatchCalculationProgress>? Progress { get; init; }
+    internal required IReadOnlyList<Dictionary<string, object?>> RowsData { get; init; }
+    internal required IReadOnlyList<ColumnDefinition> Columns { get; init; }
+    internal required UIConfiguration UIConfiguration { get; init; }
+    internal required double AvailableWidth { get; init; }
+    internal bool UseCache { get; init; } = true;
+    internal int BatchSize { get; init; } = 50;
+    internal IProgress<BatchCalculationProgress>? Progress { get; init; }
     
     /// <summary>
     /// Factory method for batch calculation
     /// </summary>
-    public static CalculateBatchRowHeightsCommand Create(
+    internal static CalculateBatchRowHeightsCommand Create(
         IReadOnlyList<Dictionary<string, object?>> rowsData,
         IReadOnlyList<ColumnDefinition> columns,
         UIConfiguration uiConfiguration,
@@ -73,17 +73,17 @@ public sealed record CalculateBatchRowHeightsCommand
 /// CQRS: Command for applying calculated row heights to UI
 /// UI: Update visual layout with calculated heights
 /// </summary>
-public sealed record ApplyRowHeightsCommand
+internal sealed record ApplyRowHeightsCommand
 {
-    public required Dictionary<int, double> RowHeights { get; init; }
-    public bool AnimateChanges { get; init; } = false;
-    public TimeSpan? AnimationDuration { get; init; }
-    public bool PreserveSelection { get; init; } = true;
+    internal required Dictionary<int, double> RowHeights { get; init; }
+    internal bool AnimateChanges { get; init; } = false;
+    internal TimeSpan? AnimationDuration { get; init; }
+    internal bool PreserveSelection { get; init; } = true;
     
     /// <summary>
     /// Factory method for applying heights
     /// </summary>
-    public static ApplyRowHeightsCommand Create(Dictionary<int, double> rowHeights) =>
+    internal static ApplyRowHeightsCommand Create(Dictionary<int, double> rowHeights) =>
         new() { RowHeights = rowHeights };
 }
 
@@ -91,39 +91,39 @@ public sealed record ApplyRowHeightsCommand
 /// CQRS: Command for enabling/disabling auto row height
 /// CONFIGURATION: Runtime configuration changes
 /// </summary>
-public sealed record ToggleAutoRowHeightCommand
+internal sealed record ToggleAutoRowHeightCommand
 {
-    public required bool Enabled { get; init; }
-    public bool RefreshExistingRows { get; init; } = true;
-    public bool PreserveCustomHeights { get; init; } = false;
+    internal required bool Enabled { get; init; }
+    internal bool RefreshExistingRows { get; init; } = true;
+    internal bool PreserveCustomHeights { get; init; } = false;
     
     /// <summary>
     /// Factory method for toggling auto row height
     /// </summary>
-    public static ToggleAutoRowHeightCommand Enable(bool refreshExisting = true) =>
+    internal static ToggleAutoRowHeightCommand Enable(bool refreshExisting = true) =>
         new() { Enabled = true, RefreshExistingRows = refreshExisting };
     
     /// <summary>
     /// Factory method for disabling auto row height
     /// </summary>
-    public static ToggleAutoRowHeightCommand Disable(bool preserveCustom = false) =>
+    internal static ToggleAutoRowHeightCommand Disable(bool preserveCustom = false) =>
         new() { Enabled = false, PreserveCustomHeights = preserveCustom };
 }
 
 /// <summary>
 /// Progress reporting for batch row height calculations
 /// </summary>
-public record BatchCalculationProgress
+internal record BatchCalculationProgress
 {
-    public int ProcessedRows { get; init; }
-    public int TotalRows { get; init; }
-    public double CompletionPercentage => TotalRows > 0 ? (double)ProcessedRows / TotalRows * 100 : 0;
-    public TimeSpan ElapsedTime { get; init; }
-    public TimeSpan? EstimatedTimeRemaining { get; init; }
-    public int CacheHits { get; init; }
-    public int CacheMisses { get; init; }
+    internal int ProcessedRows { get; init; }
+    internal int TotalRows { get; init; }
+    internal double CompletionPercentage => TotalRows > 0 ? (double)ProcessedRows / TotalRows * 100 : 0;
+    internal TimeSpan ElapsedTime { get; init; }
+    internal TimeSpan? EstimatedTimeRemaining { get; init; }
+    internal int CacheHits { get; init; }
+    internal int CacheMisses { get; init; }
     
-    public static BatchCalculationProgress Create(int processed, int total, TimeSpan elapsed) =>
+    internal static BatchCalculationProgress Create(int processed, int total, TimeSpan elapsed) =>
         new()
         {
             ProcessedRows = processed,

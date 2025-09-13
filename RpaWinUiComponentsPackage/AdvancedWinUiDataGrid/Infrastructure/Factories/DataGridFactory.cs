@@ -1,18 +1,18 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Infrastructure.Factories;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Infrastructure.Factories;
 
 /// <summary>
 /// CLEAN ARCHITECTURE: Infrastructure layer factory
 /// DELEGATION: Delegates to the main API for component creation
 /// ENTERPRISE: Simplified factory that uses the established patterns
 /// </summary>
-public static class DataGridFactory
+internal static class DataGridFactory
 {
     /// <summary>
     /// FACTORY METHOD: Create DataGrid for UI mode using established API

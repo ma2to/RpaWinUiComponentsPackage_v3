@@ -1,13 +1,13 @@
 using System.Collections.Generic;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
 
 /// <summary>
 /// DDD: Value object representing import operation results
 /// ENTERPRISE: Comprehensive import result with validation details
 /// </summary>
-public record ImportResult
+internal record ImportResult
 {
     public int TotalRows { get; init; }
     public int ImportedRows { get; set; }

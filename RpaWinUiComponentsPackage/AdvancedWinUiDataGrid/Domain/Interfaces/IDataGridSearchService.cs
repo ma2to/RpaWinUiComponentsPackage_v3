@@ -1,22 +1,22 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Interfaces;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Interfaces;
 
 /// <summary>
 /// ENTERPRISE: High-performance search service interface
 /// SCALABILITY: Designed for 1M+ row datasets
 /// SOLID: Interface Segregation - search concerns only
 /// </summary>
-public interface IDataGridSearchService : IDisposable
+internal interface IDataGridSearchService : IDisposable
 {
     /// <summary>
     /// PERFORMANCE: Basic search with intelligent indexing
@@ -60,7 +60,7 @@ public interface IDataGridSearchService : IDisposable
 /// ENTERPRISE: Search scope enumeration
 /// PERFORMANCE: Optimize search by limiting scope
 /// </summary>
-public enum SearchScope
+internal enum SearchScope
 {
     AllData,        // Search entire dataset (performance impact)
     VisibleData,    // Search only currently visible rows (fast)
@@ -72,7 +72,7 @@ public enum SearchScope
 /// NAVIGATION: Search result navigation direction
 /// UX: Intuitive navigation controls
 /// </summary>
-public enum SearchNavigationDirection
+internal enum SearchNavigationDirection
 {
     First,
     Previous,

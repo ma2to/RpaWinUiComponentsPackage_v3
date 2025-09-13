@@ -5,16 +5,16 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Logging;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Logging;
 
 /// <summary>
 /// SENIOR DEVELOPER: Professional component logger with comprehensive error tracking
 /// ENTERPRISE: Integrates with Result<T> pattern and captures unhandled errors
 /// CLEAN ARCHITECTURE: Centralized logging concerns with structured logging
 /// </summary>
-public sealed class ComponentLogger : IDisposable
+internal sealed class ComponentLogger : IDisposable
 {
     internal readonly ILogger _baseLogger; // Made internal for component access
     internal readonly LoggingOptions _options; // Made internal for component access

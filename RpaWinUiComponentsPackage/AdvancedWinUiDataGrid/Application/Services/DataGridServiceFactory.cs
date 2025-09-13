@@ -1,17 +1,17 @@
 using System;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services.Specialized;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Interfaces;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Infrastructure.Factories;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Infrastructure.Services;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Logging;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services.Specialized;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Interfaces;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Infrastructure.Factories;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Infrastructure.Services;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Logging;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services;
 
 /// <summary>
 /// FACTORY PATTERN: Creates DataGrid services with proper dependency injection
@@ -19,7 +19,7 @@ namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services;
 /// CLEAN ARCHITECTURE: Replaces the old monolithic service factory
 /// NO_GOD_FILES: Orchestrates multiple specialized services instead of one giant service
 /// </summary>
-public static class DataGridServiceFactory
+internal static class DataGridServiceFactory
 {
     /// <summary>
     /// SENIOR DEVELOPER: Create DataGrid service for UI mode with professional logging
@@ -428,7 +428,15 @@ public static class DataGridServiceFactory
     /// </summary>
     private static ILogger<T>? CreateLogger<T>(ComponentLogger componentLogger)
     {
-        return componentLogger._baseLogger as ILogger<T>;
+        if (componentLogger._baseLogger == null)
+            return null;
+            
+        // Try to cast to typed logger first
+        if (componentLogger._baseLogger is ILogger<T> typedLogger)
+            return typedLogger;
+            
+        // If not typed, return null (services should handle null loggers gracefully)
+        return null;
     }
 
     #endregion

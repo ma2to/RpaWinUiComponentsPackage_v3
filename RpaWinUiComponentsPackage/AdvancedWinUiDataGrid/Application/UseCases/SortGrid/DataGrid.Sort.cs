@@ -2,16 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Interfaces;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Interfaces;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Management;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases;
 
 /// <summary>
 /// ENTERPRISE: Advanced DataGrid Sort System per documentation
@@ -19,7 +19,7 @@ namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Management;
 /// PERFORMANCE: Intelligent algorithm selection for 10M+ row datasets
 /// DOCUMENTATION: Aligned with professional documentation architecture
 /// </summary>
-public sealed partial class DataGrid
+internal sealed partial class DataGrid
 {
     #region ENTERPRISE: High-Performance Sorting System
 
@@ -27,7 +27,7 @@ public sealed partial class DataGrid
     /// PERFORMANCE: Apply single column sorting with intelligent algorithms
     /// ENTERPRISE: Optimized for large datasets with virtualization support
     /// </summary>
-    public async Task<Result<SortResult>> SortByColumnAsync(
+    internal async Task<Result<SortResult>> SortByColumnAsync(
         string columnName,
         SortDirection direction = SortDirection.Ascending,
         bool maintainSelection = true,
@@ -81,7 +81,7 @@ public sealed partial class DataGrid
     /// ADVANCED: Multi-level sorting with priority ordering
     /// ENTERPRISE: Complex sorting scenarios (e.g., Name ASC, Date DESC, Priority ASC)
     /// </summary>
-    public async Task<Result<SortResult>> ApplyMultiLevelSortAsync(
+    internal async Task<Result<SortResult>> ApplyMultiLevelSortAsync(
         IReadOnlyList<SortCriteria> sortCriteria,
         bool maintainSelection = true,
         TimeSpan? timeout = null)
@@ -133,7 +133,7 @@ public sealed partial class DataGrid
     /// PERFORMANCE: Clear all sorting and return to natural order
     /// MEMORY: Efficient cleanup and state reset
     /// </summary>
-    public async Task<Result<bool>> ClearSortingAsync(TimeSpan? timeout = null)
+    internal async Task<Result<bool>> ClearSortingAsync(TimeSpan? timeout = null)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(DataGrid));
 
@@ -177,7 +177,7 @@ public sealed partial class DataGrid
     /// ENTERPRISE: Get current sorting state
     /// INTROSPECTION: Allow external components to query sort state
     /// </summary>
-    public async Task<Result<CurrentSortState>> GetSortStateAsync(TimeSpan? timeout = null)
+    internal async Task<Result<CurrentSortState>> GetSortStateAsync(TimeSpan? timeout = null)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(DataGrid));
 
@@ -216,7 +216,7 @@ public sealed partial class DataGrid
     /// PERFORMANCE: Get sorting statistics and performance metrics
     /// MONITORING: Sort operation analysis
     /// </summary>
-    public async Task<Result<SortStatistics>> GetSortStatisticsAsync(TimeSpan? timeout = null)
+    internal async Task<Result<SortStatistics>> GetSortStatisticsAsync(TimeSpan? timeout = null)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(DataGrid));
 

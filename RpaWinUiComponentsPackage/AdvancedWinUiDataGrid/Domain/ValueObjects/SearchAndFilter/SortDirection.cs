@@ -1,10 +1,10 @@
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
 
 /// <summary>
 /// DDD: Value object defining sort directions for data grid columns
 /// ENTERPRISE: Standard sorting behavior enumeration
 /// </summary>
-public enum SortDirection
+internal enum SortDirection
 {
     /// <summary>No sorting applied</summary>
     None,

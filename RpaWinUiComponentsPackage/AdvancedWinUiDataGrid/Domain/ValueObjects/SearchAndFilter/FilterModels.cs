@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Entities;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Entities;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
 
 /// <summary>
 /// DDD: Value object for filter definition
 /// ENTERPRISE: Comprehensive filtering system supporting complex business rules
 /// IMMUTABLE: Record pattern ensuring filter consistency
 /// </summary>
-public record FilterDefinition
+internal record FilterDefinition
 {
     /// <summary>Name of the column to filter</summary>
     public required string ColumnName { get; init; }
@@ -131,7 +131,7 @@ public record FilterDefinition
 /// DDD: Value object for advanced filter definition with grouping
 /// ENTERPRISE: Complex filtering with nested logical conditions
 /// </summary>
-public record AdvancedFilterDefinition : FilterDefinition
+internal record AdvancedFilterDefinition : FilterDefinition
 {
     /// <summary>Nested child filters for complex logic</summary>
     public IReadOnlyList<FilterDefinition>? ChildFilters { get; init; }
@@ -155,7 +155,7 @@ public record AdvancedFilterDefinition : FilterDefinition
 /// <summary>
 /// COMPATIBILITY: Type alias for legacy code compatibility
 /// </summary>
-public record AdvancedFilter : AdvancedFilterDefinition
+internal record AdvancedFilter : AdvancedFilterDefinition
 {
     public static AdvancedFilter Create(
         string columnName,
@@ -174,7 +174,7 @@ public record AdvancedFilter : AdvancedFilterDefinition
 /// DDD: Value object for filter operation result
 /// ENTERPRISE: Comprehensive filtering result with metadata
 /// </summary>
-public record FilterResult
+internal record FilterResult
 {
     public IReadOnlyList<int> FilteredRowIndices { get; init; } = [];
     public int TotalRows { get; init; }
@@ -225,7 +225,7 @@ public record FilterResult
 /// DDD: Value object for current filter state
 /// ENTERPRISE: Maintains active filter state for grid
 /// </summary>
-public record CurrentFilterState
+internal record CurrentFilterState
 {
     public IReadOnlyList<FilterDefinition> ActiveFilters { get; init; } = [];
     public FilterLogicOperator GlobalLogicOperator { get; init; } = FilterLogicOperator.And;
@@ -252,7 +252,7 @@ public record CurrentFilterState
 /// <summary>
 /// DDD: Value object for filter statistics and performance metrics
 /// </summary>
-public record FilterStatistics
+internal record FilterStatistics
 {
     public int TotalFilterOperations { get; init; }
     public TimeSpan AverageProcessingTime { get; init; }
@@ -273,7 +273,7 @@ public record FilterStatistics
 /// ENTERPRISE: Filter operators for different comparison types
 /// COMPREHENSIVE: All common filtering operations
 /// </summary>
-public enum FilterOperator
+internal enum FilterOperator
 {
     // Basic comparisons
     Equals,
@@ -311,7 +311,7 @@ public enum FilterOperator
 /// ENTERPRISE: Logic operators for combining filters
 /// BOOLEAN_LOGIC: Standard boolean operations with negation support
 /// </summary>
-public enum FilterLogicOperator
+internal enum FilterLogicOperator
 {
     /// <summary>All conditions must be true (default)</summary>
     And,
@@ -339,7 +339,7 @@ public enum FilterLogicOperator
 /// ENTERPRISE: Filter combination mode (simplified version of FilterLogicOperator)
 /// COMPATIBILITY: Simplified interface for basic filtering scenarios
 /// </summary>
-public enum FilterCombinationMode
+internal enum FilterCombinationMode
 {
     /// <summary>All filters must match (AND logic)</summary>
     And,
@@ -352,7 +352,7 @@ public enum FilterCombinationMode
 /// ENTERPRISE: Filter builder for fluent filter creation
 /// BUILDER_PATTERN: Type-safe filter construction
 /// </summary>
-public class FilterBuilder
+internal class FilterBuilder
 {
     private readonly List<FilterDefinition> _filters = new();
     private FilterLogicOperator _defaultLogicOperator = FilterLogicOperator.And;
@@ -464,7 +464,7 @@ public class FilterBuilder
 /// ENTERPRISE: Search options configuration
 /// COMPATIBILITY: Type alias for compatibility with main API
 /// </summary>
-public record SearchOptions
+internal record SearchOptions
 {
     /// <summary>Columns to search in (null = all columns)</summary>
     public IReadOnlyList<string>? ColumnNames { get; init; }
@@ -507,7 +507,7 @@ public record SearchOptions
 /// ENTERPRISE: Search types available
 /// COMPATIBILITY: Supporting both simple and advanced search patterns
 /// </summary>
-public enum SearchType
+internal enum SearchType
 {
     /// <summary>Contains the search term anywhere</summary>
     Contains,
@@ -528,7 +528,7 @@ public enum SearchType
 /// <summary>
 /// ENTERPRISE: Search direction
 /// </summary>
-public enum SearchDirection
+internal enum SearchDirection
 {
     /// <summary>Search from top to bottom</summary>
     Forward,
@@ -541,7 +541,7 @@ public enum SearchDirection
 /// ENTERPRISE: Filter expression compatibility type
 /// COMPATIBILITY: Type alias for FilterDefinition to maintain API compatibility
 /// </summary>
-public record FilterExpression
+internal record FilterExpression
 {
     /// <summary>Name of the column to filter</summary>
     public required string ColumnName { get; init; }
@@ -612,7 +612,7 @@ public record FilterExpression
 /// <summary>
 /// COMPATIBILITY: Filter criteria type for existing code compatibility  
 /// </summary>
-public record FilterCriteria
+internal record FilterCriteria
 {
     public string ColumnName { get; init; } = string.Empty;
     public FilterType FilterType { get; init; } = FilterType.Equals;
@@ -626,7 +626,7 @@ public record FilterCriteria
 /// <summary>
 /// COMPATIBILITY: Advanced filter criteria type for existing code compatibility  
 /// </summary>
-public record AdvancedFilterCriteria
+internal record AdvancedFilterCriteria
 {
     public IReadOnlyList<FilterCriteria>? BasicFilters { get; init; }
     public FilterLogicOperator LogicOperator { get; init; } = FilterLogicOperator.And;
@@ -640,7 +640,7 @@ public record AdvancedFilterCriteria
 /// <summary>
 /// COMPATIBILITY: Filter type enumeration for existing code
 /// </summary>
-public enum FilterType
+internal enum FilterType
 {
     Equals,
     NotEquals,

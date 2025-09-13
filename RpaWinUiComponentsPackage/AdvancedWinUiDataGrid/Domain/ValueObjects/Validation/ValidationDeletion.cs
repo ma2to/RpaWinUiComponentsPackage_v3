@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
 
 /// <summary>
 /// ENTERPRISE: Validation deletion criteria for batch row operations
 /// DDD: Value object representing deletion conditions
 /// </summary>
-public record ValidationDeletionCriteria(
+internal record ValidationDeletionCriteria(
     ValidationDeletionMode Mode,
     IReadOnlyList<ValidationSeverity>? Severity = null,     // Zoznam závažností na zmazanie
     IReadOnlyList<string>? SpecificRuleNames = null,
@@ -17,7 +17,7 @@ public record ValidationDeletionCriteria(
 /// <summary>
 /// ENTERPRISE: Validation deletion modes for different business scenarios
 /// </summary>
-public enum ValidationDeletionMode
+internal enum ValidationDeletionMode
 {
     DeleteInvalidRows,      // Delete rows that fail validation
     DeleteValidRows,        // Delete rows that pass validation  
@@ -29,7 +29,7 @@ public enum ValidationDeletionMode
 /// <summary>
 /// ENTERPRISE: Validation severity levels for filtering
 /// </summary>
-public enum ValidationSeverity
+internal enum ValidationSeverity
 {
     Success = 0,
     Info = 1,
@@ -41,7 +41,7 @@ public enum ValidationSeverity
 /// <summary>
 /// ENTERPRISE: Options for validation-based deletion operations
 /// </summary>
-public record ValidationDeletionOptions(
+internal record ValidationDeletionOptions(
     bool RequireConfirmation = true,        // Vyžaduj potvrdenie pred zmazaním iba pre UI mode pri headless to potvrdenie bude vzdy false
     IProgress<ValidationDeletionProgress>? Progress = null  // Progress reporting
 );
@@ -50,7 +50,7 @@ public record ValidationDeletionOptions(
 /// ENTERPRISE: Result of validation-based deletion operation
 /// IMMUTABLE: Record pattern for consistent operation results
 /// </summary>
-public record ValidationBasedDeleteResult(
+internal record ValidationBasedDeleteResult(
     int TotalRowsEvaluated,
     int RowsDeleted,
     int RemainingRows,
@@ -60,7 +60,7 @@ public record ValidationBasedDeleteResult(
 /// <summary>
 /// ENTERPRISE: Progress reporting for validation deletion operations
 /// </summary>
-public record ValidationDeletionProgress
+internal record ValidationDeletionProgress
 {
     public int TotalRows { get; init; }
     public int ProcessedRows { get; init; }

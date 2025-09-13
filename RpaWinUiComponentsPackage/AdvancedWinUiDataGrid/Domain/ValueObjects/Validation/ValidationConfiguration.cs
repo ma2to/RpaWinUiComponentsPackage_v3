@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
 
 /// <summary>
 /// DDD: Value object for comprehensive validation configuration
@@ -10,7 +10,7 @@ namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Va
 /// IMMUTABLE: Record pattern ensuring configuration consistency
 /// COMPREHENSIVE: Combines timing, rules, performance, and UI aspects
 /// </summary>
-public record ValidationConfiguration
+internal record ValidationConfiguration
 {
     #region Core Validation Settings
     
@@ -351,7 +351,7 @@ public record ValidationConfiguration
 /// BUILDER: Fluent builder for ValidationConfiguration
 /// PROFESSIONAL: Type-safe configuration with validation
 /// </summary>
-public class ValidationConfigurationBuilder
+internal class ValidationConfigurationBuilder
 {
     private ValidationConfiguration _config;
     
@@ -475,7 +475,7 @@ public class ValidationConfigurationBuilder
 /// ENTERPRISE: Validation modes enumeration
 /// DDD: Domain concept for validation timing strategies
 /// </summary>
-public enum ValidationMode
+internal enum ValidationMode
 {
     /// <summary>No validation performed</summary>
     None = 0,
@@ -494,7 +494,7 @@ public enum ValidationMode
 /// ENTERPRISE: Validation severity levels
 /// DDD: Domain concept for validation result classification
 /// </summary>
-public enum ValidationLevel
+internal enum ValidationLevel
 {
     /// <summary>Validation passed successfully</summary>
     Success = 0,

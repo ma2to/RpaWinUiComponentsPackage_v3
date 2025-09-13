@@ -1,10 +1,10 @@
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
 
 /// <summary>
 /// DDD: Value object defining special column types for data grid
 /// ENTERPRISE: Support for specialized column behaviors
 /// </summary>
-public enum SpecialColumnType
+internal enum SpecialColumnType
 {
     /// <summary>Regular data column</summary>
     None,

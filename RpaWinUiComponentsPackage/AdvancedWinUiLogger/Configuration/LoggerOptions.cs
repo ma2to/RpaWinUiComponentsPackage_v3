@@ -1,13 +1,13 @@
 using System;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiLogger.Configuration;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiLogger.Internal.Configuration;
 
 /// <summary>
 /// ENTERPRISE: Logger configuration options
 /// PROFESSIONAL: Comprehensive logging configuration with enterprise features
 /// </summary>
-public record LoggerOptions
+internal record LoggerOptions
 {
     /// <summary>Base directory for log files</summary>
     public string LogDirectory { get; init; } = "logs";
@@ -91,7 +91,7 @@ public record LoggerOptions
 /// <summary>
 /// ENTERPRISE: Log levels for filtering
 /// </summary>
-public enum LogLevel
+internal enum LogLevel
 {
     Trace = 0,
     Debug = 1,

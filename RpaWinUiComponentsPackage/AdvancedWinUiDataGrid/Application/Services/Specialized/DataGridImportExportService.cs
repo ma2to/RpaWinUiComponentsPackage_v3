@@ -5,26 +5,26 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Entities;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Interfaces;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.ImportData;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.UseCases.ExportData;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Entities;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Interfaces;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.ImportData;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases.ExportData;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Application.Services.Specialized;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services.Specialized;
 
 /// <summary>
 /// SOLID: Single Responsibility - Import/Export operations only
 /// DDD: Domain Service for data transformation operations
 /// CLEAN ARCHITECTURE: Application layer service
 /// </summary>
-public sealed class DataGridImportExportService : IDataGridImportExportService
+internal sealed class DataGridImportExportService : IDataGridImportExportService
 {
     #region Private Fields
     
@@ -393,7 +393,7 @@ public sealed class DataGridImportExportService : IDataGridImportExportService
 /// <summary>
 /// SOLID: Interface segregation for Import/Export operations
 /// </summary>
-public interface IDataGridImportExportService : IDisposable
+internal interface IDataGridImportExportService : IDisposable
 {
     Task<Result<ImportResult>> ImportFromDictionaryAsync(GridState currentState, ImportDataCommand command);
     Task<Result<ImportResult>> ImportFromDataTableAsync(GridState currentState, ImportFromDataTableCommand command);

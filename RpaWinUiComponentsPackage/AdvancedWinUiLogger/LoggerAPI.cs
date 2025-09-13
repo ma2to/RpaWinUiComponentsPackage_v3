@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiLogger.Infrastructure.Services;
-using RpaWinUiComponentsPackage.AdvancedWinUiLogger.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiLogger.Internal.Infrastructure.Services;
+using RpaWinUiComponentsPackage.AdvancedWinUiLogger.Internal.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
 
 // CLEAN API DESIGN - Single namespace, single using statement
 namespace RpaWinUiComponentsPackage.AdvancedWinUiLogger;
@@ -255,7 +255,7 @@ public static class LoggerAPI
             // Vytvárame LoggerConfiguration objekt s validovanými parametrami.
             // Mapujeme public API parametre na internal configuration štruktúru.
             // Create internal LoggerConfiguration from LoggerOptions
-            var config = new Core.Models.LoggerConfiguration
+            var config = new Internal.Core.Models.LoggerConfiguration
             {
                 LogDirectory = logDirectory.Trim(),                    // Cleanup whitespace
                 BaseFileName = baseFileName.Trim(),                   // Cleanup whitespace
@@ -263,7 +263,7 @@ public static class LoggerAPI
                 MaxLogFiles = 50,                                     // Reasonable retention limit
                 EnableAutoRotation = maxFileSizeMB.HasValue,          // Auto-determine rotation
                 EnableRealTimeViewing = false,                        // File-only mode
-                MinLogLevel = (Microsoft.Extensions.Logging.LogLevel)Configuration.LogLevel.Information     // Standard minimum level
+                MinLogLevel = (Microsoft.Extensions.Logging.LogLevel)Internal.Configuration.LogLevel.Information     // Standard minimum level
             };
             
             externalLogger?.Info("📋 LoggerAPI: CONFIG CREATED - Configuration prepared: " +
@@ -273,7 +273,7 @@ public static class LoggerAPI
             // 📊 PHASE 3: FILE LOGGER SERVICE INSTANTIATION
             // Vytvárame actual FileLoggerService inštanciu s prepared configuration.
             // Constructor môže vyhodiť výnimky ak sú problémy s file system operations.
-            var fileLogger = new Infrastructure.Services.FileLoggerService(config, externalLogger);
+            var fileLogger = new Internal.Infrastructure.Services.FileLoggerService(config, externalLogger);
             
             // 📊 PHASE 4: SUCCESS CONFIRMATION AND RETURN
             // Potvrdenie úspešného vytvorenia pre audit trail.
@@ -449,4 +449,65 @@ public static class LoggerAPI
             maxFileSizeMB: maxSizeMB
         );
     }
+
+    #region Internal Mapping Methods
+
+    /// <summary>
+    /// INTERNAL: Maps public LoggerOptions to internal LoggerOptions
+    /// CLEAN ARCHITECTURE: Protects internal types from external exposure
+    /// </summary>
+    private static Internal.Configuration.LoggerOptions MapToInternal(LoggerOptions publicOptions)
+    {
+        return new Internal.Configuration.LoggerOptions
+        {
+            LogDirectory = publicOptions.LogDirectory,
+            BaseFileName = publicOptions.BaseFileName,
+            MaxFileSizeBytes = publicOptions.MaxFileSizeBytes,
+            MaxFileSizeMB = publicOptions.MaxFileSizeBytes > 0 ? (int)(publicOptions.MaxFileSizeBytes / (1024 * 1024)) : 100,
+            MaxFileCount = publicOptions.MaxFileCount,
+            MaxLogFiles = publicOptions.MaxFileCount,
+            EnableAutoRotation = publicOptions.EnableAutoRotation,
+            EnableBackgroundLogging = publicOptions.EnableBackgroundLogging,
+            EnablePerformanceMonitoring = publicOptions.EnablePerformanceMonitoring,
+            DateFormat = publicOptions.DateFormat,
+            EnableRealTimeViewing = false,
+            EnableStructuredLogging = true,
+            MinLogLevel = Internal.Configuration.LogLevel.Information,
+            BufferSize = 1000,
+            FlushInterval = TimeSpan.FromSeconds(5)
+        };
+    }
+
+    #endregion
 }
+
+#region Public Result Types - Clean API
+
+/// <summary>
+/// Public API: Generic result wrapper for Logger operations
+/// SENIOR DEVELOPER: Clean Result pattern for professional error handling
+/// </summary>
+public sealed class LoggerResult
+{
+    public bool IsSuccess { get; init; }
+    public string? ErrorMessage { get; init; }
+    
+    public static LoggerResult Success() => new() { IsSuccess = true };
+    public static LoggerResult Failure(string error) => new() { IsSuccess = false, ErrorMessage = error };
+}
+
+/// <summary>
+/// Public API: Generic result wrapper with value for Logger operations
+/// SENIOR DEVELOPER: Clean Result pattern with typed return values
+/// </summary>
+public sealed class LoggerResult<T>
+{
+    public bool IsSuccess { get; init; }
+    public string? ErrorMessage { get; init; }
+    public T? Value { get; init; }
+    
+    public static LoggerResult<T> Success(T value) => new() { IsSuccess = true, Value = value };
+    public static LoggerResult<T> Failure(string error) => new() { IsSuccess = false, ErrorMessage = error };
+}
+
+#endregion

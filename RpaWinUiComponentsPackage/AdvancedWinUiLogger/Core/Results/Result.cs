@@ -1,11 +1,11 @@
-namespace RpaWinUiComponentsPackage.AdvancedWinUiLogger.Core.Results;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiLogger.Internal.Core.Results;
 
 /// <summary>
 /// FUNCTIONAL: Result type for composable error handling
 /// Implements monadic operations for clean functional composition
 /// Used throughout the hybrid functional-OOP architecture
 /// </summary>
-public readonly struct Result<T>
+internal readonly struct Result<T>
 {
     private readonly T? _value;
     private readonly string? _errorMessage;
@@ -105,7 +105,7 @@ public readonly struct Result<T>
     /// <summary>
     /// FUNCTIONAL: Async monadic bind operation
     /// </summary>
-    public async Task<Result<TOut>> Bind<TOut>(Func<T, Task<Result<TOut>>> func)
+    internal async Task<Result<TOut>> Bind<TOut>(Func<T, Task<Result<TOut>>> func)
     {
         if (_isSuccess)
         {
@@ -146,7 +146,7 @@ public readonly struct Result<T>
     /// <summary>
     /// FUNCTIONAL: Async map operation
     /// </summary>
-    public async Task<Result<TOut>> Map<TOut>(Func<T, Task<TOut>> func)
+    internal async Task<Result<TOut>> Map<TOut>(Func<T, Task<TOut>> func)
     {
         if (_isSuccess)
         {
@@ -187,7 +187,7 @@ public readonly struct Result<T>
     /// <summary>
     /// FUNCTIONAL: Async side effect
     /// </summary>
-    public async Task<Result<T>> Tap(Func<T, Task> action)
+    internal async Task<Result<T>> Tap(Func<T, Task> action)
     {
         if (_isSuccess)
         {
@@ -317,7 +317,7 @@ public readonly struct Result<T>
     /// <summary>
     /// FUNCTIONAL: Async try operation
     /// </summary>
-    public static async Task<Result<T>> Try(Func<Task<T>> operation)
+    internal static async Task<Result<T>> Try(Func<Task<T>> operation)
     {
         try
         {
@@ -445,7 +445,7 @@ internal static class ResultExtensions
     /// <summary>
     /// Convert Task<T> to Task<Result<T>>
     /// </summary>
-    public static async Task<Result<T>> ToResult<T>(this Task<T> task)
+    internal static async Task<Result<T>> ToResult<T>(this Task<T> task)
     {
         try
         {
@@ -461,7 +461,7 @@ internal static class ResultExtensions
     /// <summary>
     /// Apply function to result value if successful
     /// </summary>
-    public static async Task<Result<TOut>> Apply<T, TOut>(this Result<T> result, Func<T, Task<TOut>> func)
+    internal static async Task<Result<TOut>> Apply<T, TOut>(this Result<T> result, Func<T, Task<TOut>> func)
     {
         return await result.Map(func);
     }
@@ -502,7 +502,7 @@ internal static class ResultExtensions
     /// <summary>
     /// Extension method for Task<Result<T>> Bind operation
     /// </summary>
-    public static async Task<Result<TOut>> Bind<T, TOut>(this Task<Result<T>> task, Func<T, Task<Result<TOut>>> func)
+    internal static async Task<Result<TOut>> Bind<T, TOut>(this Task<Result<T>> task, Func<T, Task<Result<TOut>>> func)
     {
         var result = await task;
         return await result.Bind(func);
@@ -511,7 +511,7 @@ internal static class ResultExtensions
     /// <summary>
     /// Extension method for Task<Result<T>> synchronous Bind operation
     /// </summary>
-    public static async Task<Result<TOut>> Bind<T, TOut>(this Task<Result<T>> task, Func<T, Result<TOut>> func)
+    internal static async Task<Result<TOut>> Bind<T, TOut>(this Task<Result<T>> task, Func<T, Result<TOut>> func)
     {
         var result = await task;
         return result.Bind(func);
@@ -526,7 +526,7 @@ internal static class ResultExtensions
 /// FUNCTIONAL: Option type for representing optional values
 /// Complements Result<T> for functional programming patterns
 /// </summary>
-public readonly struct Option<T>
+internal readonly struct Option<T>
 {
     private readonly T? _value;
     private readonly bool _hasValue;

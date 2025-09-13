@@ -37,7 +37,7 @@
 
     <!-- Package Information -->
     <PackageId>RpaWinUiComponentsPackage</PackageId>
-    <Version>2.1.2</Version>
+    <Version>2.1.4</Version>
     <Authors>RPA Team</Authors>
     <Company>RPA Company</Company>
     <Product>RPA WinUI Components Package</Product>
@@ -59,30 +59,30 @@
   <!-- Dependencies - Minimal as per newProject.md -->
   <ItemGroup>
     <!-- WinUI3 support with private assets -->
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" IncludeAssets="all" PrivateAssets="none" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.250907003" IncludeAssets="all" PrivateAssets="none" GeneratePathProperty="true" />
     
     <!-- Logging abstractions only -->
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
     
     <!-- Dependency injection -->
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
     
     <!-- ObjectPool for performance optimization -->
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.9" />
     
     <!-- System dependencies -->
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="9.0.8" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="9.0.9" />
     
     <!-- Reactive programming for hybrid functional-OOP architecture -->
-    <PackageReference Include="System.Reactive" Version="6.0.1" />
-    <PackageReference Include="System.Reactive.Linq" Version="6.0.1" />
+    <PackageReference Include="System.Reactive" Version="6.0.2" />
+    <PackageReference Include="System.Reactive.Linq" Version="6.0.2" />
     
     <!-- Force newer version of vulnerable transitive dependency -->
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.3" />
     
     <!-- JSON support for data export -->
-    <PackageReference Include="System.Text.Json" Version="9.0.8" />
+    <PackageReference Include="System.Text.Json" Version="9.0.9" />
     
     <!-- Data support - keeping 4.3.0 as it's the only stable version available -->
     <!-- System.Data.Common" Version="4.3.0" - vulnerable but only available version -->

@@ -1,15 +1,15 @@
 using System.Collections.Generic;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
 
 /// <summary>
 /// DOCUMENTATION: General DataGrid options per specification
 /// CLEAN API: Unified configuration object for DataGrid initialization
 /// INTELLISENSE: All options with professional defaults
 /// </summary>
-public class GeneralOptions
+internal class GeneralOptions
 {
     #region DOCUMENTATION: Basic Settings
 

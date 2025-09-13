@@ -2,16 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Configuration;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.DataOperations;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.SearchAndFilter;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.ValueObjects.UI;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Results;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Domain.Interfaces;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.DataOperations;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.SearchAndFilter;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
+using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Interfaces;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Management;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.UseCases;
 
 /// <summary>
 /// ENTERPRISE: Advanced DataGrid Search System per documentation  
@@ -19,7 +19,7 @@ namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Management;
 /// PERFORMANCE: Optimized search algorithms for 10M+ row datasets
 /// DOCUMENTATION: Aligned with professional documentation architecture
 /// </summary>
-public sealed partial class DataGrid
+internal sealed partial class DataGrid
 {
     #region ENTERPRISE: High-Performance Search System
 
@@ -27,7 +27,7 @@ public sealed partial class DataGrid
     /// PERFORMANCE: Basic search with intelligent indexing
     /// ENTERPRISE: Optimized for large datasets with result limiting
     /// </summary>
-    public async Task<Result<SearchResult>> SearchAsync(
+    internal async Task<Result<SearchResult>> SearchAsync(
         string searchText,
         string[]? targetColumns = null,
         bool caseSensitive = false,
@@ -81,7 +81,7 @@ public sealed partial class DataGrid
     /// ADVANCED: Complex search with regex and scope control
     /// ENTERPRISE: Full-featured search for power users
     /// </summary>
-    public async Task<Result<SearchResult>> AdvancedSearchAsync(
+    internal async Task<Result<SearchResult>> AdvancedSearchAsync(
         AdvancedSearchCriteria criteria,
         TimeSpan? timeout = null)
     {
@@ -127,7 +127,7 @@ public sealed partial class DataGrid
     /// PERFORMANCE: Clear search results and reset state
     /// MEMORY: Efficient cleanup for long-running sessions
     /// </summary>
-    public async Task<Result<bool>> ClearSearchAsync(TimeSpan? timeout = null)
+    internal async Task<Result<bool>> ClearSearchAsync(TimeSpan? timeout = null)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(DataGrid));
 
@@ -165,7 +165,7 @@ public sealed partial class DataGrid
     /// NAVIGATION: Navigate to next/previous search result
     /// UX: Seamless result navigation
     /// </summary>
-    public async Task<Result<SearchNavigationResult>> NavigateSearchResultAsync(
+    internal async Task<Result<SearchNavigationResult>> NavigateSearchResultAsync(
         SearchNavigationDirection direction,
         TimeSpan? timeout = null)
     {
@@ -206,7 +206,7 @@ public sealed partial class DataGrid
     /// ENTERPRISE: Get search statistics and performance metrics
     /// MONITORING: Search performance analysis
     /// </summary>
-    public async Task<Result<SearchStatistics>> GetSearchStatisticsAsync(TimeSpan? timeout = null)
+    internal async Task<Result<SearchStatistics>> GetSearchStatisticsAsync(TimeSpan? timeout = null)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(DataGrid));
 

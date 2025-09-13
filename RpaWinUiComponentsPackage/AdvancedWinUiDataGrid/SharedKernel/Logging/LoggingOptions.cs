@@ -1,19 +1,19 @@
 using System;
 using Microsoft.Extensions.Logging;
 
-namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.SharedKernel.Logging;
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Logging;
 
 /// <summary>
 /// SENIOR DEVELOPER: Professional logging configuration for DataGrid component
 /// ENTERPRISE: Comprehensive logging options supporting multiple strategies and performance tuning
 /// CLEAN ARCHITECTURE: Logging concerns separated from business logic
 /// </summary>
-public sealed record LoggingOptions
+internal sealed record LoggingOptions
 {
     /// <summary>
     /// Logging strategy - how logs are written to storage
     /// </summary>
-    public LoggingStrategy Strategy { get; init; } = LoggingStrategy.Immediate;
+    internal LoggingStrategy Strategy { get; init; } = LoggingStrategy.Immediate;
     
     /// <summary>
     /// Batch size for batch logging strategy (number of log entries before flush)
@@ -142,7 +142,7 @@ public sealed record LoggingOptions
 /// ENTERPRISE: Logging strategy enumeration
 /// PERFORMANCE: Different strategies for different performance requirements
 /// </summary>
-public enum LoggingStrategy
+internal enum LoggingStrategy
 {
     /// <summary>
     /// Write each log entry immediately to storage (best for debugging)
