@@ -18,6 +18,7 @@
     
     <!-- XAML compilation pre class library -->
     <EnableDefaultXamlItems>true</EnableDefaultXamlItems>
+    <EnableDefaultPageItems>false</EnableDefaultPageItems>
     <UseWPF>false</UseWPF>
     <UseWindowsForms>false</UseWindowsForms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -29,22 +30,24 @@
     <IncludeBuildOutput>true</IncludeBuildOutput>
     
     <!-- Windows App SDK Self-Contained Support -->
-    <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
-    <UseRidGraph>false</UseRidGraph>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <UseRidGraph>true</UseRidGraph>
     
     <!-- Runtime identifiers for self-contained deployment -->
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+    <!-- Default architecture for self-contained builds -->
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
 
     <!-- Package Information -->
     <PackageId>RpaWinUiComponentsPackage</PackageId>
-    <Version>2.1.4</Version>
+    <Version>2.2.1</Version>
     <Authors>RPA Team</Authors>
     <Company>RPA Company</Company>
     <Product>RPA WinUI Components Package</Product>
     <Description>Professional WinUI3 Components Package: AdvancedDataGrid + LoggerComponent</Description>
     <PackageTags>WinUI3;DataGrid;Logger;Components;Package;NET8</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReleaseNotes>v2.1.0: Added automatic Windows App SDK runtime dependencies + Self-contained support</PackageReleaseNotes>
+    <PackageReleaseNotes>v2.2.1: CRITICAL FIX - Added comprehensive logging and DataTemplate creation for ListView data display, fixed table not showing rows issue</PackageReleaseNotes>
 
     <!-- Assembly Information -->
     <AssemblyTitle>RPA WinUI Components Package</AssemblyTitle>
@@ -93,6 +96,22 @@
     <None Include="$(MSBuildThisFileDirectory)\build\**" Pack="true" PackagePath="build" />
     <None Include="$(MSBuildThisFileDirectory)\buildTransitive\**" Pack="true" PackagePath="buildTransitive" />
   </ItemGroup>
+
+  <!-- XAML Resources Configuration - Alternative approach for NuGet package -->
+  <ItemGroup>
+    <Page Include="AdvancedWinUiDataGrid\Presentation\WinUI\Views\Components\AdvancedDataGridComponent.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+      <CustomToolNamespace>RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.UI.Components</CustomToolNamespace>
+    </Page>
+    <!-- Copy XAML to content so it's accessible at runtime -->
+    <Content Include="AdvancedWinUiDataGrid\Presentation\WinUI\Views\Components\AdvancedDataGridComponent.xaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>true</Pack>
+      <PackagePath>content\AdvancedWinUiDataGrid\Presentation\WinUI\Views\Components\AdvancedDataGridComponent.xaml</PackagePath>
+    </Content>
+  </ItemGroup>
+
 
   <!-- Copy Windows App SDK runtime files to output -->
   <ItemGroup Condition="'$(WindowsAppSDKSelfContained)' == 'true'">

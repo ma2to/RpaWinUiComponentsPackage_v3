@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -25,30 +26,116 @@ using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjec
 namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.UI.Components;
 
 /// <summary>
-/// UI: Main AdvancedDataGrid component
-/// CLEAN ARCHITECTURE: UI layer - WinUI 3 UserControl
-/// RESPONSIBILITY: Handle UI interactions and coordinate with application services
+/// UI: DataGrid business logic component wrapper
+/// CLEAN ARCHITECTURE: UI layer - Business logic wrapper for XAML UserControl
+/// RESPONSIBILITY: Handle business logic and coordinate with application services
+/// SENIOR DESIGN: Separated from XAML to maintain clean architecture
 /// </summary>
-internal sealed partial class AdvancedDataGridComponent : UserControl, IDisposable
+internal sealed class DataGridComponentLogic : IDisposable
 {
     #region UI: Private Fields
-    
+
+    private readonly AdvancedDataGridComponent _xamlComponent;
     private IDataGridService? _dataGridService;
     private IDataGridAutoRowHeightService? _autoRowHeightService;
     private GridState? _currentState;
     private bool _isDisposed;
     private ILogger? _logger;
-    
+    private ObservableCollection<DataGridRowViewModel>? _displayData;
+
     #endregion
 
     #region UI: Constructor
-    
-    public AdvancedDataGridComponent()
+
+    /// <summary>
+    /// SENIOR DESIGN: Business logic constructor - no XAML dependencies
+    /// CLEAN ARCHITECTURE: Initialize services and data without UI coupling
+    /// </summary>
+    public DataGridComponentLogic(AdvancedDataGridComponent xamlComponent)
     {
-        this.InitializeComponent();
+        _xamlComponent = xamlComponent ?? throw new ArgumentNullException(nameof(xamlComponent));
+
+        // Initialize the display data collection
+        _displayData = new ObservableCollection<DataGridRowViewModel>();
+
         InitializeServices();
+
+        // SENIOR DESIGN: Delayed binding - will be done when UI elements are ready
+        SetupUIBindings();
     }
-    
+
+    /// <summary>
+    /// SENIOR DESIGN: Setup UI bindings and event handlers safely
+    /// CLEAN ARCHITECTURE: Bridge between XAML events and business logic
+    /// </summary>
+    private void SetupUIBindings()
+    {
+        try
+        {
+            // SENIOR DESIGN: Safe binding to UI elements - may not be ready yet
+            var mainDataView = _xamlComponent.GetMainDataView();
+            if (mainDataView != null && _displayData != null)
+            {
+                mainDataView.ItemsSource = _displayData;
+
+                // Setup event handlers
+                mainDataView.ItemClick += MainDataView_ItemClick;
+                mainDataView.SelectionChanged += MainDataView_SelectionChanged;
+
+                _logger?.LogDebug("UI bindings established successfully");
+            }
+            else
+            {
+                _logger?.LogDebug("UI elements not ready for binding - will retry later");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogDebug("UI binding failed - elements not ready yet: {Error}", ex.Message);
+            // SENIOR DESIGN: Graceful degradation - UI binding will be retried when needed
+        }
+    }
+
+    /// <summary>
+    /// SENIOR DESIGN: Ensure UI bindings are established before operations
+    /// CLEAN ARCHITECTURE: Lazy binding pattern for UI safety
+    /// </summary>
+    private void EnsureUIBindings()
+    {
+        _logger?.LogDebug("[UI-BINDING] Starting EnsureUIBindings");
+
+        var mainDataView = _xamlComponent.GetMainDataView();
+        _logger?.LogDebug("[UI-BINDING] MainDataView retrieved: {IsNull}", mainDataView == null ? "NULL" : "OK");
+
+        if (mainDataView != null)
+        {
+            _logger?.LogDebug("[UI-BINDING] MainDataView ItemsSource is: {IsNull}", mainDataView.ItemsSource == null ? "NULL" : "SET");
+            _logger?.LogDebug("[UI-BINDING] Display data collection is: {IsNull}", _displayData == null ? "NULL" : "OK");
+
+            if (mainDataView.ItemsSource == null && _displayData != null)
+            {
+                try
+                {
+                    _logger?.LogInformation("[UI-BINDING] Setting ItemsSource to display data collection (Count: {Count})", _displayData.Count);
+                    mainDataView.ItemsSource = _displayData;
+                    _logger?.LogInformation("[UI-BINDING] UI bindings established successfully");
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "[UI-BINDING] Failed to establish UI bindings: {ErrorMessage}", ex.Message);
+                }
+            }
+            else
+            {
+                _logger?.LogDebug("[UI-BINDING] UI bindings already established or display data is null");
+            }
+        }
+        else
+        {
+            _logger?.LogWarning("[UI-BINDING] MainDataView is null - cannot establish UI bindings");
+        }
+    }
+
     #endregion
 
     #region UI: Public Properties
@@ -66,7 +153,7 @@ internal sealed partial class AdvancedDataGridComponent : UserControl, IDisposab
     /// <summary>
     /// Total row count
     /// </summary>
-    public int TotalRowCount => _currentState?.Rows?.Count ?? 0;
+    public int TotalRowCount => _displayData?.Count ?? _currentState?.Rows?.Count ?? 0;
     
     /// <summary>
     /// Filtered row count
@@ -183,7 +270,134 @@ internal sealed partial class AdvancedDataGridComponent : UserControl, IDisposab
             return false;
         }
     }
-    
+
+    /// <summary>
+    /// Initialize the DataGrid with sample data for demonstration
+    /// </summary>
+    public async Task<bool> InitializeWithSampleDataAsync()
+    {
+        try
+        {
+            // Create sample columns
+            var columns = new List<Domain.ValueObjects.Core.ColumnDefinition>
+            {
+                Domain.ValueObjects.Core.ColumnDefinition.Numeric<int>("ID", "ID"),
+                Domain.ValueObjects.Core.ColumnDefinition.Required("Name", typeof(string), "Name"),
+                Domain.ValueObjects.Core.ColumnDefinition.Text("Email", "Email"),
+                Domain.ValueObjects.Core.ColumnDefinition.Text("Status", "Status")
+            }.AsReadOnly();
+
+            // Initialize the service if available
+            if (_dataGridService != null)
+            {
+                var result = await _dataGridService.InitializeAsync(columns);
+                if (!result.IsSuccess)
+                {
+                    _logger?.LogError("DataGrid service initialization failed: {Error}", result.Error);
+                }
+            }
+
+            // Add sample data directly to UI
+            await AddSampleDataToUI();
+
+            // Update status displays
+            await UpdateStatusDisplayAsync();
+
+            _logger?.LogInformation("DataGrid initialized with {Count} sample rows", TotalRowCount);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "DataGrid initialization failed");
+            return false;
+        }
+    }
+
+    private async Task AddSampleDataToUI()
+    {
+        _logger?.LogInformation("[DATA-LOADING] Starting to add sample data to UI");
+
+        await Task.Run(() =>
+        {
+            var sampleData = new[]
+            {
+                new DataGridRowViewModel { ID = "1", Name = "John Doe", Email = "john.doe@example.com", Status = "Active" },
+                new DataGridRowViewModel { ID = "2", Name = "Jane Smith", Email = "jane.smith@example.com", Status = "Active" },
+                new DataGridRowViewModel { ID = "3", Name = "Mike Johnson", Email = "mike.johnson@example.com", Status = "Inactive" },
+                new DataGridRowViewModel { ID = "4", Name = "Sarah Williams", Email = "sarah.williams@example.com", Status = "Active" },
+                new DataGridRowViewModel { ID = "5", Name = "David Brown", Email = "david.brown@example.com", Status = "Pending" }
+            };
+
+            _logger?.LogDebug("[DATA-LOADING] Created sample data array with {Count} items", sampleData.Length);
+
+            _xamlComponent.DispatcherQueue.TryEnqueue(() =>
+            {
+                _logger?.LogDebug("[DATA-LOADING] Dispatcher queue execution started");
+
+                try
+                {
+                    // SENIOR DESIGN: Ensure UI bindings are ready before adding data
+                    _logger?.LogDebug("[DATA-LOADING] Ensuring UI bindings before adding data");
+                    EnsureUIBindings();
+
+                    if (_displayData != null)
+                    {
+                        _logger?.LogDebug("[DATA-LOADING] Display data collection is available, clearing and adding items");
+                        _displayData.Clear();
+
+                        foreach (var item in sampleData)
+                        {
+                            _displayData.Add(item);
+                            _logger?.LogTrace("[DATA-LOADING] Added item: ID={ID}, Name={Name}", item.ID, item.Name);
+                        }
+
+                        _logger?.LogInformation("[DATA-LOADING] Sample data added to UI successfully: {Count} items", sampleData.Length);
+                        _logger?.LogDebug("[DATA-LOADING] Final collection count: {CollectionCount}", _displayData.Count);
+                    }
+                    else
+                    {
+                        _logger?.LogError("[DATA-LOADING] Display data collection is null - cannot add sample data");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "[DATA-LOADING] Error adding sample data to UI: {ErrorMessage}", ex.Message);
+                }
+            });
+        });
+    }
+
+    private async Task UpdateStatusDisplayAsync()
+    {
+        try
+        {
+            await Task.Delay(10); // Ensure UI thread operations complete
+
+            _xamlComponent.DispatcherQueue.TryEnqueue(() =>
+            {
+                var rowCountText = _xamlComponent.GetRowCountText();
+                if (rowCountText != null)
+                    rowCountText.Text = $"Rows: {TotalRowCount}";
+
+                var filteredRowCountText = _xamlComponent.GetFilteredRowCountText();
+                if (filteredRowCountText != null)
+                    filteredRowCountText.Text = $"Filtered: {TotalRowCount}";
+
+                var validationStatusText = _xamlComponent.GetValidationStatusText();
+                if (validationStatusText != null)
+                    validationStatusText.Text = "Valid";
+
+                var operationStatusText = _xamlComponent.GetOperationStatusText();
+                if (operationStatusText != null)
+                    operationStatusText.Text = "Ready";
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Error updating status display");
+        }
+    }
+
     #endregion
 
     #region UI: Data Import/Export
@@ -416,7 +630,7 @@ internal sealed partial class AdvancedDataGridComponent : UserControl, IDisposab
     {
         try
         {
-            DispatcherQueue.TryEnqueue(() =>
+            _xamlComponent.DispatcherQueue.TryEnqueue(() =>
             {
                 // Update UI elements based on current state
                 UpdateDataGridDisplay();
@@ -502,14 +716,14 @@ internal sealed partial class AdvancedDataGridComponent : UserControl, IDisposab
     /// XAML EVENT: Handle item click events in the main data view
     /// SENIOR DESIGN: Centralized item interaction handling with error safety
     /// </summary>
-    private void MainDataView_ItemClick(object sender, ItemClickEventArgs e)
+    internal void HandleItemClick(object sender, ItemClickEventArgs e)
     {
         try
         {
             if (e.ClickedItem != null)
             {
                 _logger?.LogDebug("Item clicked: {Item}", e.ClickedItem);
-                
+
                 // ENTERPRISE: Trigger item click event for external handling
                 OnItemClicked(new ItemClickedEventArgs(e.ClickedItem));
             }
@@ -520,12 +734,15 @@ internal sealed partial class AdvancedDataGridComponent : UserControl, IDisposab
             OnErrorOccurred(new ErrorEventArgs($"Item click failed: {ex.Message}", ex));
         }
     }
+
+    private void MainDataView_ItemClick(object sender, ItemClickEventArgs e)
+        => HandleItemClick(sender, e);
     
     /// <summary>
     /// XAML EVENT: Handle selection changes in the main data view
     /// SENIOR DESIGN: Robust selection management with validation
     /// </summary>
-    private void MainDataView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
+    internal void HandleSelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
     {
         try
         {
@@ -533,13 +750,13 @@ internal sealed partial class AdvancedDataGridComponent : UserControl, IDisposab
             if (listView != null)
             {
                 _logger?.LogDebug("Selection changed: {SelectedCount} items", listView.SelectedItems.Count);
-                
+
                 // ENTERPRISE: Update internal state
                 var selectedItems = listView.SelectedItems.ToList();
-                
+
                 // ENTERPRISE: Trigger selection changed event for external handling
                 OnSelectionChanged(new DataGridSelectionChangedEventArgs(selectedItems));
-                
+
                 // UI: Update status bar with selection count
                 UpdateSelectionStatus(selectedItems.Count);
             }
@@ -550,6 +767,9 @@ internal sealed partial class AdvancedDataGridComponent : UserControl, IDisposab
             OnErrorOccurred(new ErrorEventArgs($"Selection change failed: {ex.Message}", ex));
         }
     }
+
+    private void MainDataView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
+        => HandleSelectionChanged(sender, e);
     
     #endregion
 
@@ -618,7 +838,7 @@ internal sealed partial class AdvancedDataGridComponent : UserControl, IDisposab
 
 #region UI: Event Args Classes
 
-internal class DataChangedEventArgs : EventArgs
+public class DataChangedEventArgs : EventArgs
 {
     public string Operation { get; }
     public int AffectedRows { get; }
@@ -632,7 +852,7 @@ internal class DataChangedEventArgs : EventArgs
     }
 }
 
-internal class ValidationCompletedEventArgs : EventArgs
+public class ValidationCompletedEventArgs : EventArgs
 {
     internal IReadOnlyList<ValidationError> ValidationErrors { get; }
     internal DateTime Timestamp { get; }
@@ -644,7 +864,7 @@ internal class ValidationCompletedEventArgs : EventArgs
     }
 }
 
-internal class OperationCompletedEventArgs : EventArgs
+public class OperationCompletedEventArgs : EventArgs
 {
     public string Operation { get; }
     public object? Result { get; }
@@ -658,7 +878,7 @@ internal class OperationCompletedEventArgs : EventArgs
     }
 }
 
-internal class ErrorEventArgs : EventArgs
+public class ErrorEventArgs : EventArgs
 {
     public string Message { get; }
     public Exception? Exception { get; }
@@ -676,7 +896,7 @@ internal class ErrorEventArgs : EventArgs
 /// XAML EVENT ARGS: Item click event arguments
 /// SENIOR DESIGN: Enterprise-grade event handling with type safety
 /// </summary>
-internal class ItemClickedEventArgs : EventArgs
+public class ItemClickedEventArgs : EventArgs
 {
     public object ClickedItem { get; }
     public DateTime Timestamp { get; }
@@ -692,7 +912,7 @@ internal class ItemClickedEventArgs : EventArgs
 /// XAML EVENT ARGS: Selection change event arguments  
 /// SENIOR DESIGN: Robust selection management with collection safety
 /// </summary>
-internal class DataGridSelectionChangedEventArgs : EventArgs
+public class DataGridSelectionChangedEventArgs : EventArgs
 {
     public IReadOnlyList<object> SelectedItems { get; }
     public int SelectedCount => SelectedItems.Count;
@@ -702,6 +922,22 @@ internal class DataGridSelectionChangedEventArgs : EventArgs
     {
         SelectedItems = selectedItems.ToList().AsReadOnly();
         Timestamp = DateTime.UtcNow;
+    }
+}
+
+/// <summary>
+/// View model for DataGrid rows displayed in UI
+/// </summary>
+public class DataGridRowViewModel
+{
+    public string ID { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+
+    public override string ToString()
+    {
+        return $"{ID} | {Name} | {Email} | {Status}";
     }
 }
 

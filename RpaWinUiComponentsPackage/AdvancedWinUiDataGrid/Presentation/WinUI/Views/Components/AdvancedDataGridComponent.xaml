@@ -94,22 +94,53 @@
         </Border>
         
         <!-- UI: Main Data Display -->
-        <ScrollViewer Grid.Row="1" x:Name="DataGridScrollViewer" 
-                      ZoomMode="Disabled" 
-                      HorizontalScrollBarVisibility="Auto" 
+        <ScrollViewer Grid.Row="1" x:Name="DataGridScrollViewer"
+                      ZoomMode="Disabled"
+                      HorizontalScrollBarVisibility="Auto"
                       VerticalScrollBarVisibility="Auto">
-            <ListView x:Name="MainDataView" 
-                      Style="{StaticResource DataViewStyle}"
-                      ItemClick="MainDataView_ItemClick"
-                      SelectionChanged="MainDataView_SelectionChanged">
+            <StackPanel>
+                <!-- DataGrid Header -->
+                <Border Background="{ThemeResource SystemControlBackgroundChromeMediumBrush}"
+                        BorderBrush="{ThemeResource SystemControlForegroundBaseMediumLowBrush}"
+                        BorderThickness="0,0,0,1">
+                    <Grid Margin="4,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="60"/>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="100"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="ID" FontWeight="Bold" Margin="8,4" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="Name" FontWeight="Bold" Margin="8,4" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Text="Email" FontWeight="Bold" Margin="8,4" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="3" Text="Status" FontWeight="Bold" Margin="8,4" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <ListView x:Name="MainDataView"
+                          Style="{StaticResource DataViewStyle}"
+                          ItemClick="MainDataView_ItemClick"
+                          SelectionChanged="MainDataView_SelectionChanged">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Grid>
-                            <TextBlock Text="{Binding}" Margin="8,4"/>
+                        <Grid Margin="4,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="60"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="{Binding ID}" Margin="8,4" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Name}" Margin="8,4" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="2" Text="{Binding Email}" Margin="8,4" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="3" Text="{Binding Status}" Margin="8,4" VerticalAlignment="Center"/>
                         </Grid>
                     </DataTemplate>
                 </ListView.ItemTemplate>
-            </ListView>
+                </ListView>
+            </StackPanel>
         </ScrollViewer>
         
         <!-- UI: Status Bar -->

@@ -21,9 +21,9 @@ internal class DataGridFilterService : IDataGridFilterService
     private readonly Dictionary<string, FilterDefinition> _activeFilters = new();
     private bool _disposed = false;
 
-    public DataGridFilterService(ILogger logger)
+    public DataGridFilterService(ILogger? logger = null)
     {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
         _logger.LogDebug("DataGridFilterService initialized");
     }
 

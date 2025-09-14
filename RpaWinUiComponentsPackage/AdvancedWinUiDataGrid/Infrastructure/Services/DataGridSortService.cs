@@ -21,9 +21,9 @@ internal class DataGridSortService : IDataGridSortService
     private readonly List<SortCriteria> _activeSorts = new();
     private bool _disposed = false;
 
-    public DataGridSortService(ILogger logger)
+    public DataGridSortService(ILogger? logger = null)
     {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
         _logger.LogDebug("DataGridSortService initialized");
     }
 

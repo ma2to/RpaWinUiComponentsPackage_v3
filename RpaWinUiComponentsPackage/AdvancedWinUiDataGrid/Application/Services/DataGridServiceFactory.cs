@@ -430,13 +430,14 @@ internal static class DataGridServiceFactory
     {
         if (componentLogger._baseLogger == null)
             return null;
-            
+
         // Try to cast to typed logger first
         if (componentLogger._baseLogger is ILogger<T> typedLogger)
             return typedLogger;
-            
-        // If not typed, return null (services should handle null loggers gracefully)
-        return null;
+
+        // Return base logger as fallback (better than null)
+        return componentLogger._baseLogger as ILogger<T> ??
+               (Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance as ILogger<T>);
     }
 
     #endregion

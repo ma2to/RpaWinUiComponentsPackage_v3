@@ -10,9 +10,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     
-    <!-- WinUI bootstrap configuration -->
-    <WindowsAppSDKBootstrapInitialize>true</WindowsAppSDKBootstrapInitialize>
-    <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
+    <!-- WinUI bootstrap configuration - aligned with package settings -->
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <EnableMsixTooling>false</EnableMsixTooling>
     <GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
     <GeneratePri>false</GeneratePri>
@@ -30,18 +29,12 @@
     <UseRidGraph>true</UseRidGraph>
     <WindowsPackageType>None</WindowsPackageType>
     
-    <!-- Complete PRI disabling to prevent MSB4062 error -->
+    <!-- Modernized PRI handling for WindowsAppSDK 1.8+ -->
     <UseAppxBundle>false</UseAppxBundle>
     <AppxBundle>Never</AppxBundle>
-    <_PriIndexName>resources</_PriIndexName>
     <EnableMrtCoreTargets>false</EnableMrtCoreTargets>
-    <DisableExpandPriContent>true</DisableExpandPriContent>
-    <EnableXamlPrecompilation>false</EnableXamlPrecompilation>
-    <UseLocalMrtCore>false</UseLocalMrtCore>
-    <GeneratePriConfigXml>false</GeneratePriConfigXml>
-    <UsePriGen>false</UsePriGen>
-    <ExpandPriContent>false</ExpandPriContent>
     <GenerateLibraryLayout>true</GenerateLibraryLayout>
+    <WindowsAppSDKBootstrapInitialize>false</WindowsAppSDKBootstrapInitialize>
     
     <!-- Application properties -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -49,13 +42,16 @@
     <RuntimeIdentifier Condition="'$(Platform)' == 'x86'">win-x86</RuntimeIdentifier>
     <RuntimeIdentifier Condition="'$(Platform)' == 'x64'">win-x64</RuntimeIdentifier>
     <RuntimeIdentifier Condition="'$(Platform)' == 'ARM64'">win-arm64</RuntimeIdentifier>
+    <!-- Fallback RID for self-contained deployment -->
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
   </PropertyGroup>
 
-  <!-- Target to skip PRI generation completely -->
+  <!-- Override problematic PRI targets for WindowsAppSDK 1.8+ -->
   <Target Name="ExpandPriContent" />
   <Target Name="GeneratePriConfigXml" />
   <Target Name="CreatePri" />
   <Target Name="PackagePri" />
+  <Target Name="AddPriPayloadFilesToCopyToOutputDirectoryItems" />
 
   <ItemGroup>
     <!-- CRITICAL: Project reference for development testing -->
@@ -66,7 +62,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.9" />
-    <PackageReference Include="RpaWinUiComponentsPackage" Version="2.1.4" />
+    <PackageReference Include="RpaWinUiComponentsPackage" Version="2.2.1" />
 
     
     <!-- REMOVED: Package reference to avoid circular dependency -->

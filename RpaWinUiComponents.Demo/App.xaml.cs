@@ -24,9 +24,22 @@ public partial class App : Application
     public App()
     {
         this.InitializeComponent();
-        
+
         // Setup logging pre demo aplikáciu
         SetupLogging();
+
+        // SENIOR DEV: Global exception handler for comprehensive logging
+        this.UnhandledException += App_UnhandledException;
+    }
+
+    private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    {
+        // Log unhandled exceptions
+        var logger = LoggerFactory?.CreateLogger<App>() ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<App>.Instance;
+        logger.LogCritical(e.Exception, "UNHANDLED EXCEPTION in application - Message: {ErrorMessage}", e.Exception.Message);
+
+        // Mark as handled to prevent crash
+        e.Handled = true;
     }
 
     /// <summary>

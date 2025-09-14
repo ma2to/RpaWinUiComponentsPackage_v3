@@ -154,6 +154,9 @@ public sealed partial class MainWindow : Window
                 _isGridInitialized = true;
                 AddLogMessage("✅ CLEAN API DEMO: Basic initialization completed with professional logging!");
                 _advancedWinUiLogger.LogInformation("[DEMO-INIT] Initialization SUCCESS - Grid is ready using clean public API");
+
+                // SENIOR DEV: Display UI element after successful initialization
+                await DisplayDataGridUI();
             }
             else
             {
@@ -231,6 +234,9 @@ public sealed partial class MainWindow : Window
             {
                 _isGridInitialized = true;
                 AddLogMessage("✅ CLEAN API DEMO: Advanced initialization completed!");
+
+                // SENIOR DEV: Display UI element after successful initialization
+                await DisplayDataGridUI();
             }
             else
             {
@@ -431,6 +437,105 @@ public sealed partial class MainWindow : Window
 
     private void TestValidationOnlyButton_Click(object sender, RoutedEventArgs e) => 
         AddLogMessage("💡 Validation-only styling - Available in full API");
+
+    #endregion
+
+    #region UI Display Methods
+
+    /// <summary>
+    /// SENIOR DEVELOPER: Display actual DataGrid UI component in the container
+    /// UI INTEGRATION: Creates actual DataGrid UserControl with table functionality
+    /// </summary>
+    private async Task DisplayDataGridUI()
+    {
+        try
+        {
+            if (_testDataGrid == null)
+            {
+                _advancedWinUiLogger.LogError("[UI-DISPLAY] Cannot display UI - DataGrid instance is null");
+                AddLogMessage("❌ Cannot display UI - DataGrid not initialized");
+                return;
+            }
+
+            _advancedWinUiLogger.LogInformation("[UI-DISPLAY] Creating DataGrid UI UserControl using public API");
+
+            // SENIOR DEV: Use the new public API method to get DataGrid UI component
+            var dataGridUserControl = GetDataGridUserControl();
+
+            _advancedWinUiLogger.LogInformation("[UI-DISPLAY] DataGrid UserControl obtained successfully - Type: {ComponentType}",
+                dataGridUserControl.GetType().Name);
+
+            // Replace container content with DataGrid UserControl
+            GridContainer.Child = dataGridUserControl;
+            AddLogMessage("✅ DataGrid UI displayed - table will load with sample data automatically");
+
+            _advancedWinUiLogger.LogInformation("[UI-DISPLAY] DataGrid UserControl successfully added to container");
+        }
+        catch (Exception ex)
+        {
+            _advancedWinUiLogger.LogError(ex, "[UI-DISPLAY] Failed to display DataGrid UI - Error: {ErrorMessage}", ex.Message);
+            AddLogMessage($"❌ UI display failed: {ex.Message}");
+
+            // Show error in UI but with more helpful message
+            try
+            {
+                GridContainer.Child = new TextBlock
+                {
+                    Text = $"❌ DataGrid UI Creation Error:\n\n{ex.Message}\n\n" +
+                           "This may be due to missing UI bindings in the component architecture.\n" +
+                           "The DataGrid service is still functional for data operations.\n" +
+                           "Check logs for technical details.",
+                    HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Center,
+                    VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center,
+                    TextAlignment = Microsoft.UI.Xaml.TextAlignment.Center,
+                    Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.OrangeRed),
+                    FontSize = 12,
+                    TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap,
+                    MaxWidth = 500
+                };
+            }
+            catch
+            {
+                _advancedWinUiLogger.LogError("[UI-DISPLAY] Critical failure - unable to show error message in UI");
+            }
+        }
+    }
+
+    /// <summary>
+    /// SENIOR DEV: Get the DataGrid UI UserControl component using public API
+    /// </summary>
+    private Microsoft.UI.Xaml.Controls.UserControl GetDataGridUserControl()
+    {
+        try
+        {
+            _advancedWinUiLogger.LogInformation("[UI-DISPLAY] Creating DataGrid UI UserControl using public API");
+
+            // Use the new public API method to create the UI component
+            var userControl = _testDataGrid.CreateUserControlWithSampleData();
+
+            AddLogMessage("✅ DataGrid UI UserControl created - actual table will load with sample data");
+            _advancedWinUiLogger.LogInformation("[UI-DISPLAY] DataGrid UserControl created successfully via public API");
+
+            return userControl;
+        }
+        catch (Exception ex)
+        {
+            _advancedWinUiLogger.LogError(ex, "[UI-DISPLAY] Failed to create DataGrid UserControl via public API");
+            AddLogMessage($"❌ DataGrid UserControl creation failed: {ex.Message}");
+
+            // Return fallback UserControl
+            return new Microsoft.UI.Xaml.Controls.UserControl
+            {
+                Content = new Microsoft.UI.Xaml.Controls.TextBlock
+                {
+                    Text = $"❌ DataGrid UserControl Failed: {ex.Message}",
+                    HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Center,
+                    VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center,
+                    TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap
+                }
+            };
+        }
+    }
 
     #endregion
 

@@ -21,7 +21,10 @@
       "Bash(files=\"D:\\www\\RB0120APP\\RpaWinUiComponentsPackage\\RpaWinUiComponentsPackage\\AdvancedWinUiLogger\\Infrastructure\\Services\\FileLoggerService.cs D:\\www\\RB0120APP\\RpaWinUiComponentsPackage\\RpaWinUiComponentsPackage\\AdvancedWinUiLogger\\Infrastructure\\Services\\LoggerCore.cs D:\\www\\RB0120APP\\RpaWinUiComponentsPackage\\RpaWinUiComponentsPackage\\AdvancedWinUiLogger\\Infrastructure\\Services\\LoggerExtensions.cs\")",
       "Bash(do echo \"=== $file ===\")",
       "Bash(grep:*)",
-      "Bash(dotnet restore:*)"
+      "Bash(dotnet restore:*)",
+      "Bash(dir:*)",
+      "Bash(dotnet pack:*)",
+      "Bash(unzip:*)"
     ],
     "deny": [],
     "ask": [],
