@@ -23,7 +23,7 @@ internal class DataGridUIService : IDataGridUIService
     public DataGridUIService(ILogger logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _logger.LogDebug("DataGridUIService initialized");
+        _logger.LogInformation("DataGridUIService initialized");
     }
 
     /// <summary>
@@ -203,7 +203,7 @@ internal class DataGridUIService : IDataGridUIService
         {
             if (!_autoRowHeightEnabled)
             {
-                _logger.LogDebug("Auto row height is disabled, returning empty result");
+                _logger.LogInformation("Auto row height is disabled, returning empty result");
                 return Result<Dictionary<int, double>>.Success(new Dictionary<int, double>());
             }
 
@@ -244,7 +244,7 @@ internal class DataGridUIService : IDataGridUIService
             if (!enabled)
             {
                 _customRowHeights.Clear();
-                _logger.LogDebug("Cleared custom row heights");
+                _logger.LogInformation("Cleared custom row heights");
             }
             
             await Task.Delay(1);
@@ -263,7 +263,7 @@ internal class DataGridUIService : IDataGridUIService
         if (!_disposed)
         {
             _disposed = true;
-            _logger.LogDebug("DataGridUIService disposed");
+            _logger.LogInformation("DataGridUIService disposed");
         }
     }
 }

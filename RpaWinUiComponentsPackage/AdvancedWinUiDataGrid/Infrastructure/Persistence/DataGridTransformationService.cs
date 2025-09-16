@@ -41,7 +41,7 @@ internal sealed class DataGridTransformationService : IDataGridTransformationSer
     {
         try
         {
-            _logger?.LogDebug("Transforming {RowCount} dictionary rows", inputData.Count);
+            _logger?.LogInformation("Transforming {RowCount} dictionary rows", inputData.Count);
             
             var transformedData = new List<Dictionary<string, object?>>();
             
@@ -51,7 +51,7 @@ internal sealed class DataGridTransformationService : IDataGridTransformationSer
                 transformedData.Add(transformed);
             }
             
-            _logger?.LogDebug("Successfully transformed {RowCount} dictionary rows", transformedData.Count);
+            _logger?.LogInformation("Successfully transformed {RowCount} dictionary rows", transformedData.Count);
             return transformedData;
         }
         catch (Exception ex)
@@ -68,7 +68,7 @@ internal sealed class DataGridTransformationService : IDataGridTransformationSer
     {
         try
         {
-            _logger?.LogDebug("Transforming {RowCount} internal data to dictionary", internalData.Count);
+            _logger?.LogInformation("Transforming {RowCount} internal data to dictionary", internalData.Count);
             
             var dictionaries = new List<Dictionary<string, object?>>();
             
@@ -91,7 +91,7 @@ internal sealed class DataGridTransformationService : IDataGridTransformationSer
                 dictionaries.Add(dictionary);
             }
             
-            _logger?.LogDebug("Successfully transformed {RowCount} rows to dictionary", dictionaries.Count);
+            _logger?.LogInformation("Successfully transformed {RowCount} rows to dictionary", dictionaries.Count);
             return dictionaries;
         }
         catch (Exception ex)
@@ -111,7 +111,7 @@ internal sealed class DataGridTransformationService : IDataGridTransformationSer
     {
         try
         {
-            _logger?.LogDebug("Transforming DataTable with {RowCount} rows", dataTable.Rows.Count);
+            _logger?.LogInformation("Transforming DataTable with {RowCount} rows", dataTable.Rows.Count);
             
             var dictionaries = new List<Dictionary<string, object?>>();
             
@@ -143,7 +143,7 @@ internal sealed class DataGridTransformationService : IDataGridTransformationSer
                 dictionaries.Add(rowData);
             }
             
-            _logger?.LogDebug("Successfully transformed DataTable to {RowCount} dictionaries", dictionaries.Count);
+            _logger?.LogInformation("Successfully transformed DataTable to {RowCount} dictionaries", dictionaries.Count);
             return dictionaries;
         }
         catch (Exception ex)
@@ -160,7 +160,7 @@ internal sealed class DataGridTransformationService : IDataGridTransformationSer
     {
         try
         {
-            _logger?.LogDebug("Transforming {RowCount} dictionaries to DataTable", data.Count);
+            _logger?.LogInformation("Transforming {RowCount} dictionaries to DataTable", data.Count);
             
             var dataTable = new DataTable();
             
@@ -203,7 +203,7 @@ internal sealed class DataGridTransformationService : IDataGridTransformationSer
                 dataTable.Rows.Add(dataRow);
             }
             
-            _logger?.LogDebug("Successfully transformed {RowCount} dictionaries to DataTable", dataTable.Rows.Count);
+            _logger?.LogInformation("Successfully transformed {RowCount} dictionaries to DataTable", dataTable.Rows.Count);
             return dataTable;
         }
         catch (Exception ex)

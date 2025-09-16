@@ -384,7 +384,7 @@ internal sealed class DataGridImportExportService : IDataGridImportExportService
     public void Dispose()
     {
         // Cleanup resources if needed
-        _logger?.LogDebug("DataGridImportExportService disposed");
+        _logger?.LogInformation("DataGridImportExportService disposed");
     }
 
     #endregion

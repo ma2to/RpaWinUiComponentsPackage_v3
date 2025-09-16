@@ -51,7 +51,7 @@ internal sealed class DataGridSearchService : IDataGridSearchService
         
         try
         {
-            _logger?.LogDebug("Searching for '{SearchText}'", searchText);
+            _logger?.LogInformation("Searching for '{SearchText}'", searchText);
             
             // Basic search implementation - would need grid context in real scenario
             var matchingRowIndices = new List<int>();
@@ -66,7 +66,7 @@ internal sealed class DataGridSearchService : IDataGridSearchService
             // Update statistics
             _statistics = _statistics.WithSearch(searchDuration, 0, result.TotalMatches, SearchAlgorithm.Linear);
             
-            _logger?.LogDebug("Search completed with {ResultCount} matches", result.TotalMatches);
+            _logger?.LogInformation("Search completed with {ResultCount} matches", result.TotalMatches);
             return Result<SearchResult>.Success(result);
         }
         catch (Exception ex)
@@ -84,7 +84,7 @@ internal sealed class DataGridSearchService : IDataGridSearchService
         
         try
         {
-            _logger?.LogDebug("Advanced search for '{SearchText}'", criteria.SearchText);
+            _logger?.LogInformation("Advanced search for '{SearchText}'", criteria.SearchText);
             
             // Advanced search implementation - would need grid context in real scenario
             var matchingRowIndices = new List<int>();
@@ -101,7 +101,7 @@ internal sealed class DataGridSearchService : IDataGridSearchService
                           criteria.Algorithm;
             _statistics = _statistics.WithSearch(searchDuration, 0, result.TotalMatches, algorithm);
             
-            _logger?.LogDebug("Advanced search completed with {ResultCount} matches", result.TotalMatches);
+            _logger?.LogInformation("Advanced search completed with {ResultCount} matches", result.TotalMatches);
             return Result<SearchResult>.Success(result);
         }
         catch (Exception ex)
@@ -117,7 +117,7 @@ internal sealed class DataGridSearchService : IDataGridSearchService
         {
             _currentSearchResult = null;
             _currentNavigationPosition = -1;
-            _logger?.LogDebug("Search results cleared");
+            _logger?.LogInformation("Search results cleared");
             return Result<bool>.Success(true);
         }
         catch (Exception ex)
@@ -216,7 +216,7 @@ internal sealed class DataGridSearchService : IDataGridSearchService
             _currentSearchResult = null;
             _currentNavigationPosition = -1;
             _disposed = true;
-            _logger?.LogDebug("DataGridSearchService disposed");
+            _logger?.LogInformation("DataGridSearchService disposed");
         }
     }
     

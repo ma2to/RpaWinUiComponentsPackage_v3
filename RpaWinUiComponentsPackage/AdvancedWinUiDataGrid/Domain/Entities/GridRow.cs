@@ -95,4 +95,9 @@ internal class GridRow : Entity
             _data[kvp.Key] = kvp.Value;
         }
     }
+
+    public void UpdateData(Dictionary<string, object?> data)
+    {
+        SetAllData(data);
+    }
 }

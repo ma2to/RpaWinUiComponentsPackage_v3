@@ -28,7 +28,7 @@ internal class DataGridPerformanceService : IDisposable
         _activeOperations = new Dictionary<string, Stopwatch>();
         _performanceHistory = new List<PerformanceMetric>();
         
-        _logger.LogDebug("DataGridPerformanceService initialized");
+        _logger.LogInformation("DataGridPerformanceService initialized");
     }
 
     /// <summary>
@@ -121,7 +121,7 @@ internal class DataGridPerformanceService : IDisposable
         if (_disposed) return;
         
         _performanceHistory.Clear();
-        _logger.LogDebug("Performance history cleared");
+        _logger.LogInformation("Performance history cleared");
     }
 
     public void Dispose()
@@ -137,7 +137,7 @@ internal class DataGridPerformanceService : IDisposable
             _performanceHistory.Clear();
             _disposed = true;
             
-            _logger.LogDebug("DataGridPerformanceService disposed");
+            _logger.LogInformation("DataGridPerformanceService disposed");
         }
     }
 }

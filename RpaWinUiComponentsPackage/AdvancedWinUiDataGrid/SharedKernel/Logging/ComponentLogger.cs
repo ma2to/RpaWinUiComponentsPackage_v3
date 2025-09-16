@@ -50,17 +50,6 @@ internal sealed class ComponentLogger : IDisposable
         }
     }
 
-    /// <summary>
-    /// SENIOR DEV: Log debug information with optional parameter details
-    /// </summary>
-    public void LogDebug(string message, params object[] args)
-    {
-        if (ShouldLog(LogLevel.Debug))
-        {
-            var prefixedMessage = $"[{_categoryPrefix}] {message}";
-            _baseLogger.LogDebug(prefixedMessage, args);
-        }
-    }
 
     /// <summary>
     /// SENIOR DEV: Log errors with full exception context
@@ -105,12 +94,12 @@ internal sealed class ComponentLogger : IDisposable
 
         if (_options.LogMethodParameters && parameters.Length > 0)
         {
-            LogDebug("Method {MethodName} ENTRY - Parameters: {Parameters}", 
+            LogInformation("Method {MethodName} ENTRY - Parameters: {Parameters}", 
                 methodName, string.Join(", ", parameters));
         }
         else
         {
-            LogDebug("Method {MethodName} ENTRY", methodName);
+            LogInformation("Method {MethodName} ENTRY", methodName);
         }
     }
 
@@ -123,12 +112,12 @@ internal sealed class ComponentLogger : IDisposable
 
         if (result != null)
         {
-            LogDebug("Method {MethodName} EXIT - Result: {ResultType}", 
+            LogInformation("Method {MethodName} EXIT - Result: {ResultType}", 
                 methodName, result.GetType().Name);
         }
         else
         {
-            LogDebug("Method {MethodName} EXIT", methodName);
+            LogInformation("Method {MethodName} EXIT", methodName);
         }
     }
 
@@ -189,7 +178,7 @@ internal sealed class ComponentLogger : IDisposable
 
         if (result.IsSuccess)
         {
-            LogDebug("Result SUCCESS - Operation: {Operation}, Method: {Method}, Value: {ValueType}", 
+            LogInformation("Result SUCCESS - Operation: {Operation}, Method: {Method}, Value: {ValueType}", 
                 operation, methodName, typeof(T).Name);
         }
         else
@@ -270,7 +259,7 @@ internal sealed class ComponentLogger : IDisposable
         if (!_disposed)
         {
             _performanceTracker?.Dispose();
-            LogDebug("ComponentLogger disposed");
+            LogInformation("ComponentLogger disposed");
             _disposed = true;
         }
     }
@@ -318,7 +307,7 @@ internal sealed class PerformanceTracker : IDisposable
         }
         else if (_options.LogPerformanceMetrics)
         {
-            _logger.LogDebug("[PERFORMANCE] Operation completed - {Operation}: {Duration}ms", 
+            _logger.LogInformation("[PERFORMANCE] Operation completed - {Operation}: {Duration}ms", 
                 operationName, duration.TotalMilliseconds);
         }
     }

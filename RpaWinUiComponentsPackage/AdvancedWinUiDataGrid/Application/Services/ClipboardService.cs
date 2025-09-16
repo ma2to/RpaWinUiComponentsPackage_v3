@@ -29,7 +29,7 @@ internal class ClipboardService : IClipboardService
     public ClipboardService(ILogger logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _logger.LogDebug("ClipboardService initialized");
+        _logger.LogInformation("ClipboardService initialized");
     }
 
     #endregion
@@ -238,7 +238,7 @@ internal class ClipboardService : IClipboardService
 
         // Detect delimiter (Excel uses tabs, CSV uses commas)
         char delimiter = DetectDelimiter(lines[0]);
-        _logger.LogDebug("Detected delimiter: '{Delimiter}'", delimiter);
+        _logger.LogInformation("Detected delimiter: '{Delimiter}'", delimiter);
 
         var parsedRows = new List<Dictionary<string, object?>>();
         bool hasHeaders = ShouldTreatFirstRowAsHeaders(lines, delimiter, targetColumns);
@@ -534,7 +534,7 @@ internal class ClipboardService : IClipboardService
         if (!_disposed)
         {
             _disposed = true;
-            _logger.LogDebug("ClipboardService disposed");
+            _logger.LogInformation("ClipboardService disposed");
         }
     }
 

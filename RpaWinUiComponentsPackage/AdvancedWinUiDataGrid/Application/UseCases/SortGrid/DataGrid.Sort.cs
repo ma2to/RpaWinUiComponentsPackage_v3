@@ -149,7 +149,7 @@ internal sealed partial class DataGrid
                 
                 if (result.IsSuccess)
                 {
-                    _logger.LogDebug("✅ SORT: All sorting cleared, returned to natural order");
+                    _logger.LogInformation("✅ SORT: All sorting cleared, returned to natural order");
 
                     // Refresh UI if available
                     if (_uiService != null)
@@ -193,7 +193,7 @@ internal sealed partial class DataGrid
                 
                 if (result.IsSuccess && result.Value != null)
                 {
-                    _logger.LogDebug("✅ SORT: Retrieved sort state - IsSorted: {IsSorted}, Active sorts: {ActiveSortCount}", 
+                    _logger.LogInformation("✅ SORT: Retrieved sort state - IsSorted: {IsSorted}, Active sorts: {ActiveSortCount}", 
                         result.Value.IsSorted, result.Value.ActiveSorts.Count);
                 }
                 else
@@ -232,7 +232,7 @@ internal sealed partial class DataGrid
                 
                 if (result.IsSuccess && result.Value != null)
                 {
-                    _logger.LogDebug("✅ SORT: Retrieved sort statistics - Total sorts: {TotalSorts}, Avg time: {AvgTime}ms", 
+                    _logger.LogInformation("✅ SORT: Retrieved sort statistics - Total sorts: {TotalSorts}, Avg time: {AvgTime}ms", 
                         result.Value.TotalSorts, result.Value.AverageSortTime.TotalMilliseconds);
                 }
                 else

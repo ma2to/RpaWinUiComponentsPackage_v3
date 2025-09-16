@@ -24,7 +24,7 @@ internal class DataGridFilterService : IDataGridFilterService
     public DataGridFilterService(ILogger? logger = null)
     {
         _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
-        _logger.LogDebug("DataGridFilterService initialized");
+        _logger.LogInformation("DataGridFilterService initialized");
     }
 
     public async Task<Result<List<GridRow>>> ApplyFiltersAsync(
@@ -45,7 +45,7 @@ internal class DataGridFilterService : IDataGridFilterService
             }
 
             var result = filteredRows.ToList();
-            _logger.LogDebug("Filter applied: {ResultCount} rows remaining from {OriginalCount}", 
+            _logger.LogInformation("Filter applied: {ResultCount} rows remaining from {OriginalCount}", 
                 result.Count, rows.Count);
 
             return await Task.FromResult(Result<List<GridRow>>.Success(result));
@@ -182,7 +182,7 @@ internal class DataGridFilterService : IDataGridFilterService
         try
         {
             _activeFilters.Clear();
-            _logger.LogDebug("All filters cleared");
+            _logger.LogInformation("All filters cleared");
             return await Task.FromResult(Result<bool>.Success(true));
         }
         catch (Exception ex)
@@ -200,7 +200,7 @@ internal class DataGridFilterService : IDataGridFilterService
         try
         {
             var removed = _activeFilters.Remove(columnName);
-            _logger.LogDebug("Filter for column {ColumnName} {Result}", columnName, removed ? "removed" : "not found");
+            _logger.LogInformation("Filter for column {ColumnName} {Result}", columnName, removed ? "removed" : "not found");
             return await Task.FromResult(Result<bool>.Success(removed));
         }
         catch (Exception ex)
@@ -252,7 +252,7 @@ internal class DataGridFilterService : IDataGridFilterService
         try
         {
             // Implementation would save to storage
-            _logger.LogDebug("Filter preset {PresetName} saved with {FilterCount} filters", presetName, filters.Count);
+            _logger.LogInformation("Filter preset {PresetName} saved with {FilterCount} filters", presetName, filters.Count);
             return await Task.FromResult(Result<bool>.Success(true));
         }
         catch (Exception ex)
@@ -271,7 +271,7 @@ internal class DataGridFilterService : IDataGridFilterService
         {
             // Implementation would load from storage
             var emptyResult = FilterResult.Empty(0);
-            _logger.LogDebug("Filter preset {PresetName} loaded", presetName);
+            _logger.LogInformation("Filter preset {PresetName} loaded", presetName);
             return await Task.FromResult(Result<FilterResult>.Success(emptyResult));
         }
         catch (Exception ex)
@@ -411,7 +411,7 @@ internal class DataGridFilterService : IDataGridFilterService
         {
             _activeFilters.Clear();
             _disposed = true;
-            _logger.LogDebug("DataGridFilterService disposed");
+            _logger.LogInformation("DataGridFilterService disposed");
         }
     }
 }

@@ -119,7 +119,7 @@ public sealed class AdvancedWinUiDataGrid : IDisposable
 
         return _componentLogger.ExecuteWithLogging(() =>
         {
-            _componentLogger.LogDebug("GetUIElement requested - attempting to retrieve UI component");
+            _componentLogger.LogInformation("GetUIElement requested - attempting to retrieve UI component");
 
             // For now, create a simple placeholder indicating service is ready
             var placeholder = new Microsoft.UI.Xaml.Controls.TextBlock()
@@ -168,7 +168,7 @@ public sealed class AdvancedWinUiDataGrid : IDisposable
             var internalPerformanceConfig = MapPerformanceConfigToInternal(performanceConfig);
             
             // Log configuration details if enabled
-            _componentLogger.LogDebug("Configuration mapped - Columns: {ColumnCount}, Theme: {Theme}, ValidationEnabled: {ValidationEnabled}", 
+            _componentLogger.LogInformation("Configuration mapped - Columns: {ColumnCount}, Theme: {Theme}, ValidationEnabled: {ValidationEnabled}", 
                 internalColumns.Count, theme, internalValidationConfig.EnableValidation);
             
             // Execute service initialization with error tracking
@@ -448,7 +448,7 @@ public sealed class AdvancedWinUiDataGrid : IDisposable
             {
                 _service?.Dispose();
                 _componentLogger?.Dispose();
-                _componentLogger?.LogDebug("AdvancedWinUiDataGrid disposed successfully");
+                _componentLogger?.LogInformation("AdvancedWinUiDataGrid disposed successfully");
             }
             catch (Exception ex)
             {

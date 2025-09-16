@@ -52,7 +52,7 @@ internal sealed partial class DataGrid
                     await EnsureMinimumRowsAsync();
                 }
 
-                _logger.LogDebug("✅ ROW MANAGEMENT: Row management configured successfully");
+                _logger.LogInformation("✅ ROW MANAGEMENT: Row management configured successfully");
                 return Result<bool>.Success(true);
             }, effectiveTimeout);
         }

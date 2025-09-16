@@ -298,7 +298,7 @@ internal sealed partial class DataGrid
 
                     // Validate the row
                     var rowValidationResult = await _validationService.ValidateRowAsync(rowIndex, new Dictionary<string, object?>(), new List<ColumnDefinition>());
-                    if (!rowValidationResult.IsSuccess || (rowValidationResult.Value?.Length > 0))
+                    if (!rowValidationResult.IsSuccess || (rowValidationResult.Value?.Length ?? 0) > 0)
                     {
                         invalidRows++;
                         _logger.LogTrace("❌ FULL VALIDATION: Row {RowIndex} has validation errors", rowIndex);
@@ -331,7 +331,7 @@ internal sealed partial class DataGrid
         {
             // This would integrate with the validation service to check single cell rules
             var validationResult = await _validationService.ValidateSingleCellAsync(columnName, value, new Dictionary<string, object?>(), 0);
-            return validationResult.IsSuccess ? validationResult.Value?.ToList() ?? new List<ValidationError>() : new List<ValidationError>();
+            return validationResult.IsSuccess ? (validationResult.Value?.ToList() ?? new List<ValidationError>()) : new List<ValidationError>();
         }
         catch (Exception ex)
         {
@@ -349,7 +349,7 @@ internal sealed partial class DataGrid
         try
         {
             var validationResult = await _validationService.ValidateCrossColumnAsync(rowData, 0);
-            return validationResult.IsSuccess ? validationResult.Value?.ToList() ?? new List<ValidationError>() : new List<ValidationError>();
+            return validationResult.IsSuccess ? (validationResult.Value?.ToList() ?? new List<ValidationError>()) : new List<ValidationError>();
         }
         catch (Exception ex)
         {
@@ -370,7 +370,7 @@ internal sealed partial class DataGrid
         try
         {
             var validationResult = await _validationService.ValidateConditionalAsync(rowData, 0);
-            return validationResult.IsSuccess ? validationResult.Value?.ToList() ?? new List<ValidationError>() : new List<ValidationError>();
+            return validationResult.IsSuccess ? (validationResult.Value?.ToList() ?? new List<ValidationError>()) : new List<ValidationError>();
         }
         catch (Exception ex)
         {
@@ -386,7 +386,7 @@ internal sealed partial class DataGrid
     internal void ClearValidationCache()
     {
         _cellValidationCache.Clear();
-        _logger.LogDebug("🧹 VALIDATION CACHE: Validation cache cleared");
+        _logger.LogInformation("🧹 VALIDATION CACHE: Validation cache cleared");
     }
 
     /// <summary>
@@ -396,7 +396,7 @@ internal sealed partial class DataGrid
     internal void SetValidationCacheExpiry(TimeSpan expiry)
     {
         _cellValidationCacheExpiry = expiry;
-        _logger.LogDebug("⏰ VALIDATION CACHE: Cache expiry set to {Expiry}", expiry);
+        _logger.LogInformation("⏰ VALIDATION CACHE: Cache expiry set to {Expiry}", expiry);
     }
 
     #endregion

@@ -339,11 +339,22 @@ internal class ColorConfigurationBuilder
     
     public ColorConfiguration Build()
     {
+        // SENIOR FEATURE: Use proper ColorConfiguration defaults instead of hardcoded colors
+        // CLEAN ARCHITECTURE: Delegate to the established ColorConfiguration system
+        var defaultConfig = ColorConfiguration.Light;
+
         return new ColorConfiguration
         {
-            GridLineColor = Microsoft.UI.Colors.LightGray,
-            HeaderBackgroundColor = Microsoft.UI.Colors.LightBlue,
-            ValidationErrorForegroundColor = Microsoft.UI.Colors.Red
+            GridLineColor = defaultConfig.GridLineColor,
+            HeaderBackgroundColor = defaultConfig.HeaderBackgroundColor,
+            ValidationErrorForegroundColor = defaultConfig.ValidationErrorForegroundColor,
+            // Include other important colors for completeness
+            BackgroundColor = defaultConfig.BackgroundColor,
+            ForegroundColor = defaultConfig.ForegroundColor,
+            BorderColor = defaultConfig.BorderColor,
+            ValidationErrorTextColor = defaultConfig.ValidationErrorTextColor,
+            ValidationErrorBorderColor = defaultConfig.ValidationErrorBorderColor,
+            ValidationErrorBackgroundColor = defaultConfig.ValidationErrorBackgroundColor
         };
     }
 }

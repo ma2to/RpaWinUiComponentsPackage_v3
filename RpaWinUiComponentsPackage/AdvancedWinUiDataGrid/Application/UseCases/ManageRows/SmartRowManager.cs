@@ -72,7 +72,7 @@ internal class SmartRowManager : IDisposable
         _validationManager = validationManager ?? throw new ArgumentNullException(nameof(validationManager));
         _options = options;
 
-        _logger?.LogDebug("🧠 SMART ROW: Smart row manager initialized");
+        _logger?.LogInformation("🧠 SMART ROW: Smart row manager initialized");
     }
 
     #endregion
@@ -110,7 +110,7 @@ internal class SmartRowManager : IDisposable
 
         try
         {
-            _logger?.LogDebug("🧠 SMART ROW: Adding row at index {Index}", insertIndex ?? _data.Count);
+            _logger?.LogInformation("🧠 SMART ROW: Adding row at index {Index}", insertIndex ?? _data.Count);
 
             // Validate input
             if (rowData == null)
@@ -203,7 +203,7 @@ internal class SmartRowManager : IDisposable
 
         try
         {
-            _logger?.LogDebug("🧠 SMART ROW: Attempting to delete row at index {Index}", rowIndex);
+            _logger?.LogInformation("🧠 SMART ROW: Attempting to delete row at index {Index}", rowIndex);
 
             // Validate index
             if (rowIndex < 0 || rowIndex >= _data.Count)
@@ -238,7 +238,7 @@ internal class SmartRowManager : IDisposable
 
                 if (!confirmed)
                 {
-                    _logger?.LogDebug("❌ SMART ROW: Row deletion cancelled by user");
+                    _logger?.LogInformation("❌ SMART ROW: Row deletion cancelled by user");
                     return Result<RowOperationResult>.Failure("Row deletion cancelled by user");
                 }
             }
@@ -338,7 +338,7 @@ internal class SmartRowManager : IDisposable
                 });
             }
 
-            _logger?.LogDebug("✅ SMART ROW: Row modified successfully at index {Index} with {ErrorCount} validation errors", 
+            _logger?.LogInformation("✅ SMART ROW: Row modified successfully at index {Index} with {ErrorCount} validation errors", 
                 rowIndex, validationErrors.Count);
 
             return Result<RowOperationResult>.Success(result);
@@ -365,7 +365,7 @@ internal class SmartRowManager : IDisposable
         {
             var emptyRow = CreateEmptyRow();
             _data.Add(emptyRow);
-            _logger?.LogDebug("🧠 SMART ROW: Added empty row to maintain minimum count");
+            _logger?.LogInformation("🧠 SMART ROW: Added empty row to maintain minimum count");
         }
     }
 
@@ -386,7 +386,7 @@ internal class SmartRowManager : IDisposable
         {
             var emptyRow = CreateEmptyRow();
             _data.Add(emptyRow);
-            _logger?.LogDebug("🧠 SMART ROW: Added empty last row per specification");
+            _logger?.LogInformation("🧠 SMART ROW: Added empty last row per specification");
         }
     }
 
@@ -470,7 +470,7 @@ internal class SmartRowManager : IDisposable
         try
         {
             _disposed = true;
-            _logger?.LogDebug("🗑️ SMART ROW: Smart row manager disposed");
+            _logger?.LogInformation("🗑️ SMART ROW: Smart row manager disposed");
         }
         catch (Exception ex)
         {

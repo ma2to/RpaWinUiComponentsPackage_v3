@@ -88,7 +88,10 @@ internal record ColorConfiguration
     
     /// <summary>Text color for validation error messages in UI</summary>
     public Color? ValidationErrorTextColor { get; init; }
-    
+
+    /// <summary>Border color for validation error cells</summary>
+    public Color? ValidationErrorBorderColor { get; init; }
+
     #endregion
 
     #region Special Column Colors
@@ -161,7 +164,8 @@ internal record ColorConfiguration
         ValidationSuccessForegroundColor = Colors.DarkGreen,
         ValidationSuccessColor = Colors.Green,
         ValidationErrorTextColor = Colors.Red,
-        
+        ValidationErrorBorderColor = Colors.Red,
+
         // Special column colors
         CheckBoxColor = Color.FromArgb(255, 51, 153, 255),
         DeleteButtonColor = Colors.Red,
@@ -207,7 +211,8 @@ internal record ColorConfiguration
         ValidationSuccessForegroundColor = Color.FromArgb(255, 128, 255, 128),
         ValidationSuccessColor = Color.FromArgb(255, 144, 238, 144),
         ValidationErrorTextColor = Color.FromArgb(255, 255, 99, 99),
-        
+        ValidationErrorBorderColor = Color.FromArgb(255, 255, 99, 99),
+
         // Special column colors
         CheckBoxColor = Color.FromArgb(255, 0, 120, 215),
         DeleteButtonColor = Color.FromArgb(255, 255, 128, 128),
@@ -253,7 +258,8 @@ internal record ColorConfiguration
         ValidationSuccessForegroundColor = Colors.White,
         ValidationSuccessColor = Colors.Green,
         ValidationErrorTextColor = Colors.Red,
-        
+        ValidationErrorBorderColor = Colors.Red,
+
         // Special column colors
         CheckBoxColor = Colors.Blue,
         DeleteButtonColor = Colors.Red,
@@ -313,7 +319,9 @@ internal record ColorConfiguration
             ValidationErrorColor = Colors.Red,
             ValidationWarningColor = Colors.Orange,
             ValidationSuccessColor = Colors.Green,
-            ValidationErrorTextColor = Colors.Red
+            ValidationErrorTextColor = Colors.Red,
+            ValidationErrorBorderColor = Colors.Red,
+            ValidationErrorBackgroundColor = Color.FromArgb(255, 255, 230, 230) // Light red background
         };
     }
     

@@ -36,7 +36,7 @@ internal class DataGridAutoRowHeightService : IDataGridAutoRowHeightService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _isEnabled = uiConfiguration.EnableAutoRowHeight;
         
-        _logger.LogDebug("DataGridAutoRowHeightService initialized with auto height {Status}", 
+        _logger.LogInformation("DataGridAutoRowHeightService initialized with auto height {Status}", 
             _isEnabled ? "enabled" : "disabled");
     }
 
@@ -183,7 +183,7 @@ internal class DataGridAutoRowHeightService : IDataGridAutoRowHeightService
         if (!_disposed)
         {
             _disposed = true;
-            _logger.LogDebug("DataGridAutoRowHeightService disposed");
+            _logger.LogInformation("DataGridAutoRowHeightService disposed");
         }
     }
 }

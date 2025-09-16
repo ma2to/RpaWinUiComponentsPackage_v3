@@ -162,7 +162,7 @@ internal sealed partial class DataGrid : IDisposable
         
         // NOMADIC: Side effects for logging
         return operationResult
-            .OnSuccess(success => _logger.LogDebug("DataGrid initialization pipeline completed successfully"))
+            .OnSuccess(success => _logger.LogInformation("DataGrid initialization pipeline completed successfully"))
             .OnFailure((error, ex) => _logger.LogError(ex, "💥 CORE: DataGrid initialization pipeline failed: {Error}", error));
     }
     
@@ -182,7 +182,7 @@ internal sealed partial class DataGrid : IDisposable
             SafeDispose(_dataGridService, "DataGridService");
             SafeDispose(_uiService, "UIService");
             
-            _logger?.LogDebug("🗑️ CORE: DataGrid disposed successfully");
+            _logger?.LogInformation("🗑️ CORE: DataGrid disposed successfully");
             _disposed = true;
         }
     }

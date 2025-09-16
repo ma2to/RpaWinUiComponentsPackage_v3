@@ -29,7 +29,7 @@ internal class AutoRowHeightHandlers
         _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         
-        _logger.LogDebug("AutoRowHeightHandlers initialized");
+        _logger.LogInformation("AutoRowHeightHandlers initialized");
     }
 
     /// <summary>
@@ -180,7 +180,7 @@ internal class AutoRowHeightHandlers
             // Refresh existing rows if requested
             if (command.RefreshExistingRows && command.Enabled)
             {
-                _logger.LogDebug("Refreshing existing rows after enabling auto row height");
+                _logger.LogInformation("Refreshing existing rows after enabling auto row height");
                 var refreshResult = await _uiService.RefreshAllRowHeightsAsync();
                 
                 if (!refreshResult.IsSuccess)

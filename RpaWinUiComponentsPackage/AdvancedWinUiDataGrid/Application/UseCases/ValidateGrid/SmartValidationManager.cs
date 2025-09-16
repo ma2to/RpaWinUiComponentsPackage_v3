@@ -48,7 +48,7 @@ internal class SmartValidationManager : IDisposable
         _globalValidators = new List<IValidationRule>();
         _globalConfiguration = globalConfiguration ?? ValidationConfiguration.CreateDefault();
         
-        _logger?.LogDebug("🔍 VALIDATION: Smart validation manager initialized");
+        _logger?.LogInformation("🔍 VALIDATION: Smart validation manager initialized");
     }
 
     #endregion
@@ -79,7 +79,7 @@ internal class SmartValidationManager : IDisposable
             _columnConfigurations[columnName] = configuration;
         }
 
-        _logger?.LogDebug("🔍 VALIDATION: Added validator for column '{Column}'", columnName);
+        _logger?.LogInformation("🔍 VALIDATION: Added validator for column '{Column}'", columnName);
     }
 
     /// <summary>
@@ -92,7 +92,7 @@ internal class SmartValidationManager : IDisposable
         if (validator == null) return;
 
         _globalValidators.Add(validator);
-        _logger?.LogDebug("🔍 VALIDATION: Added global validator");
+        _logger?.LogInformation("🔍 VALIDATION: Added global validator");
     }
 
     /// <summary>
@@ -103,7 +103,7 @@ internal class SmartValidationManager : IDisposable
     public void UpdateGlobalConfiguration(ValidationConfiguration configuration)
     {
         _globalConfiguration = configuration ?? ValidationConfiguration.CreateDefault();
-        _logger?.LogDebug("🔍 VALIDATION: Global configuration updated");
+        _logger?.LogInformation("🔍 VALIDATION: Global configuration updated");
     }
 
     #endregion
@@ -184,7 +184,7 @@ internal class SmartValidationManager : IDisposable
 
             if (errors.Count > 0)
             {
-                _logger?.LogDebug("🔍 VALIDATION: Cell validation failed - {ErrorCount} errors found for {Column}[{Row}]", 
+                _logger?.LogWarning("🔍 VALIDATION: Cell validation failed - {ErrorCount} errors found for {Column}[{Row}]", 
                     errors.Count, columnName, rowIndex);
             }
 
@@ -261,7 +261,7 @@ internal class SmartValidationManager : IDisposable
 
             if (errors.Count > 0)
             {
-                _logger?.LogDebug("🔍 VALIDATION: Row validation completed - {ErrorCount} errors found for row {Row}", 
+                _logger?.LogInformation("🔍 VALIDATION: Row validation completed - {ErrorCount} errors found for row {Row}", 
                     errors.Count, rowIndex);
             }
 
@@ -440,7 +440,7 @@ internal class SmartValidationManager : IDisposable
             if (IsRowEmpty(lastRow))
             {
                 rowsToValidate.RemoveAt(rowsToValidate.Count - 1);
-                _logger?.LogDebug("🔍 VALIDATION: Ignoring last empty row per specification");
+                _logger?.LogInformation("🔍 VALIDATION: Ignoring last empty row per specification");
             }
         }
 
@@ -486,7 +486,7 @@ internal class SmartValidationManager : IDisposable
             _columnConfigurations?.Clear();
             _globalValidators?.Clear();
             _disposed = true;
-            _logger?.LogDebug("🗑️ VALIDATION: Validation manager disposed");
+            _logger?.LogInformation("🗑️ VALIDATION: Validation manager disposed");
         }
         catch (Exception ex)
         {

@@ -56,7 +56,7 @@ internal sealed partial class DataGrid
                 
                 if (result.IsSuccess)
                 {
-                    _logger.LogDebug("✅ SEARCH: Found {TotalMatches} matches (returned {ReturnedMatches}) in {Duration}ms", 
+                    _logger.LogInformation("✅ SEARCH: Found {TotalMatches} matches (returned {ReturnedMatches}) in {Duration}ms", 
                         result.Value?.TotalMatches ?? 0, 
                         result.Value?.ReturnedMatches ?? 0,
                         result.Value?.SearchDuration.TotalMilliseconds ?? 0);
@@ -143,7 +143,7 @@ internal sealed partial class DataGrid
                 
                 if (result.IsSuccess)
                 {
-                    _logger.LogDebug("✅ SEARCH: Search results cleared successfully");
+                    _logger.LogInformation("✅ SEARCH: Search results cleared successfully");
                 }
                 else
                 {
@@ -183,7 +183,7 @@ internal sealed partial class DataGrid
                 
                 if (result.IsSuccess && result.Value != null)
                 {
-                    _logger.LogDebug("✅ SEARCH: Navigated to result {CurrentIndex} of {TotalMatches}", 
+                    _logger.LogInformation("✅ SEARCH: Navigated to result {CurrentIndex} of {TotalMatches}", 
                         result.Value.CurrentPosition + 1, result.Value.TotalResults);
                 }
                 else
@@ -222,7 +222,7 @@ internal sealed partial class DataGrid
                 
                 if (result.IsSuccess && result.Value != null)
                 {
-                    _logger.LogDebug("✅ SEARCH: Retrieved search statistics - Total searches: {TotalSearches}, Avg time: {AvgTime}ms", 
+                    _logger.LogInformation("✅ SEARCH: Retrieved search statistics - Total searches: {TotalSearches}, Avg time: {AvgTime}ms", 
                         result.Value.TotalSearches, result.Value.AverageSearchTime.TotalMilliseconds);
                 }
                 else

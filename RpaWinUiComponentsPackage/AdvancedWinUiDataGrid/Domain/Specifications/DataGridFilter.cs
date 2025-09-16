@@ -151,7 +151,7 @@ internal sealed partial class DataGrid
                 
                 if (result.IsSuccess)
                 {
-                    _logger.LogDebug("✅ FILTER: All filters cleared, showing all data");
+                    _logger.LogInformation("✅ FILTER: All filters cleared, showing all data");
 
                     // Refresh UI if available
                     if (_uiService != null)
@@ -197,7 +197,7 @@ internal sealed partial class DataGrid
                 
                 if (result.IsSuccess)
                 {
-                    _logger.LogDebug("✅ FILTER: Filter removed for column '{ColumnName}'", columnName);
+                    _logger.LogInformation("✅ FILTER: Filter removed for column '{ColumnName}'", columnName);
 
                     // Refresh UI if available
                     if (_uiService != null)
@@ -241,7 +241,7 @@ internal sealed partial class DataGrid
                 
                 if (result.IsSuccess && result.Value != null)
                 {
-                    _logger.LogDebug("✅ FILTER: Retrieved filter state - IsFiltered: {IsFiltered}, Active filters: {ActiveFilterCount}, Visible rows: {VisibleRows}", 
+                    _logger.LogInformation("✅ FILTER: Retrieved filter state - IsFiltered: {IsFiltered}, Active filters: {ActiveFilterCount}, Visible rows: {VisibleRows}", 
                         result.Value.IsFiltered, result.Value.ActiveFilters.Count, result.Value.VisibleRows);
                 }
                 else
@@ -287,7 +287,7 @@ internal sealed partial class DataGrid
                 
                 if (result.IsSuccess)
                 {
-                    _logger.LogDebug("✅ FILTER: Filter preset '{PresetName}' saved successfully", presetName);
+                    _logger.LogInformation("✅ FILTER: Filter preset '{PresetName}' saved successfully", presetName);
                 }
                 else
                 {
@@ -372,7 +372,7 @@ internal sealed partial class DataGrid
                 
                 if (result.IsSuccess && result.Value != null)
                 {
-                    _logger.LogDebug("✅ FILTER: Retrieved filter statistics - Total filters: {TotalFilters}, Avg time: {AvgTime}ms, Avg efficiency: {AvgEfficiency:P1}", 
+                    _logger.LogInformation("✅ FILTER: Retrieved filter statistics - Total filters: {TotalFilters}, Avg time: {AvgTime}ms, Avg efficiency: {AvgEfficiency:P1}", 
                         result.Value.TotalFilters, result.Value.AverageFilterTime.TotalMilliseconds, result.Value.AverageFilterEfficiency / 100);
                 }
                 else

@@ -7,6 +7,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
+using Windows.UI;
+using Microsoft.UI;
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.Entities;
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.UI.Components;
 using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
@@ -59,7 +61,7 @@ internal sealed class DataGridUIManager : IDisposable
         // NOMADIC PATTERN: Use Result<T>.Try for automatic exception handling
         var result = await Task.FromResult(Result<bool>.Try(() =>
         {
-            _logger?.LogDebug("Updating {ColumnCount} columns", columns.Count);
+            _logger?.LogInformation("Updating {ColumnCount} columns", columns.Count);
             _colorConfiguration = colorConfiguration;
             
             _component.DispatcherQueue.TryEnqueue(() =>
@@ -69,13 +71,13 @@ internal sealed class DataGridUIManager : IDisposable
                 CreateListViewTemplate(columns.Where(c => c.IsVisible).ToList());
             });
             
-            _logger?.LogDebug("Successfully updated columns");
+            _logger?.LogInformation("Successfully updated columns");
             return true;
         }));
         
         // NOMADIC: Side effects for logging
         return result
-            .OnSuccess(_ => _logger?.LogDebug("Column update pipeline completed successfully"))
+            .OnSuccess(_ => _logger?.LogInformation("Column update pipeline completed successfully"))
             .OnFailure((error, ex) => _logger?.LogError(ex, "Failed to update columns: {Error}", error));
     }
     
@@ -85,7 +87,7 @@ internal sealed class DataGridUIManager : IDisposable
         {
             // For ListView, we would create a custom DataTemplate
             // This is simplified placeholder for actual template creation
-            _logger?.LogDebug("Creating ListView template for {ColumnCount} columns", columns.Count);
+            _logger?.LogInformation("Creating ListView template for {ColumnCount} columns", columns.Count);
             
             // In a real implementation, this would create a DataTemplate
             // with appropriate controls based on column types
@@ -106,7 +108,7 @@ internal sealed class DataGridUIManager : IDisposable
         // NOMADIC PATTERN: Use Result<T>.Try for automatic exception handling
         var result = await Task.FromResult(Result<bool>.Try(() =>
         {
-            _logger?.LogDebug("Updating UI with {RowCount} rows", rows.Count);
+            _logger?.LogInformation("Updating UI with {RowCount} rows", rows.Count);
             
             _component.DispatcherQueue.TryEnqueue(() =>
             {
@@ -114,13 +116,13 @@ internal sealed class DataGridUIManager : IDisposable
                 _dataView.ItemsSource = dataSource;
             });
             
-            _logger?.LogDebug("Successfully updated data");
+            _logger?.LogInformation("Successfully updated data");
             return true;
         }));
         
         // NOMADIC: Side effects for logging
         return result
-            .OnSuccess(_ => _logger?.LogDebug("Data update pipeline completed successfully"))
+            .OnSuccess(_ => _logger?.LogInformation("Data update pipeline completed successfully"))
             .OnFailure((error, ex) => _logger?.LogError(ex, "Failed to update data: {Error}", error));
     }
     
@@ -214,7 +216,7 @@ internal sealed class DataGridUIManager : IDisposable
         {
             // Apply styling to ListView based on color configuration
             // This would set background colors, foreground colors, etc.
-            _logger?.LogDebug("Applying ListView styling");
+            _logger?.LogInformation("Applying ListView styling");
         }
         catch (Exception ex)
         {
@@ -232,9 +234,33 @@ internal sealed class DataGridUIManager : IDisposable
     private Style CreateValidationErrorStyle()
     {
         var style = new Style(typeof(TextBlock));
-        var errorColor = _colorConfiguration?.ValidationErrorTextColor ?? Microsoft.UI.Colors.Red;
+
+        // SENIOR FEATURE: Color fallback with comprehensive logging
+        var errorColor = GetColorWithFallback(
+            _colorConfiguration?.ValidationErrorTextColor,
+            Colors.Red,
+            "ValidationErrorTextColor");
+
         style.Setters.Add(new Setter(TextBlock.ForegroundProperty, new SolidColorBrush(errorColor)));
         return style;
+    }
+
+    /// <summary>
+    /// SENIOR HELPER: Get color with fallback and comprehensive logging for UIManager
+    /// CLEAN ARCHITECTURE: Consistent color fallback behavior across all UI components
+    /// </summary>
+    private Color GetColorWithFallback(Color? configColor, Color fallbackColor, string colorName)
+    {
+        if (configColor.HasValue)
+        {
+            _logger?.LogInformation("[COLOR-FALLBACK-UI] Using configured color for {ColorName}: {Color}", colorName, configColor.Value);
+            return configColor.Value;
+        }
+        else
+        {
+            _logger?.LogWarning("[COLOR-FALLBACK-UI] No configured color for {ColorName}, using fallback: {FallbackColor}", colorName, fallbackColor);
+            return fallbackColor;
+        }
     }
     
     #endregion
@@ -302,11 +328,43 @@ internal class DataGridRowViewModel
     public IReadOnlyDictionary<string, object?> Data => GridRow.Data;
     public bool IsSelected => GridRow.IsSelected;
     public bool IsValid => GridRow.IsValid;
-    
-    public string ValidationErrorsText => GridRow.ValidationErrors?.Any() == true 
+
+    // Data properties for binding to XAML
+    public object? ID => Data.TryGetValue("ID", out var id) ? id : Data.TryGetValue("Id", out var idAlt) ? idAlt : Index;
+    public object? Name => Data.TryGetValue("Name", out var name) ? name : string.Empty;
+    public object? Email => Data.TryGetValue("Email", out var email) ? email : string.Empty;
+    public object? Status => Data.TryGetValue("Status", out var status) ? status : string.Empty;
+
+    public string ValidationErrorsText => GridRow.ValidationErrors?.Any() == true
         ? string.Join("; ", GridRow.ValidationErrors)
         : string.Empty;
-    
+
+    /// <summary>
+    /// ValidationAlerts property with formatted validation messages
+    /// Format: "ColumnName: custom validation message; ColumnName: custom validation message; ..."
+    /// </summary>
+    public string ValidationAlerts
+    {
+        get
+        {
+            if (GridRow.ValidationErrorObjects?.Any() != true)
+                return string.Empty;
+
+            var formattedErrors = new List<string>();
+
+            foreach (var error in GridRow.ValidationErrorObjects)
+            {
+                // Extract column name and message from ValidationError
+                var columnName = error.ColumnName ?? error.Property ?? "Unknown";
+                var message = error.ErrorMessage ?? error.Message ?? "Validation error";
+
+                formattedErrors.Add($"{columnName}: {message}");
+            }
+
+            return string.Join("; ", formattedErrors);
+        }
+    }
+
     public DataGridRowViewModel(GridRow gridRow)
     {
         GridRow = gridRow ?? throw new ArgumentNullException(nameof(gridRow));

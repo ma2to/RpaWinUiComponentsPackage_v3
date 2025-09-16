@@ -48,7 +48,7 @@ internal sealed class RowHeightCalculationService : IRowHeightCalculationService
         _statistics = new HeightCalculationStatistics();
         _totalTimeStopwatch = new Stopwatch();
         
-        _logger?.LogDebug("RowHeightCalculationService initialized");
+        _logger?.LogInformation("RowHeightCalculationService initialized");
     }
 
     #endregion
@@ -382,7 +382,7 @@ internal sealed class RowHeightCalculationService : IRowHeightCalculationService
         _measurementTextBlocks.Clear();
         _totalTimeStopwatch?.Stop();
 
-        _logger?.LogDebug("RowHeightCalculationService disposed");
+        _logger?.LogInformation("RowHeightCalculationService disposed");
     }
 
     #endregion

@@ -24,7 +24,7 @@ internal class DataGridSortService : IDataGridSortService
     public DataGridSortService(ILogger? logger = null)
     {
         _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
-        _logger.LogDebug("DataGridSortService initialized");
+        _logger.LogInformation("DataGridSortService initialized");
     }
 
     public async Task<Result<SortResult>> SortAsync(
@@ -148,7 +148,7 @@ internal class DataGridSortService : IDataGridSortService
         try
         {
             _activeSorts.Clear();
-            _logger.LogDebug("All sorts cleared");
+            _logger.LogInformation("All sorts cleared");
             return await Task.FromResult(Result<bool>.Success(true));
         }
         catch (Exception ex)
@@ -274,7 +274,7 @@ internal class DataGridSortService : IDataGridSortService
         {
             _activeSorts.Clear();
             _disposed = true;
-            _logger.LogDebug("DataGridSortService disposed");
+            _logger.LogInformation("DataGridSortService disposed");
         }
     }
 }

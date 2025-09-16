@@ -102,7 +102,12 @@ internal interface IDataGridService : IDisposable
 
     int GetRowCount();
     int GetColumnCount();
-    
+
+    /// <summary>
+    /// Get current grid state
+    /// </summary>
+    GridState? CurrentState { get; }
+
     /// <summary>
     /// Get column name by index
     /// </summary>

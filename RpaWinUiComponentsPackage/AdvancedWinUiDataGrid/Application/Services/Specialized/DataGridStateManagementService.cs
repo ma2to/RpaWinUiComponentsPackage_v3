@@ -170,7 +170,7 @@ internal sealed class DataGridStateManagementService : IDataGridStateManagementS
 
         try
         {
-            _logger?.LogDebug("Creating state snapshot: {Description}", description ?? "Unnamed");
+            _logger?.LogInformation("Creating state snapshot: {Description}", description ?? "Unnamed");
 
             // 1. STATE CLONING: Create deep copy of current state
             var snapshot = CreateStateSnapshot(_currentState, description);
@@ -178,7 +178,7 @@ internal sealed class DataGridStateManagementService : IDataGridStateManagementS
             // 2. HISTORY MANAGEMENT: Add to history and manage size
             AddSnapshotToHistory(snapshot);
 
-            _logger?.LogDebug("State snapshot created successfully. History size: {HistorySize}", _stateHistory.Count);
+            _logger?.LogInformation("State snapshot created successfully. History size: {HistorySize}", _stateHistory.Count);
             return Result<bool>.Success(true);
         }
         catch (Exception ex)
@@ -373,7 +373,7 @@ internal sealed class DataGridStateManagementService : IDataGridStateManagementS
 
         try
         {
-            _logger?.LogDebug("Validating state consistency");
+            _logger?.LogInformation("Validating state consistency");
 
             // 1. ROW CONSISTENCY: Check row indices
             for (int i = 0; i < _currentState.Rows.Count; i++)
@@ -414,13 +414,66 @@ internal sealed class DataGridStateManagementService : IDataGridStateManagementS
                 }
             }
 
-            _logger?.LogDebug("State consistency validation passed");
+            _logger?.LogInformation("State consistency validation passed");
             return Result<bool>.Success(true);
         }
         catch (Exception ex)
         {
             _logger?.LogError(ex, "State consistency validation failed");
             return Result<bool>.Failure($"State validation failed: {ex.Message}");
+        }
+    }
+
+    #endregion
+
+    #region State Query Methods
+
+    /// <summary>
+    /// QUERY: Get current grid state
+    /// </summary>
+    public async Task<Result<GridState>> GetCurrentStateAsync()
+    {
+        try
+        {
+            if (_currentState == null)
+            {
+                return Result<GridState>.Failure("Grid not initialized - no current state available");
+            }
+
+            await Task.CompletedTask;
+            return Result<GridState>.Success(_currentState);
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = $"Get current state failed: {ex.Message}";
+            _logger?.LogError(ex, errorMessage);
+            return Result<GridState>.Failure(errorMessage, ex);
+        }
+    }
+
+    /// <summary>
+    /// STATE: Update current grid state
+    /// </summary>
+    public async Task<Result<bool>> UpdateStateAsync(GridState newState)
+    {
+        try
+        {
+            if (newState == null)
+            {
+                return Result<bool>.Failure("Cannot update with null state");
+            }
+
+            _currentState = newState;
+            await Task.CompletedTask;
+
+            _logger?.LogInformation("Grid state updated successfully");
+            return Result<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = $"Update state failed: {ex.Message}";
+            _logger?.LogError(ex, errorMessage);
+            return Result<bool>.Failure(errorMessage, ex);
         }
     }
 
@@ -482,7 +535,7 @@ internal sealed class DataGridStateManagementService : IDataGridStateManagementS
 
         // Update state metadata
         state.UpdateState();
-        _logger?.LogDebug("Configuration applied to grid state");
+        _logger?.LogInformation("Configuration applied to grid state");
     }
 
     private void ApplyConfigurationToState(GridState state, DataGridConfiguration newConfiguration)
@@ -492,7 +545,7 @@ internal sealed class DataGridStateManagementService : IDataGridStateManagementS
         
         // Update state metadata  
         state.UpdateState();
-        _logger?.LogDebug("New configuration applied to existing grid state");
+        _logger?.LogInformation("New configuration applied to existing grid state");
     }
 
     #region State Snapshot Methods
@@ -596,7 +649,7 @@ internal sealed class DataGridStateManagementService : IDataGridStateManagementS
         _operationStopwatch?.Stop();
         _currentState = null;
         
-        _logger?.LogDebug("DataGridStateManagementService disposed");
+        _logger?.LogInformation("DataGridStateManagementService disposed");
     }
 
     #endregion
@@ -619,6 +672,10 @@ internal interface IDataGridStateManagementService : IDisposable
     
     // State snapshots
     Task<Result<bool>> CreateStateSnapshotAsync(string? description = null);
+
+    // State queries
+    Task<Result<GridState>> GetCurrentStateAsync();
+    Task<Result<bool>> UpdateStateAsync(GridState newState);
     Task<Result<bool>> UndoAsync();
     Task<Result<bool>> RedoAsync();
     

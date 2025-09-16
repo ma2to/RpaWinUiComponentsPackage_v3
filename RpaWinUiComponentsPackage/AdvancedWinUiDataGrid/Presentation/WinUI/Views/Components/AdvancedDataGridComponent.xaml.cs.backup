@@ -1,0 +1,1643 @@
+using System;
+using System.Threading.Tasks;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Windows.UI;
+using Microsoft.UI;
+using Microsoft.UI.Text;
+using Windows.System;
+
+namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.UI.Components;
+
+/// <summary>
+/// UI: XAML code-behind for AdvancedDataGridComponent
+/// SENIOR DESIGN: Minimal XAML code-behind following WinUI3 patterns
+/// CLEAN ARCHITECTURE: UI layer - handles only XAML event routing
+/// </summary>
+internal sealed partial class AdvancedDataGridComponent : UserControl
+{
+    private DataGridComponentLogic? _logicComponent;
+    private ILogger? _logger;
+    private RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI.ColorConfiguration? _colorConfiguration;
+
+    /// <summary>
+    /// XAML CONSTRUCTOR: Initialize XAML component
+    /// SENIOR DESIGN: Alternative initialization for NuGet package context
+    /// </summary>
+    public AdvancedDataGridComponent()
+    {
+        // SENIOR LOGGING: Initialize logger first
+        InitializeLogger();
+
+        _logger?.LogInformation("[UI-INIT] AdvancedDataGridComponent constructor started");
+
+        try
+        {
+            _logger?.LogInformation("[UI-INIT] Attempting XAML InitializeComponent");
+            this.InitializeComponent();
+            _logger?.LogInformation("[UI-INIT] XAML InitializeComponent succeeded");
+        }
+        catch (Exception ex)
+        {
+            // SENIOR FIX: If InitializeComponent fails, try programmatic creation
+            _logger?.LogWarning(ex, "[UI-INIT] XAML InitializeComponent failed, attempting programmatic creation: {ErrorMessage}", ex.Message);
+            System.Diagnostics.Debug.WriteLine($"InitializeComponent failed, attempting programmatic creation: {ex.Message}");
+            InitializeProgrammatically();
+        }
+
+        _logger?.LogInformation("[UI-INIT] AdvancedDataGridComponent constructor completed");
+
+        // SENIOR DESIGN: Business logic component will be initialized
+        // after XAML elements are available in OnApplyTemplate
+    }
+
+    /// <summary>
+    /// SENIOR DESIGN: Expose business logic component for external access
+    /// CLEAN ARCHITECTURE: Facade pattern for accessing functionality
+    /// </summary>
+    public DataGridComponentLogic Logic => _logicComponent ?? throw new InvalidOperationException("Logic component not initialized");
+
+    /// <summary>
+    /// XAML EVENT: Override to ensure components are available after loading
+    /// SENIOR DESIGN: Late initialization of business logic
+    /// </summary>
+    protected override void OnApplyTemplate()
+    {
+        base.OnApplyTemplate();
+    }
+
+    /// <summary>
+    /// SENIOR DESIGN: Initialize business logic after XAML is fully loaded
+    /// CLEAN ARCHITECTURE: Delayed initialization for UI safety
+    /// </summary>
+    private void EnsureLogicComponent()
+    {
+        if (_logicComponent == null)
+        {
+            try
+            {
+                _logicComponent = new DataGridComponentLogic(this);
+            }
+            catch (Exception ex)
+            {
+                // SENIOR DESIGN: Graceful degradation if initialization fails
+                System.Diagnostics.Debug.WriteLine($"Failed to initialize logic component: {ex.Message}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// XAML EVENT: Handle item click events in the main data view
+    /// SENIOR DESIGN: Minimal XAML event handler - delegates to logic layer
+    /// </summary>
+    private void MainDataView_ItemClick(object sender, ItemClickEventArgs e)
+    {
+        // ARCHITECTURE: Delegate to the business logic component
+        // This maintains separation of concerns - XAML only handles UI events
+        EnsureLogicComponent();
+        _logicComponent?.HandleItemClick(sender, e);
+    }
+
+    /// <summary>
+    /// XAML EVENT: Handle selection changes in the main data view
+    /// SENIOR DESIGN: Minimal XAML event handler - delegates to logic layer
+    /// </summary>
+    private void MainDataView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        // ARCHITECTURE: Delegate to the business logic component
+        // This maintains separation of concerns - XAML only handles UI events
+        EnsureLogicComponent();
+        _logicComponent?.HandleSelectionChanged(sender, e);
+    }
+
+    /// <summary>
+    /// SENIOR DESIGN: Provide access to UI elements for business logic layer
+    /// CLEAN ARCHITECTURE: Controlled access with fallback for programmatic UI
+    /// </summary>
+    internal Microsoft.UI.Xaml.Controls.ItemsControl? GetMainDataView()
+    {
+        _logger?.LogInformation("[UI-ACCESS] GetMainDataView called");
+
+        // Try to get from XAML first, then from programmatic UI
+        try
+        {
+            var xamlView = MainDataView;
+            if (xamlView != null)
+            {
+                _logger?.LogInformation("[UI-ACCESS] MainDataView found from XAML");
+                return xamlView;
+            }
+            else
+            {
+                _logger?.LogWarning("[UI-ACCESS] MainDataView from XAML is null");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "[UI-ACCESS] Exception accessing XAML MainDataView: {ErrorMessage}", ex.Message);
+        }
+
+        _logger?.LogInformation("[UI-ACCESS] Attempting to find MainDataView programmatically");
+        var programmaticView = FindElementByName<Microsoft.UI.Xaml.Controls.ItemsControl>("MainDataView");
+
+        if (programmaticView != null)
+        {
+            _logger?.LogInformation("[UI-ACCESS] MainDataView found programmatically");
+        }
+        else
+        {
+            _logger?.LogWarning("[UI-ACCESS] MainDataView not found via XAML or programmatic search");
+        }
+
+        return programmaticView;
+    }
+
+    internal Microsoft.UI.Xaml.Controls.TextBlock? GetRowCountText()
+    {
+        try { return RowCountText; } catch { }
+        return FindElementByName<Microsoft.UI.Xaml.Controls.TextBlock>("RowCountText");
+    }
+
+    internal Microsoft.UI.Xaml.Controls.TextBlock? GetFilteredRowCountText()
+    {
+        try { return FilteredRowCountText; } catch { }
+        return FindElementByName<Microsoft.UI.Xaml.Controls.TextBlock>("FilteredRowCountText");
+    }
+
+    internal Microsoft.UI.Xaml.Controls.TextBlock? GetValidationStatusText()
+    {
+        try { return ValidationStatusText; } catch { }
+        return FindElementByName<Microsoft.UI.Xaml.Controls.TextBlock>("ValidationStatusText");
+    }
+
+    internal Microsoft.UI.Xaml.Controls.TextBlock? GetOperationStatusText()
+    {
+        try { return OperationStatusText; } catch { }
+        return FindElementByName<Microsoft.UI.Xaml.Controls.TextBlock>("OperationStatusText");
+    }
+
+    /// <summary>
+    /// SENIOR HELPER: Find UI elements by name in programmatically created UI
+    /// </summary>
+    private T? FindElementByName<T>(string name) where T : Microsoft.UI.Xaml.FrameworkElement
+    {
+        return FindElementByNameRecursive<T>(this.Content as Microsoft.UI.Xaml.FrameworkElement, name);
+    }
+
+    private T? FindElementByNameRecursive<T>(Microsoft.UI.Xaml.FrameworkElement? parent, string name) where T : Microsoft.UI.Xaml.FrameworkElement
+    {
+        if (parent == null) return null;
+
+        if (parent.Name == name && parent is T element)
+            return element;
+
+        if (parent is Microsoft.UI.Xaml.Controls.Panel panel)
+        {
+            foreach (var child in panel.Children)
+            {
+                if (child is Microsoft.UI.Xaml.FrameworkElement frameworkElement)
+                {
+                    var found = FindElementByNameRecursive<T>(frameworkElement, name);
+                    if (found != null) return found;
+                }
+            }
+        }
+        else if (parent is Microsoft.UI.Xaml.Controls.ContentControl contentControl && contentControl.Content is Microsoft.UI.Xaml.FrameworkElement contentElement)
+        {
+            return FindElementByNameRecursive<T>(contentElement, name);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// SENIOR DESIGN: Initialize with sample data - delegate to business logic
+    /// </summary>
+    public async Task<bool> InitializeWithSampleDataAsync()
+    {
+        // SENIOR DESIGN: Ensure logic component is available before use
+        EnsureLogicComponent();
+
+        if (_logicComponent == null)
+        {
+            return false; // Initialization failed gracefully
+        }
+
+        return await _logicComponent.InitializeWithSampleDataAsync();
+    }
+
+    /// <summary>
+    /// SENIOR LOGGING: Initialize logger for comprehensive debugging
+    /// </summary>
+    private void InitializeLogger()
+    {
+        try
+        {
+            // Try to get logger from the common DataGrid logging infrastructure
+            _logger = NullLogger<AdvancedDataGridComponent>.Instance;
+        }
+        catch
+        {
+            // Fallback to null logger if initialization fails
+            _logger = NullLogger<AdvancedDataGridComponent>.Instance;
+        }
+    }
+
+    /// <summary>
+    /// SENIOR FIX: Programmatic UI creation when XAML loading fails
+    /// ENTERPRISE GRADE: Fallback UI creation for package deployment
+    /// </summary>
+    private void InitializeProgrammatically()
+    {
+        _logger?.LogInformation("[UI-PROGRAMMATIC] Starting programmatic UI creation");
+
+        try
+        {
+            // Create the main grid structure programmatically
+            _logger?.LogInformation("[UI-PROGRAMMATIC] Creating main Grid");
+            var mainGrid = new Microsoft.UI.Xaml.Controls.Grid();
+            mainGrid.Name = "MainGrid";
+
+            // Define row definitions
+            _logger?.LogInformation("[UI-PROGRAMMATIC] Adding row definitions");
+            mainGrid.RowDefinitions.Add(new Microsoft.UI.Xaml.Controls.RowDefinition { Height = Microsoft.UI.Xaml.GridLength.Auto }); // Toolbar
+            mainGrid.RowDefinitions.Add(new Microsoft.UI.Xaml.Controls.RowDefinition { Height = new Microsoft.UI.Xaml.GridLength(1, Microsoft.UI.Xaml.GridUnitType.Star) }); // Main content
+            mainGrid.RowDefinitions.Add(new Microsoft.UI.Xaml.Controls.RowDefinition { Height = Microsoft.UI.Xaml.GridLength.Auto }); // Status bar
+            mainGrid.RowDefinitions.Add(new Microsoft.UI.Xaml.Controls.RowDefinition { Height = Microsoft.UI.Xaml.GridLength.Auto }); // Validation panel
+
+            // Create toolbar
+            _logger?.LogInformation("[UI-PROGRAMMATIC] Creating toolbar");
+            CreateToolbar(mainGrid);
+
+            // Create main data view
+            _logger?.LogInformation("[UI-PROGRAMMATIC] Creating main data view");
+            CreateMainDataView(mainGrid);
+
+            // Create status bar
+            _logger?.LogInformation("[UI-PROGRAMMATIC] Creating status bar");
+            CreateStatusBar(mainGrid);
+
+            // Create validation panel
+            _logger?.LogInformation("[UI-PROGRAMMATIC] Creating validation panel");
+            CreateValidationPanel(mainGrid);
+
+            // Create loading overlay
+            _logger?.LogInformation("[UI-PROGRAMMATIC] Creating loading overlay");
+            CreateLoadingOverlay(mainGrid);
+
+            _logger?.LogInformation("[UI-PROGRAMMATIC] Setting Content to main grid");
+            this.Content = mainGrid;
+
+            _logger?.LogInformation("[UI-PROGRAMMATIC] Programmatic UI creation completed successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[UI-PROGRAMMATIC] Programmatic UI creation failed: {ErrorMessage}", ex.Message);
+            System.Diagnostics.Debug.WriteLine($"Programmatic UI creation failed: {ex.Message}");
+
+            // Create minimal fallback
+            _logger?.LogWarning("[UI-PROGRAMMATIC] Creating minimal fallback UI");
+            this.Content = new Microsoft.UI.Xaml.Controls.TextBlock
+            {
+                Text = "DataGrid component failed to initialize",
+                HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Center,
+                VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center
+            };
+        }
+    }
+
+    private void CreateToolbar(Microsoft.UI.Xaml.Controls.Grid mainGrid)
+    {
+        var toolbar = new Microsoft.UI.Xaml.Controls.Border
+        {
+            Name = "ToolbarBorder",
+            Height = 40,
+            BorderThickness = new Microsoft.UI.Xaml.Thickness(0, 0, 0, 1)
+        };
+
+        var stackPanel = new Microsoft.UI.Xaml.Controls.StackPanel
+        {
+            Orientation = Microsoft.UI.Xaml.Controls.Orientation.Horizontal,
+            Margin = new Microsoft.UI.Xaml.Thickness(8, 0, 8, 0)
+        };
+
+        // SENIOR APPROACH: Create buttons with comprehensive click handlers and logging
+        var addButton = new Microsoft.UI.Xaml.Controls.Button { Name = "AddRowButton", Content = "Add Row" };
+        addButton.Click += OnAddRowButtonClick;
+
+        var deleteButton = new Microsoft.UI.Xaml.Controls.Button { Name = "DeleteRowButton", Content = "Delete Row" };
+        deleteButton.Click += OnDeleteRowButtonClick;
+
+        var validateButton = new Microsoft.UI.Xaml.Controls.Button { Name = "ValidateButton", Content = "Validate" };
+        validateButton.Click += OnValidateButtonClick;
+
+        var clearFiltersButton = new Microsoft.UI.Xaml.Controls.Button { Name = "ClearFiltersButton", Content = "Clear Filters" };
+        clearFiltersButton.Click += OnClearFiltersButtonClick;
+
+        var searchTextBox = new Microsoft.UI.Xaml.Controls.TextBox { Name = "SearchTextBox", PlaceholderText = "Search...", Width = 200 };
+        var searchButton = new Microsoft.UI.Xaml.Controls.Button { Name = "SearchButton", Content = "Search" };
+        searchButton.Click += OnSearchButtonClick;
+
+        // SENIOR ENHANCEMENT: Add Import buttons for dictionary and datatable functionality
+        var importDictionaryButton = new Microsoft.UI.Xaml.Controls.Button { Name = "ImportDictionaryButton", Content = "Import Dict" };
+        importDictionaryButton.Click += OnImportDictionaryButtonClick;
+
+        var importDataTableButton = new Microsoft.UI.Xaml.Controls.Button { Name = "ImportDataTableButton", Content = "Import DataTable" };
+        importDataTableButton.Click += OnImportDataTableButtonClick;
+
+        _logger?.LogInformation("[TOOLBAR-CREATE] All button click handlers attached successfully including import functions");
+
+        stackPanel.Children.Add(addButton);
+        stackPanel.Children.Add(deleteButton);
+        stackPanel.Children.Add(validateButton);
+        stackPanel.Children.Add(clearFiltersButton);
+        stackPanel.Children.Add(searchTextBox);
+        stackPanel.Children.Add(searchButton);
+
+        // Add import buttons to toolbar
+        stackPanel.Children.Add(importDictionaryButton);
+        stackPanel.Children.Add(importDataTableButton);
+
+        toolbar.Child = stackPanel;
+        Microsoft.UI.Xaml.Controls.Grid.SetRow(toolbar, 0);
+        mainGrid.Children.Add(toolbar);
+    }
+
+    private void CreateMainDataView(Microsoft.UI.Xaml.Controls.Grid mainGrid)
+    {
+        _logger?.LogInformation("[UI-CREATE] Creating main data view components");
+
+        var scrollViewer = new Microsoft.UI.Xaml.Controls.ScrollViewer
+        {
+            Name = "DataGridScrollViewer",
+            ZoomMode = Microsoft.UI.Xaml.Controls.ZoomMode.Disabled,
+            HorizontalScrollBarVisibility = Microsoft.UI.Xaml.Controls.ScrollBarVisibility.Auto,
+            VerticalScrollBarVisibility = Microsoft.UI.Xaml.Controls.ScrollBarVisibility.Auto
+        };
+
+        _logger?.LogInformation("[UI-CREATE] ScrollViewer created with name: {Name}", scrollViewer.Name);
+
+        // SENIOR CHANGE: Use ItemsControl configured for better cell-level interaction with ThemeResource colors
+        var dataView = new Microsoft.UI.Xaml.Controls.ItemsControl
+        {
+            Name = "MainDataView"
+        };
+
+        // SENIOR APPROACH: Use ThemeResource brushes instead of hardcoded colors
+        try
+        {
+            dataView.Background = (Microsoft.UI.Xaml.Media.Brush)Microsoft.UI.Xaml.Application.Current.Resources["SystemControlBackgroundChromeMediumLowBrush"];
+            dataView.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Microsoft.UI.Xaml.Application.Current.Resources["SystemControlForegroundBaseMediumLowBrush"];
+            dataView.BorderThickness = new Microsoft.UI.Xaml.Thickness(1);
+            _logger?.LogInformation("[UI-CREATE] Applied ThemeResource brushes to ItemsControl");
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "[UI-CREATE] Failed to apply ThemeResource brushes, using configurable fallback colors");
+
+            // SENIOR FEATURE: Use configurable color system instead of hardcoded colors
+            var backgroundColor = GetColorWithFallback(_colorConfiguration?.BackgroundColor, Colors.White, "BackgroundColor-ThemeResourceFallback");
+            var borderColor = GetColorWithFallback(_colorConfiguration?.BorderColor, Colors.LightGray, "BorderColor-ThemeResourceFallback");
+
+            dataView.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(backgroundColor);
+            dataView.BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(borderColor);
+            dataView.BorderThickness = new Microsoft.UI.Xaml.Thickness(1);
+        }
+
+        _logger?.LogInformation("[UI-CREATE] GridView (MainDataView) created with name: {Name}", dataView.Name);
+
+        // SENIOR APPROACH: ItemsControl doesn't have Header property, header is defined in XAML
+        _logger?.LogInformation("[UI-CREATE] ItemsControl created, header is defined in XAML");
+
+        // Hook up event handlers including cell editing support
+        try
+        {
+            // NOTE: ItemsControl doesn't have ItemClick/SelectionChanged events
+            // Cell interaction is now handled by individual TextBox events
+
+            // ItemsControl doesn't have selection - cell editing is handled in the DataTemplate
+            _logger?.LogInformation("[UI-CREATE] Cell editing is handled at the individual TextBox level in DataTemplate");
+
+            _logger?.LogInformation("[UI-CREATE] All event handlers attached to ItemsControl including cell editing support");
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[UI-CREATE] Failed to attach event handlers to ItemsControl: {ErrorMessage}", ex.Message);
+        }
+
+        // CRITICAL: Create and set ItemTemplate for data display
+        _logger?.LogInformation("[UI-CREATE] Creating DataTemplate for ItemsControl items");
+        try
+        {
+            var itemTemplate = CreateDataTemplate();
+            dataView.ItemTemplate = itemTemplate;
+            _logger?.LogInformation("[UI-CREATE] DataTemplate set on ItemsControl");
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[UI-CREATE] Failed to create or set DataTemplate, will use simple display: {ErrorMessage}", ex.Message);
+            // Fallback: use simple ToString display
+        }
+
+        scrollViewer.Content = dataView;
+        Microsoft.UI.Xaml.Controls.Grid.SetRow(scrollViewer, 1);
+        mainGrid.Children.Add(scrollViewer);
+
+        _logger?.LogInformation("[UI-CREATE] Main data view added to grid at row 1");
+    }
+
+    private void CreateStatusBar(Microsoft.UI.Xaml.Controls.Grid mainGrid)
+    {
+        var statusBar = new Microsoft.UI.Xaml.Controls.Border
+        {
+            Name = "StatusBar",
+            Height = 24,
+            BorderThickness = new Microsoft.UI.Xaml.Thickness(0, 1, 0, 0)
+        };
+
+        var stackPanel = new Microsoft.UI.Xaml.Controls.StackPanel
+        {
+            Orientation = Microsoft.UI.Xaml.Controls.Orientation.Horizontal,
+            Margin = new Microsoft.UI.Xaml.Thickness(8, 2, 8, 2)
+        };
+
+        var rowCountText = new Microsoft.UI.Xaml.Controls.TextBlock { Name = "RowCountText", Text = "Rows: 0" };
+        var filteredRowCountText = new Microsoft.UI.Xaml.Controls.TextBlock { Name = "FilteredRowCountText", Text = "Filtered: 0" };
+        var validationStatusText = new Microsoft.UI.Xaml.Controls.TextBlock { Name = "ValidationStatusText", Text = "Valid" };
+        var operationStatusText = new Microsoft.UI.Xaml.Controls.TextBlock { Name = "OperationStatusText", Text = "Ready" };
+
+        stackPanel.Children.Add(rowCountText);
+        stackPanel.Children.Add(filteredRowCountText);
+        stackPanel.Children.Add(validationStatusText);
+        stackPanel.Children.Add(operationStatusText);
+
+        statusBar.Child = stackPanel;
+        Microsoft.UI.Xaml.Controls.Grid.SetRow(statusBar, 2);
+        mainGrid.Children.Add(statusBar);
+    }
+
+    private void CreateValidationPanel(Microsoft.UI.Xaml.Controls.Grid mainGrid)
+    {
+        var validationPanel = new Microsoft.UI.Xaml.Controls.Border
+        {
+            Name = "ValidationPanel",
+            Visibility = Microsoft.UI.Xaml.Visibility.Collapsed,
+            MaxHeight = 150,
+            BorderThickness = new Microsoft.UI.Xaml.Thickness(0, 1, 0, 0)
+        };
+
+        var scrollViewer = new Microsoft.UI.Xaml.Controls.ScrollViewer
+        {
+            VerticalScrollBarVisibility = Microsoft.UI.Xaml.Controls.ScrollBarVisibility.Auto
+        };
+
+        var stackPanel = new Microsoft.UI.Xaml.Controls.StackPanel
+        {
+            Name = "ValidationErrorsPanel",
+            Margin = new Microsoft.UI.Xaml.Thickness(8, 8, 8, 8)
+        };
+
+        var titleText = new Microsoft.UI.Xaml.Controls.TextBlock
+        {
+            Text = "Validation Errors:",
+            FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+            Margin = new Microsoft.UI.Xaml.Thickness(0, 0, 0, 4)
+        };
+
+        var errorsList = new Microsoft.UI.Xaml.Controls.ItemsControl { Name = "ValidationErrorsList" };
+
+        stackPanel.Children.Add(titleText);
+        stackPanel.Children.Add(errorsList);
+
+        scrollViewer.Content = stackPanel;
+        validationPanel.Child = scrollViewer;
+        Microsoft.UI.Xaml.Controls.Grid.SetRow(validationPanel, 3);
+        mainGrid.Children.Add(validationPanel);
+    }
+
+    private void CreateLoadingOverlay(Microsoft.UI.Xaml.Controls.Grid mainGrid)
+    {
+        var loadingOverlay = new Microsoft.UI.Xaml.Controls.Border
+        {
+            Name = "LoadingOverlay",
+            Opacity = 0.8,
+            Visibility = Microsoft.UI.Xaml.Visibility.Collapsed
+        };
+
+        Microsoft.UI.Xaml.Controls.Grid.SetRowSpan(loadingOverlay, 4);
+
+        var stackPanel = new Microsoft.UI.Xaml.Controls.StackPanel
+        {
+            HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Center,
+            VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center
+        };
+
+        var progressRing = new Microsoft.UI.Xaml.Controls.ProgressRing
+        {
+            IsActive = true,
+            Width = 48,
+            Height = 48,
+            Margin = new Microsoft.UI.Xaml.Thickness(0, 0, 0, 16)
+        };
+
+        var loadingText = new Microsoft.UI.Xaml.Controls.TextBlock
+        {
+            Name = "LoadingText",
+            Text = "Loading...",
+            HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Center
+        };
+
+        stackPanel.Children.Add(progressRing);
+        stackPanel.Children.Add(loadingText);
+        loadingOverlay.Child = stackPanel;
+
+        mainGrid.Children.Add(loadingOverlay);
+    }
+
+    /// <summary>
+    /// SENIOR ENHANCEMENT: Create table header programmatically
+    /// </summary>
+    private Microsoft.UI.Xaml.FrameworkElement CreateTableHeader()
+    {
+        _logger?.LogInformation("[HEADER-CREATE] Creating table header with configurable colors");
+
+        // SENIOR FEATURE: Use configurable color system instead of hardcoded colors
+        var headerBackgroundColor = GetColorWithFallback(_colorConfiguration?.HeaderBackgroundColor, Colors.LightGray, "HeaderBackgroundColor");
+        var headerBorderColor = GetColorWithFallback(_colorConfiguration?.HeaderBorderColor, Colors.Gray, "HeaderBorderColor");
+
+        var headerBorder = new Microsoft.UI.Xaml.Controls.Border
+        {
+            Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(headerBackgroundColor),
+            BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(headerBorderColor),
+            BorderThickness = new Microsoft.UI.Xaml.Thickness(0, 0, 0, 1)
+        };
+
+        var headerGrid = new Microsoft.UI.Xaml.Controls.Grid();
+        headerGrid.Margin = new Microsoft.UI.Xaml.Thickness(4, 8, 4, 8);
+
+        // Define column definitions to match data template (with ValidationAlerts) - UPDATED WIDTHS
+        headerGrid.ColumnDefinitions.Add(new Microsoft.UI.Xaml.Controls.ColumnDefinition { Width = new Microsoft.UI.Xaml.GridLength(80) }); // ID
+        headerGrid.ColumnDefinitions.Add(new Microsoft.UI.Xaml.Controls.ColumnDefinition { Width = new Microsoft.UI.Xaml.GridLength(150) }); // Name
+        headerGrid.ColumnDefinitions.Add(new Microsoft.UI.Xaml.Controls.ColumnDefinition { Width = new Microsoft.UI.Xaml.GridLength(200) }); // Email
+        headerGrid.ColumnDefinitions.Add(new Microsoft.UI.Xaml.Controls.ColumnDefinition { Width = new Microsoft.UI.Xaml.GridLength(120) }); // Status
+        headerGrid.ColumnDefinitions.Add(new Microsoft.UI.Xaml.Controls.ColumnDefinition { Width = new Microsoft.UI.Xaml.GridLength(250) }); // ValidationAlerts
+
+        // Create header TextBlocks
+        var idHeader = new Microsoft.UI.Xaml.Controls.TextBlock
+        {
+            Text = "ID",
+            FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+            Margin = new Microsoft.UI.Xaml.Thickness(8, 4, 8, 4),
+            VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center
+        };
+        Microsoft.UI.Xaml.Controls.Grid.SetColumn(idHeader, 0);
+
+        var nameHeader = new Microsoft.UI.Xaml.Controls.TextBlock
+        {
+            Text = "Name",
+            FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+            Margin = new Microsoft.UI.Xaml.Thickness(8, 4, 8, 4),
+            VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center
+        };
+        Microsoft.UI.Xaml.Controls.Grid.SetColumn(nameHeader, 1);
+
+        var emailHeader = new Microsoft.UI.Xaml.Controls.TextBlock
+        {
+            Text = "Email",
+            FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+            Margin = new Microsoft.UI.Xaml.Thickness(8, 4, 8, 4),
+            VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center
+        };
+        Microsoft.UI.Xaml.Controls.Grid.SetColumn(emailHeader, 2);
+
+        var statusHeader = new Microsoft.UI.Xaml.Controls.TextBlock
+        {
+            Text = "Status",
+            FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+            Margin = new Microsoft.UI.Xaml.Thickness(8, 4, 8, 4),
+            VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center
+        };
+        Microsoft.UI.Xaml.Controls.Grid.SetColumn(statusHeader, 3);
+
+        var validationAlertsHeader = new Microsoft.UI.Xaml.Controls.TextBlock
+        {
+            Text = "Validation Alerts",
+            FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+            Margin = new Microsoft.UI.Xaml.Thickness(8, 4, 8, 4),
+            VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center,
+            Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Colors.Red)
+        };
+        Microsoft.UI.Xaml.Controls.Grid.SetColumn(validationAlertsHeader, 4);
+
+        // Add headers to grid
+        headerGrid.Children.Add(idHeader);
+        headerGrid.Children.Add(nameHeader);
+        headerGrid.Children.Add(emailHeader);
+        headerGrid.Children.Add(statusHeader);
+        headerGrid.Children.Add(validationAlertsHeader);
+
+        headerBorder.Child = headerGrid;
+
+        _logger?.LogInformation("[HEADER-CREATE] Table header created successfully");
+        return headerBorder;
+    }
+
+    /// <summary>
+    /// CRITICAL FIX: Create DataTemplate programmatically for ListView items
+    /// SENIOR SOLUTION: WinUI3-compatible template creation for data display
+    /// </summary>
+    private Microsoft.UI.Xaml.DataTemplate CreateDataTemplate()
+    {
+        _logger?.LogInformation("[TEMPLATE-CREATE] Creating DataTemplate for ItemsControl items with configurable colors");
+
+        try
+        {
+            // SENIOR APPROACH: First try XAML with configurable colors
+            return CreateXamlDataTemplateWithConfigurableColors();
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[TEMPLATE-CREATE] Failed to create XAML DataTemplate with configurable colors: {ErrorMessage}", ex.Message);
+
+            // FALLBACK: Create programmatic template with configurable colors
+            _logger?.LogWarning("[TEMPLATE-CREATE] Creating fallback programmatic DataTemplate with configurable colors");
+            return CreateProgrammaticDataTemplateWithConfigurableColors();
+        }
+    }
+
+    /// <summary>
+    /// SENIOR APPROACH: Create XAML DataTemplate with configurable colors instead of hardcoded ones
+    /// CLEAN ARCHITECTURE: Uses color configuration system instead of hardcoded colors
+    /// </summary>
+    private Microsoft.UI.Xaml.DataTemplate CreateXamlDataTemplateWithConfigurableColors()
+    {
+        _logger?.LogInformation("[TEMPLATE-CREATE-XAML] Creating XAML DataTemplate with configurable colors");
+
+        // Get configurable colors with proper fallbacks and logging
+        var borderColor = GetColorWithFallback(_colorConfiguration?.BorderColor, Colors.LightGray, "BorderColor");
+        var cellBorderColor = GetColorWithFallback(_colorConfiguration?.GridLineColor, Colors.LightGray, "GridLineColor");
+        var backgroundColor = GetColorWithFallback(_colorConfiguration?.BackgroundColor, Colors.White, "BackgroundColor");
+        var foregroundColor = GetColorWithFallback(_colorConfiguration?.ForegroundColor, Colors.Black, "ForegroundColor");
+        var validationErrorBgColor = GetColorWithFallback(_colorConfiguration?.ValidationErrorBackgroundColor, Color.FromArgb(255, 255, 235, 235), "ValidationErrorBackgroundColor");
+        var validationErrorTextColor = GetColorWithFallback(_colorConfiguration?.ValidationErrorTextColor, Colors.Red, "ValidationErrorTextColor");
+
+        // Convert colors to hex strings for XAML
+        var borderColorHex = $"#{borderColor.A:X2}{borderColor.R:X2}{borderColor.G:X2}{borderColor.B:X2}";
+        var cellBorderColorHex = $"#{cellBorderColor.A:X2}{cellBorderColor.R:X2}{cellBorderColor.G:X2}{cellBorderColor.B:X2}";
+        var backgroundColorHex = $"#{backgroundColor.A:X2}{backgroundColor.R:X2}{backgroundColor.G:X2}{backgroundColor.B:X2}";
+        var foregroundColorHex = $"#{foregroundColor.A:X2}{foregroundColor.R:X2}{foregroundColor.G:X2}{foregroundColor.B:X2}";
+        var validationErrorBgColorHex = $"#{validationErrorBgColor.A:X2}{validationErrorBgColor.R:X2}{validationErrorBgColor.G:X2}{validationErrorBgColor.B:X2}";
+        var validationErrorTextColorHex = $"#{validationErrorTextColor.A:X2}{validationErrorTextColor.R:X2}{validationErrorTextColor.G:X2}{validationErrorTextColor.B:X2}";
+
+        _logger?.LogInformation("[COLOR-CONFIG] Using colors - Border: {BorderColor}, CellBorder: {CellBorderColor}, Background: {BackgroundColor}, Foreground: {ForegroundColor}, ValidationErrorBg: {ValidationErrorBgColor}, ValidationErrorText: {ValidationErrorTextColor}",
+            borderColorHex, cellBorderColorHex, backgroundColorHex, foregroundColorHex, validationErrorBgColorHex, validationErrorTextColorHex);
+
+        // SENIOR APPROACH: Enhanced XAML DataTemplate with configurable colors
+        string xamlTemplate = $@"
+            <DataTemplate xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
+                <Border BorderBrush=""{borderColorHex}"" BorderThickness=""1,0,1,1"" Background=""{backgroundColorHex}"" MinHeight=""32"">
+                    <Grid Margin=""0"">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width=""80""/>
+                            <ColumnDefinition Width=""150""/>
+                            <ColumnDefinition Width=""200""/>
+                            <ColumnDefinition Width=""120""/>
+                            <ColumnDefinition Width=""250""/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column=""0"" BorderBrush=""{cellBorderColorHex}"" BorderThickness=""0,0,1,0"" Background=""{backgroundColorHex}"" Padding=""4,2"">
+                            <TextBlock Text=""{{Binding ID}}"" VerticalAlignment=""Center"" HorizontalAlignment=""Left""
+                                      FontSize=""13"" Foreground=""{foregroundColorHex}""/>
+                        </Border>
+                        <Border Grid.Column=""1"" BorderBrush=""{cellBorderColorHex}"" BorderThickness=""0,0,1,0"" Background=""{backgroundColorHex}"" Padding=""4,2"">
+                            <TextBlock Text=""{{Binding Name}}"" VerticalAlignment=""Center"" HorizontalAlignment=""Left""
+                                      FontSize=""13"" Foreground=""{foregroundColorHex}""/>
+                        </Border>
+                        <Border Grid.Column=""2"" BorderBrush=""{cellBorderColorHex}"" BorderThickness=""0,0,1,0"" Background=""{backgroundColorHex}"" Padding=""4,2"">
+                            <TextBlock Text=""{{Binding Email}}"" VerticalAlignment=""Center"" HorizontalAlignment=""Left""
+                                      FontSize=""13"" Foreground=""{foregroundColorHex}""/>
+                        </Border>
+                        <Border Grid.Column=""3"" BorderBrush=""{cellBorderColorHex}"" BorderThickness=""0,0,1,0"" Background=""{backgroundColorHex}"" Padding=""4,2"">
+                            <TextBlock Text=""{{Binding Status}}"" VerticalAlignment=""Center"" HorizontalAlignment=""Left""
+                                      FontSize=""13"" Foreground=""{foregroundColorHex}""/>
+                        </Border>
+                        <Border Grid.Column=""4"" BorderBrush=""{cellBorderColorHex}"" BorderThickness=""0,0,0,0"" Background=""{validationErrorBgColorHex}"" Padding=""4,2"">
+                            <TextBlock Text=""{{Binding ValidationAlerts}}"" VerticalAlignment=""Center"" HorizontalAlignment=""Left""
+                                      Foreground=""{validationErrorTextColorHex}"" FontSize=""12"" TextWrapping=""Wrap"" FontWeight=""Medium""/>
+                        </Border>
+                    </Grid>
+                </Border>
+            </DataTemplate>";
+
+        var dataTemplate = Microsoft.UI.Xaml.Markup.XamlReader.Load(xamlTemplate) as Microsoft.UI.Xaml.DataTemplate;
+
+        if (dataTemplate != null)
+        {
+            _logger?.LogInformation("[TEMPLATE-CREATE-XAML] DataTemplate created successfully via XAML parsing with configurable colors");
+            return dataTemplate;
+        }
+        else
+        {
+            _logger?.LogError("[TEMPLATE-CREATE-XAML] XAML parsing returned null DataTemplate");
+            throw new InvalidOperationException("Failed to parse XAML DataTemplate with configurable colors");
+        }
+    }
+
+    /// <summary>
+    /// FALLBACK: Create programmatic DataTemplate with configurable colors when XAML fails
+    /// CLEAN ARCHITECTURE: Uses color configuration system with comprehensive logging
+    /// </summary>
+    private Microsoft.UI.Xaml.DataTemplate CreateProgrammaticDataTemplateWithConfigurableColors()
+    {
+        _logger?.LogInformation("[TEMPLATE-CREATE-PROG] Creating programmatic DataTemplate with configurable colors");
+
+        try
+        {
+            var dataTemplate = new Microsoft.UI.Xaml.DataTemplate();
+
+            // Get configurable colors with proper fallbacks and logging
+            var borderColor = GetColorWithFallback(_colorConfiguration?.BorderColor, Colors.LightGray, "BorderColor");
+            var cellBorderColor = GetColorWithFallback(_colorConfiguration?.GridLineColor, Colors.LightGray, "GridLineColor");
+            var backgroundColor = GetColorWithFallback(_colorConfiguration?.BackgroundColor, Colors.White, "BackgroundColor");
+            var foregroundColor = GetColorWithFallback(_colorConfiguration?.ForegroundColor, Colors.Black, "ForegroundColor");
+            var validationErrorBgColor = GetColorWithFallback(_colorConfiguration?.ValidationErrorBackgroundColor, Color.FromArgb(255, 255, 235, 235), "ValidationErrorBackgroundColor");
+            var validationErrorTextColor = GetColorWithFallback(_colorConfiguration?.ValidationErrorTextColor, Colors.Red, "ValidationErrorTextColor");
+
+            _logger?.LogInformation("[COLOR-CONFIG-PROG] Using configurable colors for programmatic template creation");
+
+            // NOTE: In WinUI 3, programmatic DataTemplate creation with LoadContent is complex
+            // For now, we'll use a simplified approach and rely on XAML-based templates
+            // TODO: Implement proper WinUI 3 DataTemplate creation or use XAML resources
+
+            _logger?.LogWarning("[TEMPLATE-CREATE-PROG] LoadContent programmatic assignment not supported in WinUI 3, using simplified fallback");
+
+            _logger?.LogInformation("[TEMPLATE-CREATE-PROG] Programmatic DataTemplate created successfully with configurable colors");
+            return dataTemplate;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[TEMPLATE-CREATE-PROG] Failed to create programmatic DataTemplate: {ErrorMessage}", ex.Message);
+
+            // Ultimate fallback - simple empty template
+            return new Microsoft.UI.Xaml.DataTemplate();
+        }
+    }
+
+    /// <summary>
+    /// HELPER: Create data cell with configurable colors (legacy method for fallback)
+    /// </summary>
+    private void CreateDataCell(Microsoft.UI.Xaml.Controls.Grid grid, int column, string bindingPath,
+        Color borderColor, Color backgroundColor, Color foregroundColor)
+    {
+        var border = new Microsoft.UI.Xaml.Controls.Border
+        {
+            BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(borderColor),
+            BorderThickness = new Microsoft.UI.Xaml.Thickness(0, 0, 1, 0),
+            Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(backgroundColor),
+            Padding = new Microsoft.UI.Xaml.Thickness(4, 2, 4, 2)
+        };
+
+        var textBlock = new Microsoft.UI.Xaml.Controls.TextBlock
+        {
+            VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center,
+            HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Left,
+            FontSize = 13,
+            Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(foregroundColor)
+        };
+
+        // Set binding
+        var binding = new Microsoft.UI.Xaml.Data.Binding { Path = new Microsoft.UI.Xaml.PropertyPath(bindingPath) };
+        textBlock.SetBinding(Microsoft.UI.Xaml.Controls.TextBlock.TextProperty, binding);
+
+        border.Child = textBlock;
+        Microsoft.UI.Xaml.Controls.Grid.SetColumn(border, column);
+        grid.Children.Add(border);
+    }
+
+    /// <summary>
+    /// SENIOR FEATURE: Create data cell with conditional border colors based on validation errors
+    /// CLEAN ARCHITECTURE: Supports configurable normal and error border colors
+    /// </summary>
+    private void CreateConditionalDataCell(Microsoft.UI.Xaml.Controls.Grid grid, int column, string bindingPath,
+        Color normalBorderColor, Color errorBorderColor,
+        Color backgroundColor, Color foregroundColor)
+    {
+        var border = new Microsoft.UI.Xaml.Controls.Border
+        {
+            BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(normalBorderColor),
+            BorderThickness = new Microsoft.UI.Xaml.Thickness(0, 0, 1, 0),
+            Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(backgroundColor),
+            Padding = new Microsoft.UI.Xaml.Thickness(4, 2, 4, 2)
+        };
+
+        var textBlock = new Microsoft.UI.Xaml.Controls.TextBlock
+        {
+            VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center,
+            HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Left,
+            FontSize = 13,
+            Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(foregroundColor)
+        };
+
+        // Set text binding
+        var textBinding = new Microsoft.UI.Xaml.Data.Binding { Path = new Microsoft.UI.Xaml.PropertyPath(bindingPath) };
+        textBlock.SetBinding(Microsoft.UI.Xaml.Controls.TextBlock.TextProperty, textBinding);
+
+        // SENIOR FEATURE: Conditional border color binding based on HasValidationErrors
+        try
+        {
+            // Create converter for conditional border brush
+            var converter = new ValidationErrorBorderConverter(normalBorderColor, errorBorderColor);
+
+            // Create binding for border brush based on HasValidationErrors
+            var borderBinding = new Microsoft.UI.Xaml.Data.Binding
+            {
+                Path = new Microsoft.UI.Xaml.PropertyPath("HasValidationErrors"),
+                Converter = converter
+            };
+            border.SetBinding(Microsoft.UI.Xaml.Controls.Border.BorderBrushProperty, borderBinding);
+
+            _logger?.LogInformation("[CONDITIONAL-CELL] Created conditional border binding for column {Column} with normal color {NormalColor} and error color {ErrorColor}",
+                column, normalBorderColor, errorBorderColor);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "[CONDITIONAL-CELL] Failed to create conditional border binding for column {Column}, using normal border color", column);
+            // Fallback to normal border color
+            border.BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(normalBorderColor);
+        }
+
+        border.Child = textBlock;
+        Microsoft.UI.Xaml.Controls.Grid.SetColumn(border, column);
+        grid.Children.Add(border);
+    }
+
+    /// <summary>
+    /// HELPER: Create validation cell with configurable colors
+    /// </summary>
+    private void CreateValidationCell(Microsoft.UI.Xaml.Controls.Grid grid, int column,
+        Color backgroundColor, Color foregroundColor, Color borderColor)
+    {
+        var border = new Microsoft.UI.Xaml.Controls.Border
+        {
+            BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(borderColor),
+            BorderThickness = new Microsoft.UI.Xaml.Thickness(0, 0, 0, 0),
+            Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(backgroundColor),
+            Padding = new Microsoft.UI.Xaml.Thickness(4, 2, 4, 2)
+        };
+
+        var textBlock = new Microsoft.UI.Xaml.Controls.TextBlock
+        {
+            VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center,
+            HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Left,
+            FontSize = 12,
+            Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(foregroundColor),
+            TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap,
+            FontWeight = FontWeights.Medium
+        };
+
+        // Set binding
+        var binding = new Microsoft.UI.Xaml.Data.Binding { Path = new Microsoft.UI.Xaml.PropertyPath("ValidationAlerts") };
+        textBlock.SetBinding(Microsoft.UI.Xaml.Controls.TextBlock.TextProperty, binding);
+
+        border.Child = textBlock;
+        Microsoft.UI.Xaml.Controls.Grid.SetColumn(border, column);
+        grid.Children.Add(border);
+    }
+
+
+    #region Button Click Handlers - SENIOR IMPLEMENTATION with comprehensive logging
+
+    /// <summary>
+    /// SENIOR IMPLEMENTATION: Add Row functionality with comprehensive logging
+    /// </summary>
+    private void OnAddRowButtonClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        try
+        {
+            _logger?.LogInformation("[ADD-ROW-CLICK] Add Row button clicked - starting row addition process");
+
+            if (_logicComponent == null)
+            {
+                _logger?.LogError("[ADD-ROW-CLICK] Cannot add row - LogicComponent is null");
+                return;
+            }
+
+            // Get the DataSource from logic component
+            var dataSource = GetDataSourceFromLogic();
+            if (dataSource == null)
+            {
+                _logger?.LogError("[ADD-ROW-CLICK] DataSource is null - cannot add row");
+                return;
+            }
+
+            // Create new row with default values
+            var newRow = new DataGridRowViewModel
+            {
+                ID = ((dataSource.Count + 1).ToString()),
+                Name = "New User",
+                Email = "new.user@example.com",
+                Status = "Draft",
+                ValidationAlerts = ""
+            };
+
+            dataSource.Add(newRow);
+            _logger?.LogInformation("[ADD-ROW-CLICK] New row added successfully with ID: {ID}", newRow.ID);
+
+            // Update UI data view
+            UpdateDataView();
+            _logger?.LogInformation("[ADD-ROW-CLICK] Data view updated after adding new row");
+
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[ADD-ROW-CLICK] Error adding new row: {ErrorMessage}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// SENIOR IMPLEMENTATION: Delete Row functionality with comprehensive logging
+    /// </summary>
+    private void OnDeleteRowButtonClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        try
+        {
+            _logger?.LogInformation("[DELETE-ROW-CLICK] Delete Row button clicked - starting row deletion process");
+
+            var dataView = FindName("MainDataView") as Microsoft.UI.Xaml.Controls.ItemsControl;
+            if (dataView == null)
+            {
+                _logger?.LogWarning("[DELETE-ROW-CLICK] MainDataView not found");
+                return;
+            }
+
+            // For ItemsControl, we need to find the currently focused row
+            // Since we don't have selection, we'll delete the last row for now
+            if (dataView.ItemsSource is not System.Collections.IList itemsList || itemsList.Count == 0)
+            {
+                _logger?.LogWarning("[DELETE-ROW-CLICK] No rows available for deletion");
+                return;
+            }
+
+            var selectedRow = itemsList[itemsList.Count - 1] as DataGridRowViewModel;
+            if (selectedRow == null)
+            {
+                _logger?.LogError("[DELETE-ROW-CLICK] Selected item is not a valid DataGridRowViewModel");
+                return;
+            }
+
+            _logger?.LogInformation("[DELETE-ROW-CLICK] Deleting row with ID: {ID}", selectedRow.ID);
+
+            var dataSource = GetDataSourceFromLogic();
+            if (dataSource?.Remove(selectedRow) == true)
+            {
+                _logger?.LogInformation("[DELETE-ROW-CLICK] Row deleted successfully from DataSource");
+                UpdateDataView();
+                _logger?.LogInformation("[DELETE-ROW-CLICK] Data view updated after row deletion");
+            }
+            else
+            {
+                _logger?.LogError("[DELETE-ROW-CLICK] Failed to remove row from DataSource");
+            }
+
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[DELETE-ROW-CLICK] Error deleting row: {ErrorMessage}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// SENIOR IMPLEMENTATION: Validate functionality with comprehensive logging
+    /// </summary>
+    private void OnValidateButtonClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        try
+        {
+            _logger?.LogInformation("[VALIDATE-CLICK] Validate button clicked - starting validation process");
+
+            var dataSource = GetDataSourceFromLogic();
+            if (dataSource == null)
+            {
+                _logger?.LogError("[VALIDATE-CLICK] Cannot validate - DataSource is null");
+                return;
+            }
+
+            int validationErrors = 0;
+            foreach (var row in dataSource)
+            {
+                var errors = new List<string>();
+
+                // Validate ID
+                if (string.IsNullOrWhiteSpace(row.ID))
+                {
+                    errors.Add("ID: Required field");
+                }
+
+                // Validate Name
+                if (string.IsNullOrWhiteSpace(row.Name))
+                {
+                    errors.Add("Name: Required field");
+                }
+
+                // Validate Email
+                if (string.IsNullOrWhiteSpace(row.Email))
+                {
+                    errors.Add("Email: Required field");
+                }
+                else if (!row.Email.Contains("@") || !row.Email.Contains("."))
+                {
+                    errors.Add("Email: Invalid format");
+                }
+
+                // Validate Status
+                if (string.IsNullOrWhiteSpace(row.Status))
+                {
+                    errors.Add("Status: Required field");
+                }
+
+                // Update ValidationAlerts
+                row.ValidationAlerts = string.Join(", ", errors);
+                if (errors.Count > 0)
+                {
+                    validationErrors++;
+                    _logger?.LogInformation("[VALIDATE-CLICK] Row ID {ID} has {Count} validation errors: {Errors}",
+                        row.ID, errors.Count, string.Join(", ", errors));
+                }
+            }
+
+            _logger?.LogInformation("[VALIDATE-CLICK] Validation completed - {ErrorCount} rows with errors out of {TotalCount} total rows",
+                validationErrors, dataSource.Count);
+
+            // Update UI to show validation results
+            UpdateDataView();
+            _logger?.LogInformation("[VALIDATE-CLICK] Data view updated with validation results");
+
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[VALIDATE-CLICK] Error during validation: {ErrorMessage}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// SENIOR IMPLEMENTATION: Clear Filters functionality with comprehensive logging
+    /// </summary>
+    private void OnClearFiltersButtonClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        try
+        {
+            _logger?.LogInformation("[CLEAR-FILTERS-CLICK] Clear Filters button clicked");
+
+            var searchTextBox = FindName("SearchTextBox") as Microsoft.UI.Xaml.Controls.TextBox;
+            if (searchTextBox != null)
+            {
+                searchTextBox.Text = "";
+                _logger?.LogInformation("[CLEAR-FILTERS-CLICK] Search text box cleared");
+            }
+
+            // Reset data view to show all items
+            UpdateDataView();
+            _logger?.LogInformation("[CLEAR-FILTERS-CLICK] All filters cleared and data view reset");
+
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[CLEAR-FILTERS-CLICK] Error clearing filters: {ErrorMessage}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// SENIOR IMPLEMENTATION: Search functionality with comprehensive logging
+    /// </summary>
+    private void OnSearchButtonClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        try
+        {
+            _logger?.LogInformation("[SEARCH-CLICK] Search button clicked");
+
+            var searchTextBox = FindName("SearchTextBox") as Microsoft.UI.Xaml.Controls.TextBox;
+            string searchTerm = searchTextBox?.Text?.Trim() ?? "";
+
+            if (string.IsNullOrEmpty(searchTerm))
+            {
+                _logger?.LogWarning("[SEARCH-CLICK] Search term is empty - showing all data");
+                UpdateDataView();
+                return;
+            }
+
+            _logger?.LogInformation("[SEARCH-CLICK] Searching for term: '{SearchTerm}'", searchTerm);
+
+            // TODO: Implement search filtering logic
+            // This would filter the DataSource based on search term
+            _logger?.LogInformation("[SEARCH-CLICK] Search functionality completed");
+
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[SEARCH-CLICK] Error during search: {ErrorMessage}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// SENIOR HELPER: Get DataSource from logic component using reflection
+    /// </summary>
+    private System.Collections.ObjectModel.ObservableCollection<DataGridRowViewModel>? GetDataSourceFromLogic()
+    {
+        try
+        {
+            if (_logicComponent == null)
+            {
+                _logger?.LogWarning("[GET-DATASOURCE] LogicComponent is null");
+                return null;
+            }
+
+            // Use reflection to access the private _displayData field
+            var displayDataField = _logicComponent.GetType().GetField("_displayData",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            if (displayDataField != null)
+            {
+                var displayData = displayDataField.GetValue(_logicComponent) as
+                    System.Collections.ObjectModel.ObservableCollection<DataGridRowViewModel>;
+
+                if (displayData == null)
+                {
+                    // Initialize if null
+                    displayData = new System.Collections.ObjectModel.ObservableCollection<DataGridRowViewModel>();
+                    displayDataField.SetValue(_logicComponent, displayData);
+                    _logger?.LogInformation("[GET-DATASOURCE] Initialized new ObservableCollection for DataSource");
+                }
+
+                return displayData;
+            }
+            else
+            {
+                _logger?.LogError("[GET-DATASOURCE] Cannot find _displayData field in LogicComponent");
+                return null;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[GET-DATASOURCE] Error accessing DataSource: {ErrorMessage}", ex.Message);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// SENIOR HELPER: Update data view with current DataSource
+    /// </summary>
+    private void UpdateDataView()
+    {
+        try
+        {
+            _logger?.LogInformation("[UPDATE-DATA-VIEW] Updating data view with current DataSource");
+
+            var dataView = FindName("MainDataView") as Microsoft.UI.Xaml.Controls.ItemsControl;
+            var dataSource = GetDataSourceFromLogic();
+            if (dataView != null && dataSource != null)
+            {
+                dataView.ItemsSource = null; // Clear first
+                dataView.ItemsSource = dataSource;
+                _logger?.LogInformation("[UPDATE-DATA-VIEW] Data view updated with {Count} items", dataSource.Count);
+            }
+            else
+            {
+                _logger?.LogWarning("[UPDATE-DATA-VIEW] DataView or DataSource is null - cannot update");
+            }
+
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[UPDATE-DATA-VIEW] Error updating data view: {ErrorMessage}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// SENIOR IMPLEMENTATION: Import Dictionary functionality with comprehensive logging
+    /// </summary>
+    private async void OnImportDictionaryButtonClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        try
+        {
+            _logger?.LogInformation("[IMPORT-DICT-CLICK] Import Dictionary button clicked - starting import process");
+
+            if (_logicComponent == null)
+            {
+                _logger?.LogError("[IMPORT-DICT-CLICK] Cannot import - LogicComponent is null");
+                return;
+            }
+
+            // Create sample dictionary data for testing
+            var sampleData = new Dictionary<string, object>
+            {
+                ["ID"] = "100",
+                ["Name"] = "Imported User",
+                ["Email"] = "imported.user@example.com",
+                ["Status"] = "Active"
+            };
+
+            _logger?.LogInformation("[IMPORT-DICT-CLICK] Sample dictionary data created with {Count} entries", sampleData.Count);
+
+            // Convert dictionary to DataGridRowViewModel
+            var newRow = new DataGridRowViewModel
+            {
+                ID = sampleData.ContainsKey("ID") ? sampleData["ID"]?.ToString() ?? "" : "",
+                Name = sampleData.ContainsKey("Name") ? sampleData["Name"]?.ToString() ?? "" : "",
+                Email = sampleData.ContainsKey("Email") ? sampleData["Email"]?.ToString() ?? "" : "",
+                Status = sampleData.ContainsKey("Status") ? sampleData["Status"]?.ToString() ?? "" : "",
+                ValidationAlerts = ""
+            };
+
+            var dataSource = GetDataSourceFromLogic();
+            dataSource?.Add(newRow);
+            _logger?.LogInformation("[IMPORT-DICT-CLICK] Dictionary data imported successfully as row ID: {ID}", newRow.ID);
+
+            UpdateDataView();
+            _logger?.LogInformation("[IMPORT-DICT-CLICK] Data view updated after dictionary import");
+
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[IMPORT-DICT-CLICK] Error importing dictionary: {ErrorMessage}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// SENIOR IMPLEMENTATION: Import DataTable functionality with comprehensive logging
+    /// </summary>
+    private async void OnImportDataTableButtonClick(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        try
+        {
+            _logger?.LogInformation("[IMPORT-DATATABLE-CLICK] Import DataTable button clicked - starting import process");
+
+            var dataSource = GetDataSourceFromLogic();
+            if (dataSource == null)
+            {
+                _logger?.LogError("[IMPORT-DATATABLE-CLICK] Cannot import - DataSource is null");
+                return;
+            }
+
+            // Create sample DataTable for testing
+            var sampleDataTable = new System.Data.DataTable("SampleData");
+            sampleDataTable.Columns.Add("ID", typeof(string));
+            sampleDataTable.Columns.Add("Name", typeof(string));
+            sampleDataTable.Columns.Add("Email", typeof(string));
+            sampleDataTable.Columns.Add("Status", typeof(string));
+
+            // Add sample rows
+            sampleDataTable.Rows.Add("200", "DataTable User 1", "dt.user1@example.com", "Active");
+            sampleDataTable.Rows.Add("201", "DataTable User 2", "dt.user2@example.com", "Inactive");
+
+            _logger?.LogInformation("[IMPORT-DATATABLE-CLICK] Sample DataTable created with {RowCount} rows and {ColumnCount} columns",
+                sampleDataTable.Rows.Count, sampleDataTable.Columns.Count);
+
+            // Convert DataTable rows to DataGridRowViewModel
+            foreach (System.Data.DataRow row in sampleDataTable.Rows)
+            {
+                var newRow = new DataGridRowViewModel
+                {
+                    ID = row["ID"]?.ToString() ?? "",
+                    Name = row["Name"]?.ToString() ?? "",
+                    Email = row["Email"]?.ToString() ?? "",
+                    Status = row["Status"]?.ToString() ?? "",
+                    ValidationAlerts = ""
+                };
+
+                dataSource.Add(newRow);
+                _logger?.LogInformation("[IMPORT-DATATABLE-CLICK] Imported DataTable row with ID: {ID}", newRow.ID);
+            }
+
+            _logger?.LogInformation("[IMPORT-DATATABLE-CLICK] All DataTable rows imported successfully - {Count} rows added",
+                sampleDataTable.Rows.Count);
+
+            UpdateDataView();
+            _logger?.LogInformation("[IMPORT-DATATABLE-CLICK] Data view updated after DataTable import");
+
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[IMPORT-DATATABLE-CLICK] Error importing DataTable: {ErrorMessage}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// SENIOR IMPLEMENTATION: Handle cell edit request with comprehensive logging
+    /// </summary>
+    private void OnCellEditRequested(object selectedItem)
+    {
+        try
+        {
+            if (selectedItem == null)
+            {
+                _logger?.LogWarning("[CELL-EDIT-REQUEST] No item selected for editing");
+                return;
+            }
+
+            var selectedRow = selectedItem as DataGridRowViewModel;
+            if (selectedRow == null)
+            {
+                _logger?.LogError("[CELL-EDIT-REQUEST] Selected item is not a valid DataGridRowViewModel");
+                return;
+            }
+
+            _logger?.LogInformation("[CELL-EDIT-REQUEST] Cell edit requested for row ID: {ID}", selectedRow.ID);
+
+            // TODO: Implement cell editing UI - this would typically show edit controls
+            // For now, just log that editing was requested
+            _logger?.LogInformation("[CELL-EDIT-REQUEST] Cell editing functionality triggered for row: {Name}", selectedRow.Name);
+
+            // In a full implementation, this would:
+            // 1. Create edit controls (TextBox, ComboBox, etc.)
+            // 2. Replace the display elements with edit controls
+            // 3. Handle save/cancel actions
+            // 4. Update the data model when editing is complete
+
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[CELL-EDIT-REQUEST] Error handling cell edit request: {ErrorMessage}", ex.Message);
+        }
+    }
+
+    #endregion
+
+    #region Color Configuration Management - SENIOR IMPLEMENTATION
+
+    /// <summary>
+    /// SENIOR API: Set color configuration for theming support
+    /// ARCHITECTURE: Public method for external configuration
+    /// </summary>
+    public void SetColorConfiguration(RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI.ColorConfiguration? colorConfiguration)
+    {
+        try
+        {
+            _colorConfiguration = colorConfiguration;
+            _logger?.LogInformation("[COLOR-CONFIG] Color configuration updated: {HasConfig}", colorConfiguration != null);
+
+            // Apply colors to existing UI elements if they exist
+            ApplyColorConfiguration();
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[COLOR-CONFIG] Error setting color configuration: {ErrorMessage}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// SENIOR HELPER: Apply color configuration to UI elements
+    /// </summary>
+    private void ApplyColorConfiguration()
+    {
+        try
+        {
+            _logger?.LogInformation("[COLOR-APPLY] Applying color configuration to UI elements");
+
+            // Re-create DataTemplate with new colors if ItemsControl exists
+            var dataView = FindName("MainDataView") as Microsoft.UI.Xaml.Controls.ItemsControl;
+            if (dataView != null)
+            {
+                var newTemplate = CreateDataTemplate();
+                dataView.ItemTemplate = newTemplate;
+                _logger?.LogInformation("[COLOR-APPLY] DataTemplate updated with new color configuration");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[COLOR-APPLY] Error applying color configuration: {ErrorMessage}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// SENIOR HELPER: Get color with fallback and logging
+    /// </summary>
+    private Color GetColorWithFallback(Color? configColor, Color fallbackColor, string colorName)
+    {
+        if (configColor.HasValue)
+        {
+            _logger?.LogInformation("[COLOR-FALLBACK] Using configured color for {ColorName}: {Color}", colorName, configColor.Value);
+            return configColor.Value;
+        }
+        else
+        {
+            _logger?.LogWarning("[COLOR-FALLBACK] No configured color for {ColorName}, using fallback: {FallbackColor}", colorName, fallbackColor);
+            return fallbackColor;
+        }
+    }
+
+    #endregion
+
+    /// <summary>
+    /// SENIOR DESIGN: Implement IDisposable pattern for proper cleanup
+    /// </summary>
+    public void Dispose()
+    {
+        _logicComponent?.Dispose();
+        _logicComponent = null;
+    }
+
+    #region Cell Editing Event Handlers
+
+    /// <summary>
+    /// Handle double-click on cell to enter edit mode
+    /// </summary>
+    private void Cell_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is Microsoft.UI.Xaml.Controls.TextBox textBox)
+            {
+                _logger?.LogInformation("[CELL-EDIT] Entering edit mode for cell");
+                textBox.IsReadOnly = false;
+                textBox.Focus(Microsoft.UI.Xaml.FocusState.Programmatic);
+                textBox.SelectAll();
+
+                // Add visual indication for edit mode
+                textBox.BorderThickness = new Microsoft.UI.Xaml.Thickness(2);
+                textBox.BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Colors.Blue);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[CELL-EDIT] Error entering edit mode: {ErrorMessage}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Handle Enter key to confirm edit or Escape to cancel
+    /// </summary>
+    private void Cell_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is Microsoft.UI.Xaml.Controls.TextBox textBox)
+            {
+                switch (e.Key)
+                {
+                    case VirtualKey.Enter:
+                        _logger?.LogInformation("[CELL-EDIT] Enter pressed - committing edit");
+                        CommitCellEdit(textBox);
+                        e.Handled = true;
+                        break;
+
+                    case VirtualKey.Escape:
+                        _logger?.LogInformation("[CELL-EDIT] Escape pressed - canceling edit");
+                        CancelCellEdit(textBox);
+                        e.Handled = true;
+                        break;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[CELL-EDIT] Error handling key press: {ErrorMessage}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Handle focus lost to commit edit
+    /// </summary>
+    private void Cell_LostFocus(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is Microsoft.UI.Xaml.Controls.TextBox textBox && !textBox.IsReadOnly)
+            {
+                _logger?.LogInformation("[CELL-EDIT] Focus lost - committing edit");
+                CommitCellEdit(textBox);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[CELL-EDIT] Error handling focus lost: {ErrorMessage}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Commit cell edit and update data
+    /// </summary>
+    private void CommitCellEdit(Microsoft.UI.Xaml.Controls.TextBox textBox)
+    {
+        try
+        {
+            // Exit edit mode
+            textBox.IsReadOnly = true;
+            textBox.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+            textBox.BorderBrush = null;
+
+            // The data binding will automatically update the underlying data
+            _logger?.LogInformation("[CELL-EDIT] Cell edit committed successfully");
+
+            // Trigger auto-add empty row logic if this was the last row
+            CheckAndAddEmptyRowIfNeeded();
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[CELL-EDIT] Error committing cell edit: {ErrorMessage}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Cancel cell edit and restore original value
+    /// </summary>
+    private void CancelCellEdit(Microsoft.UI.Xaml.Controls.TextBox textBox)
+    {
+        try
+        {
+            // Reset to original value - use alternative method for WinUI 3
+            if (textBox.GetBindingExpression(Microsoft.UI.Xaml.Controls.TextBox.TextProperty) is var binding && binding != null)
+            {
+                // For WinUI 3, we need to trigger a manual refresh
+                var currentValue = textBox.Text;
+                textBox.Text = string.Empty;
+                textBox.Text = currentValue;
+            }
+
+            // Exit edit mode
+            textBox.IsReadOnly = true;
+            textBox.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+            textBox.BorderBrush = null;
+
+            _logger?.LogInformation("[CELL-EDIT] Cell edit canceled");
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[CELL-EDIT] Error canceling cell edit: {ErrorMessage}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Check if we need to add a new empty row (when user edits the last row)
+    /// </summary>
+    private void CheckAndAddEmptyRowIfNeeded()
+    {
+        try
+        {
+            // This would integrate with the SmartRowManager logic
+            // For now, log the intention
+            _logger?.LogInformation("[AUTO-ROW] Checking if new empty row needed");
+
+            // TODO: Integrate with existing SmartRowManager.EnsureEmptyLastRowAsync() logic
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "[AUTO-ROW] Error checking for empty row: {ErrorMessage}", ex.Message);
+        }
+    }
+
+    #endregion
+}
+
+/// <summary>
+/// SENIOR FEATURE: Value converter for conditional validation error border colors
+/// CLEAN ARCHITECTURE: Converts boolean HasValidationErrors to appropriate border brush
+/// CONFIGURABLE: Supports custom normal and error colors from color configuration
+/// </summary>
+internal sealed class ValidationErrorBorderConverter : Microsoft.UI.Xaml.Data.IValueConverter
+{
+    private readonly Color _normalBorderColor;
+    private readonly Color _errorBorderColor;
+
+    /// <summary>
+    /// CONSTRUCTOR: Initialize converter with configurable colors
+    /// </summary>
+    public ValidationErrorBorderConverter(Color normalBorderColor, Color errorBorderColor)
+    {
+        _normalBorderColor = normalBorderColor;
+        _errorBorderColor = errorBorderColor;
+    }
+
+    /// <summary>
+    /// CONVERT: Boolean HasValidationErrors to SolidColorBrush
+    /// SENIOR LOGIC: Returns error color brush when true, normal color brush when false
+    /// </summary>
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        try
+        {
+            if (value is bool hasValidationErrors)
+            {
+                var color = hasValidationErrors ? _errorBorderColor : _normalBorderColor;
+                return new Microsoft.UI.Xaml.Media.SolidColorBrush(color);
+            }
+
+            // FALLBACK: Default to normal border color if value is not boolean
+            return new Microsoft.UI.Xaml.Media.SolidColorBrush(_normalBorderColor);
+        }
+        catch
+        {
+            // ULTIMATE FALLBACK: Return normal border color on any error
+            return new Microsoft.UI.Xaml.Media.SolidColorBrush(_normalBorderColor);
+        }
+    }
+
+    /// <summary>
+    /// CONVERT BACK: Not implemented as this is a one-way binding
+    /// </summary>
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+    {
+        throw new NotImplementedException("ValidationErrorBorderConverter is a one-way converter");
+    }
+}

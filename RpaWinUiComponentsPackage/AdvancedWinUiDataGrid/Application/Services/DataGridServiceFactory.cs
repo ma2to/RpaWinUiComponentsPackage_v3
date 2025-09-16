@@ -52,9 +52,7 @@ internal static class DataGridServiceFactory
             var rowHeightCalculationService = CreateRowHeightCalculationServiceWithLogging(componentLogger);
 
             // Create unified service
-            var unifiedService = new DataGridUnifiedService(
-                stateService, importExportService, searchFilterService, rowManagementService, 
-                validationService, clipboardService, CreateLogger<DataGridUnifiedService>(componentLogger));
+            var unifiedService = new DataGridUnifiedService(CreateLogger<DataGridUnifiedService>(componentLogger));
 
             componentLogger.LogInformation("DataGridServiceFactory.CreateWithUI completed successfully - Service type: {ServiceType}", unifiedService.GetType().Name);
             return unifiedService;
@@ -104,9 +102,7 @@ internal static class DataGridServiceFactory
             var rowHeightCalculationService = CreateRowHeightCalculationServiceWithLogging(componentLogger);
 
             // Create unified service
-            var unifiedService = new DataGridUnifiedService(
-                stateService, importExportService, searchFilterService, rowManagementService, 
-                validationService, clipboardService, CreateLogger<DataGridUnifiedService>(componentLogger));
+            var unifiedService = new DataGridUnifiedService(CreateLogger<DataGridUnifiedService>(componentLogger));
 
             componentLogger.LogInformation("DataGridServiceFactory.CreateHeadless completed successfully - Service type: {ServiceType}", unifiedService.GetType().Name);
             return unifiedService;
@@ -133,77 +129,75 @@ internal static class DataGridServiceFactory
         logger?.LogInformation("[FACTORY] DataGridServiceFactory.CreateWithUI started - Creating UI-enabled service");
         try
         {
-            logger?.LogDebug("[FACTORY] Step 1: Creating DataGrid configuration for UI mode");
+            logger?.LogInformation("[FACTORY] Step 1: Creating DataGrid configuration for UI mode");
             
             // FIX: Create default UI configuration if UIConfiguration.Default doesn't exist
             DataGridConfiguration configuration;
             try 
             {
-                logger?.LogDebug("[FACTORY] Attempting to create DataGridConfiguration.ForUI with UIConfiguration.Default");
+                logger?.LogInformation("[FACTORY] Attempting to create DataGridConfiguration.ForUI with UIConfiguration.Default");
                 configuration = DataGridConfiguration.ForUI(UIConfiguration.Default);
-                logger?.LogDebug("[FACTORY] DataGridConfiguration.ForUI created successfully");
+                logger?.LogInformation("[FACTORY] DataGridConfiguration.ForUI created successfully");
             }
             catch (Exception configEx)
             {
                 logger?.LogWarning(configEx, "[FACTORY] UIConfiguration.Default failed, creating fallback configuration");
                 // Fallback: Create basic UI configuration using DataGridConfiguration.Default
                 configuration = DataGridConfiguration.Default;
-                logger?.LogDebug("[FACTORY] Created fallback DataGridConfiguration using Default settings");
+                logger?.LogWarning("[FACTORY] Created fallback DataGridConfiguration using Default settings");
             }
             
-            logger?.LogDebug("[FACTORY] Step 2: Creating specialized services");
+            logger?.LogInformation("[FACTORY] Step 2: Creating specialized services");
             
-            logger?.LogDebug("[FACTORY] Creating validation service");
+            logger?.LogInformation("[FACTORY] Creating validation service");
             var validationService = CreateValidationService(logger);
-            logger?.LogDebug("[FACTORY] Validation service created: {ServiceType}", validationService?.GetType()?.Name ?? "null");
+            logger?.LogInformation("[FACTORY] Validation service created: {ServiceType}", validationService?.GetType()?.Name ?? "null");
             
-            logger?.LogDebug("[FACTORY] Creating transformation service");
+            logger?.LogInformation("[FACTORY] Creating transformation service");
             var transformationService = CreateTransformationService(logger);
-            logger?.LogDebug("[FACTORY] Transformation service created: {ServiceType}", transformationService?.GetType()?.Name ?? "null");
+            logger?.LogInformation("[FACTORY] Transformation service created: {ServiceType}", transformationService?.GetType()?.Name ?? "null");
             
-            logger?.LogDebug("[FACTORY] Creating search service");
+            logger?.LogInformation("[FACTORY] Creating search service");
             var searchService = CreateSearchService(logger);
-            logger?.LogDebug("[FACTORY] Search service created: {ServiceType}", searchService?.GetType()?.Name ?? "null");
+            logger?.LogInformation("[FACTORY] Search service created: {ServiceType}", searchService?.GetType()?.Name ?? "null");
             
-            logger?.LogDebug("[FACTORY] Creating filter service");
+            logger?.LogInformation("[FACTORY] Creating filter service");
             var filterService = CreateFilterService(logger);
-            logger?.LogDebug("[FACTORY] Filter service created: {ServiceType}", filterService?.GetType()?.Name ?? "null");
+            logger?.LogInformation("[FACTORY] Filter service created: {ServiceType}", filterService?.GetType()?.Name ?? "null");
             
-            logger?.LogDebug("[FACTORY] Creating sort service");
+            logger?.LogInformation("[FACTORY] Creating sort service");
             var sortService = CreateSortService(logger);
-            logger?.LogDebug("[FACTORY] Sort service created: {ServiceType}", sortService?.GetType()?.Name ?? "null");
+            logger?.LogInformation("[FACTORY] Sort service created: {ServiceType}", sortService?.GetType()?.Name ?? "null");
 
-            logger?.LogDebug("[FACTORY] Step 3: Creating compound services");
+            logger?.LogInformation("[FACTORY] Step 3: Creating compound services");
             
-            logger?.LogDebug("[FACTORY] Creating state management service");
+            logger?.LogInformation("[FACTORY] Creating state management service");
             var stateService = new DataGridStateManagementService(configuration, CreateLogger<DataGridStateManagementService>(logger));
-            logger?.LogDebug("[FACTORY] State service created: {ServiceType}", stateService?.GetType()?.Name ?? "null");
+            logger?.LogInformation("[FACTORY] State service created: {ServiceType}", stateService?.GetType()?.Name ?? "null");
             
-            logger?.LogDebug("[FACTORY] Creating import/export service");
+            logger?.LogInformation("[FACTORY] Creating import/export service");
             var importExportService = new DataGridImportExportService(transformationService, validationService, CreateLogger<DataGridImportExportService>(logger));
-            logger?.LogDebug("[FACTORY] Import/Export service created: {ServiceType}", importExportService?.GetType()?.Name ?? "null");
+            logger?.LogInformation("[FACTORY] Import/Export service created: {ServiceType}", importExportService?.GetType()?.Name ?? "null");
             
-            logger?.LogDebug("[FACTORY] Creating search/filter service");
+            logger?.LogInformation("[FACTORY] Creating search/filter service");
             var searchFilterService = new DataGridSearchFilterService(searchService, filterService, sortService, CreateLogger<DataGridSearchFilterService>(logger));
-            logger?.LogDebug("[FACTORY] Search/Filter service created: {ServiceType}", searchFilterService?.GetType()?.Name ?? "null");
+            logger?.LogInformation("[FACTORY] Search/Filter service created: {ServiceType}", searchFilterService?.GetType()?.Name ?? "null");
             
-            logger?.LogDebug("[FACTORY] Creating row management service");
+            logger?.LogInformation("[FACTORY] Creating row management service");
             var rowManagementService = new DataGridRowManagementService(validationService, RowManagementConfiguration.Default, CreateLogger<DataGridRowManagementService>(logger));
-            logger?.LogDebug("[FACTORY] Row management service created: {ServiceType}", rowManagementService?.GetType()?.Name ?? "null");
+            logger?.LogInformation("[FACTORY] Row management service created: {ServiceType}", rowManagementService?.GetType()?.Name ?? "null");
             
-            logger?.LogDebug("[FACTORY] Creating clipboard service");
+            logger?.LogInformation("[FACTORY] Creating clipboard service");
             var clipboardService = CreateClipboardService(logger);
-            logger?.LogDebug("[FACTORY] Clipboard service created: {ServiceType}", clipboardService?.GetType()?.Name ?? "null");
+            logger?.LogInformation("[FACTORY] Clipboard service created: {ServiceType}", clipboardService?.GetType()?.Name ?? "null");
             
-            logger?.LogDebug("[FACTORY] Creating row height calculation service");
+            logger?.LogInformation("[FACTORY] Creating row height calculation service");
             var rowHeightCalculationService = CreateRowHeightCalculationService(logger);
-            logger?.LogDebug("[FACTORY] Row height service created: {ServiceType}", rowHeightCalculationService?.GetType()?.Name ?? "null");
+            logger?.LogInformation("[FACTORY] Row height service created: {ServiceType}", rowHeightCalculationService?.GetType()?.Name ?? "null");
 
-            logger?.LogDebug("[FACTORY] Step 4: Creating unified service with all dependencies");
-            var unifiedService = new DataGridUnifiedService(
-                stateService, importExportService, searchFilterService, rowManagementService, 
-                validationService, clipboardService, CreateLogger<DataGridUnifiedService>(logger));
-            logger?.LogDebug("[FACTORY] Unified service created: {ServiceType}", unifiedService?.GetType()?.Name ?? "null");
+            logger?.LogInformation("[FACTORY] Step 4: Creating unified service with all dependencies");
+            var unifiedService = new DataGridUnifiedService(CreateLogger<DataGridUnifiedService>(logger));
+            logger?.LogInformation("[FACTORY] Unified service created: {ServiceType}", unifiedService?.GetType()?.Name ?? "null");
 
             logger?.LogInformation("[FACTORY] DataGridServiceFactory.CreateWithUI completed successfully - Service type: {ServiceType}", unifiedService.GetType().Name);
             return unifiedService;
@@ -222,11 +216,11 @@ internal static class DataGridServiceFactory
 
     private static IDataGridValidationService CreateValidationService(ILogger? logger)
     {
-        logger?.LogDebug("[FACTORY-SUB] Creating DataGridValidationService");
+        logger?.LogInformation("[FACTORY-SUB] Creating DataGridValidationService");
         try
         {
             var service = new DataGridValidationService(CreateLogger<DataGridValidationService>(logger));
-            logger?.LogDebug("[FACTORY-SUB] DataGridValidationService created successfully");
+            logger?.LogInformation("[FACTORY-SUB] DataGridValidationService created successfully");
             return service;
         }
         catch (Exception ex)
@@ -238,11 +232,11 @@ internal static class DataGridServiceFactory
 
     private static IDataGridTransformationService CreateTransformationService(ILogger? logger)
     {
-        logger?.LogDebug("[FACTORY-SUB] Creating DataGridTransformationService");
+        logger?.LogInformation("[FACTORY-SUB] Creating DataGridTransformationService");
         try
         {
             var service = new Infrastructure.Persistence.DataGridTransformationService(CreateLogger<Infrastructure.Persistence.DataGridTransformationService>(logger));
-            logger?.LogDebug("[FACTORY-SUB] DataGridTransformationService created successfully");
+            logger?.LogInformation("[FACTORY-SUB] DataGridTransformationService created successfully");
             return service;
         }
         catch (Exception ex)
@@ -254,11 +248,11 @@ internal static class DataGridServiceFactory
 
     private static IDataGridSearchService CreateSearchService(ILogger? logger)
     {
-        logger?.LogDebug("[FACTORY-SUB] Creating DataGridSearchService");
+        logger?.LogInformation("[FACTORY-SUB] Creating DataGridSearchService");
         try
         {
             var service = new Infrastructure.Persistence.DataGridSearchService(CreateLogger<Infrastructure.Persistence.DataGridSearchService>(logger));
-            logger?.LogDebug("[FACTORY-SUB] DataGridSearchService created successfully");
+            logger?.LogInformation("[FACTORY-SUB] DataGridSearchService created successfully");
             return service;
         }
         catch (Exception ex)
@@ -304,7 +298,7 @@ internal static class DataGridServiceFactory
     {
         return componentLogger.ExecuteWithLogging(() =>
         {
-            componentLogger.LogDebug("Creating DataGrid configuration - UI Mode: {IsUIMode}", isUIMode);
+            componentLogger.LogInformation("Creating DataGrid configuration - UI Mode: {IsUIMode}", isUIMode);
             
             try 
             {
@@ -312,14 +306,14 @@ internal static class DataGridServiceFactory
                     DataGridConfiguration.ForUI(UIConfiguration.Default) : 
                     DataGridConfiguration.ForHeadless();
                     
-                componentLogger.LogDebug("Configuration created successfully - Type: {ConfigurationType}", configuration.GetType().Name);
+                componentLogger.LogInformation("Configuration created successfully - Type: {ConfigurationType}", configuration.GetType().Name);
                 return configuration;
             }
             catch (Exception ex)
             {
                 componentLogger.LogWarning("UIConfiguration.Default failed, creating fallback configuration - Error: {Error}", ex.Message);
                 var fallbackConfig = DataGridConfiguration.Default;
-                componentLogger.LogDebug("Created fallback configuration successfully");
+                componentLogger.LogWarning("Created fallback configuration successfully");
                 return fallbackConfig;
             }
         }, nameof(CreateConfigurationWithLogging));
@@ -332,9 +326,9 @@ internal static class DataGridServiceFactory
     {
         return componentLogger.ExecuteWithLogging(() =>
         {
-            componentLogger.LogDebug("Creating DataGridValidationService");
+            componentLogger.LogInformation("Creating DataGridValidationService");
             var service = new DataGridValidationService(CreateLogger<DataGridValidationService>(componentLogger));
-            componentLogger.LogDebug("DataGridValidationService created successfully");
+            componentLogger.LogInformation("DataGridValidationService created successfully");
             return service;
         }, nameof(CreateValidationServiceWithLogging));
     }
@@ -346,9 +340,9 @@ internal static class DataGridServiceFactory
     {
         return componentLogger.ExecuteWithLogging(() =>
         {
-            componentLogger.LogDebug("Creating DataGridTransformationService");
+            componentLogger.LogInformation("Creating DataGridTransformationService");
             var service = new Infrastructure.Persistence.DataGridTransformationService(CreateLogger<Infrastructure.Persistence.DataGridTransformationService>(componentLogger));
-            componentLogger.LogDebug("DataGridTransformationService created successfully");
+            componentLogger.LogInformation("DataGridTransformationService created successfully");
             return service;
         }, nameof(CreateTransformationServiceWithLogging));
     }
@@ -360,9 +354,9 @@ internal static class DataGridServiceFactory
     {
         return componentLogger.ExecuteWithLogging(() =>
         {
-            componentLogger.LogDebug("Creating DataGridSearchService");
+            componentLogger.LogInformation("Creating DataGridSearchService");
             var service = new Infrastructure.Persistence.DataGridSearchService(CreateLogger<Infrastructure.Persistence.DataGridSearchService>(componentLogger));
-            componentLogger.LogDebug("DataGridSearchService created successfully");
+            componentLogger.LogInformation("DataGridSearchService created successfully");
             return service;
         }, nameof(CreateSearchServiceWithLogging));
     }
@@ -374,9 +368,9 @@ internal static class DataGridServiceFactory
     {
         return componentLogger.ExecuteWithLogging(() =>
         {
-            componentLogger.LogDebug("Creating DataGridFilterService");
+            componentLogger.LogInformation("Creating DataGridFilterService");
             var service = new Infrastructure.Services.DataGridFilterService(CreateLogger<Infrastructure.Services.DataGridFilterService>(componentLogger));
-            componentLogger.LogDebug("DataGridFilterService created successfully");
+            componentLogger.LogInformation("DataGridFilterService created successfully");
             return service;
         }, nameof(CreateFilterServiceWithLogging));
     }
@@ -388,9 +382,9 @@ internal static class DataGridServiceFactory
     {
         return componentLogger.ExecuteWithLogging(() =>
         {
-            componentLogger.LogDebug("Creating DataGridSortService");
+            componentLogger.LogInformation("Creating DataGridSortService");
             var service = new Infrastructure.Services.DataGridSortService(CreateLogger<Infrastructure.Services.DataGridSortService>(componentLogger));
-            componentLogger.LogDebug("DataGridSortService created successfully");
+            componentLogger.LogInformation("DataGridSortService created successfully");
             return service;
         }, nameof(CreateSortServiceWithLogging));
     }
@@ -402,9 +396,9 @@ internal static class DataGridServiceFactory
     {
         return componentLogger.ExecuteWithLogging(() =>
         {
-            componentLogger.LogDebug("Creating ClipboardService");
+            componentLogger.LogInformation("Creating ClipboardService");
             var service = new ClipboardService(componentLogger._baseLogger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance);
-            componentLogger.LogDebug("ClipboardService created successfully");
+            componentLogger.LogInformation("ClipboardService created successfully");
             return service;
         }, nameof(CreateClipboardServiceWithLogging));
     }
@@ -416,9 +410,9 @@ internal static class DataGridServiceFactory
     {
         return componentLogger.ExecuteWithLogging(() =>
         {
-            componentLogger.LogDebug("Creating RowHeightCalculationService");
+            componentLogger.LogInformation("Creating RowHeightCalculationService");
             var service = new Infrastructure.Services.RowHeightCalculationService(CreateLogger<Infrastructure.Services.RowHeightCalculationService>(componentLogger));
-            componentLogger.LogDebug("RowHeightCalculationService created successfully");
+            componentLogger.LogInformation("RowHeightCalculationService created successfully");
             return service;
         }, nameof(CreateRowHeightCalculationServiceWithLogging));
     }

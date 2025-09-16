@@ -34,7 +34,7 @@ internal class DataGridApplicationService : IDisposable
         _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         
-        _logger.LogDebug("DataGridApplicationService initialized");
+        _logger.LogInformation("DataGridApplicationService initialized");
     }
 
     /// <summary>
@@ -81,7 +81,7 @@ internal class DataGridApplicationService : IDisposable
                 duration,
                 $"Operation {operationType} completed successfully");
             
-            _logger.LogDebug("Data operation {OperationType} completed in {Duration}ms", 
+            _logger.LogInformation("Data operation {OperationType} completed in {Duration}ms", 
                 operationType, duration.TotalMilliseconds);
             
             return await Task.FromResult(Result<DataOperationResult>.Success(result));
@@ -128,7 +128,7 @@ internal class DataGridApplicationService : IDisposable
             _validationService?.Dispose();
             _disposed = true;
             
-            _logger.LogDebug("DataGridApplicationService disposed");
+            _logger.LogInformation("DataGridApplicationService disposed");
         }
     }
 }

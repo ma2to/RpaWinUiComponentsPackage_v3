@@ -28,7 +28,7 @@ internal class DataGridValidationService : IDataGridValidationService
         _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
         _configuration = configuration ?? ValidationConfiguration.CreateDefault();
         
-        _logger.LogDebug("DataGridValidationService initialized");
+        _logger.LogInformation("DataGridValidationService initialized");
     }
 
     /// <summary>
@@ -275,7 +275,7 @@ internal class DataGridValidationService : IDataGridValidationService
         if (!_disposed)
         {
             _disposed = true;
-            _logger.LogDebug("DataGridValidationService disposed");
+            _logger.LogInformation("DataGridValidationService disposed");
         }
     }
 }
