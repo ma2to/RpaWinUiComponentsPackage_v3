@@ -1,16 +1,21 @@
+// PRIVATE: Internal type aliases - hidden from public IntelliSense
+global using IDataGridService = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services.IDataGridService;
+global using ComponentLogger = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Logging.ComponentLogger;
+global using ColumnDefinition = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core.ColumnDefinition;
+global using ColorConfiguration = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI.ColorConfiguration;
+global using ValidationConfiguration = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation.ValidationConfiguration;
+global using DataGridConfiguration = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration.DataGridConfiguration;
+global using LoggingOptions = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Logging.LoggingOptions;
+global using PerformanceConfiguration = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration.PerformanceConfiguration;
+global using DataGridAPI = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services.DataGridAPI;
+global using ColumnWidth = RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core.ColumnWidth;
+
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Application.Services;
-// No more PublicAPI.Internal - types are now directly in main namespace
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Logging;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Core;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.UI;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Validation;
-using RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.Domain.ValueObjects.Configuration;
+// Note: Generic Result<T> must be fully qualified to avoid exposing Internal namespace
 
 namespace RpaWinUiComponentsPackage.AdvancedWinUiDataGrid;
 
@@ -406,7 +411,7 @@ public sealed class AdvancedWinUiDataGrid : IDisposable
     /// <summary>
     /// SENIOR DEVELOPER: Map internal Result<bool> to public DataGridResult
     /// </summary>
-    private static DataGridResult MapResultToPublic(Result<bool> internalResult)
+    private static DataGridResult MapResultToPublic(RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results.Result<bool> internalResult)
     {
         if (internalResult.IsSuccess)
         {
@@ -421,7 +426,7 @@ public sealed class AdvancedWinUiDataGrid : IDisposable
     /// <summary>
     /// SENIOR DEVELOPER: Map internal export result to public result
     /// </summary>
-    private static DataGridResult<List<Dictionary<string, object?>>> MapExportResultToPublic(Result<List<Dictionary<string, object?>>> internalResult)
+    private static DataGridResult<List<Dictionary<string, object?>>> MapExportResultToPublic(RpaWinUiComponentsPackage.AdvancedWinUiDataGrid.Internal.SharedKernel.Results.Result<List<Dictionary<string, object?>>> internalResult)
     {
         if (internalResult.IsSuccess)
         {
